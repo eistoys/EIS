@@ -6,3 +6,4 @@ export const BASIS_POINTS_BASE = "10000";
 export const PROTOCOL_FEE_BASIS_POINTS = "1000";
 export const FRONTEND_FEE_BASIS_POINTS = "1000";
 export const ROYALTY_BASIS_POINTS = "2000";
+export const DISTRIBUTION_INCENTIVE = "100";

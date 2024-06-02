@@ -23,11 +23,10 @@ interface ISplitFactoryV2 {
 }
 
 contract EIS is ERC1155 {
-    event Created(uint256 indexed tokenId, address indexed creator);
-    event Remixed(
+    event Created(
         uint256 indexed tokenId,
         address indexed creator,
-        uint256[] indexed referenceTokenIds
+        Record record
     );
 
     struct Record {
@@ -40,6 +39,7 @@ contract EIS is ERC1155 {
     mapping(uint256 => Record) records;
 
     ISplitFactoryV2 public pullSplitFactory;
+    address public treasuryAddress;
 
     uint256 public tokenIdCounter;
     uint256 public fixedMintFee;
@@ -47,51 +47,59 @@ contract EIS is ERC1155 {
     uint256 public protocolFeeBasisPoints;
     uint256 public frontendFeeBasisPoints;
     uint256 public royaltyFeeBasisPoints;
+    uint16 public distributionIncentive;
 
     constructor(
-        address tresuryAddress,
         address pullSplitFactoryAddress,
+        address treasuryAddress_,
         uint256 fixedMintFee_,
         uint256 basisPointsBase_,
         uint256 protocolFeeBasisPoints_,
         uint256 frontendFeeBasisPoints_,
-        uint256 royaltyFeeBasisPoints_
+        uint256 royaltyFeeBasisPoints_,
+        uint16 distributionIncentive_
     ) ERC1155("") {
         pullSplitFactory = ISplitFactoryV2(pullSplitFactoryAddress);
+        treasuryAddress = treasuryAddress_;
         fixedMintFee = fixedMintFee_;
         basisPointsBase = basisPointsBase_;
         protocolFeeBasisPoints = protocolFeeBasisPoints_;
         frontendFeeBasisPoints = frontendFeeBasisPoints_;
         royaltyFeeBasisPoints = royaltyFeeBasisPoints_;
+        distributionIncentive = distributionIncentive_;
     }
 
     function create(bytes[] calldata image) public {
-        uint256 tokenId = tokenIdCounter;
-        tokenIdCounter++;
+        uint256 tokenId = tokenIdCounter++;
+        address creator = _msgSender();
+
         address[] memory imageChunks = _setImage(image);
+
+        address[] memory recipients = new address[](1);
+        recipients[0] = creator;
+
+        uint256[] memory allocations = new uint256[](1);
+        allocations[0] = basisPointsBase;
+
+        pullSplitFactory.createSplit(
+            Split({
+                recipients: recipients,
+                allocations: allocations,
+                totalAllocation: basisPointsBase,
+                distributionIncentive: distributionIncentive
+            }),
+            address(this),
+            creator
+        );
+
         records[tokenId] = Record({
-            creator: _msgSender(),
+            creator: creator,
             split: address(0),
             imageChunks: imageChunks,
             referenceTokenIds: new uint256[](0)
         });
-        emit Created(tokenId, _msgSender());
-    }
 
-    function remix(
-        bytes[] calldata image,
-        uint256[] memory referrenceTokenIds
-    ) public payable {
-        uint256 tokenId = tokenIdCounter;
-        tokenIdCounter++;
-        address[] memory imageChunks = _setImage(image);
-        records[tokenId] = Record({
-            creator: _msgSender(),
-            split: address(0),
-            imageChunks: imageChunks,
-            referenceTokenIds: referrenceTokenIds
-        });
-        emit Remixed(tokenId, _msgSender(), referrenceTokenIds);
+        emit Created(tokenId, _msgSender(), records[tokenId]);
     }
 
     function mint(
@@ -101,6 +109,23 @@ contract EIS is ERC1155 {
     ) public payable {
         uint256 totalMintFee = fixedMintFee * amount;
         require(msg.value >= totalMintFee, "EIS: insufficient total mint fee");
+
+        uint256 protocolFee = (totalMintFee * protocolFeeBasisPoints) /
+            basisPointsBase;
+        uint256 remainingFeeAfterProtocolFee = totalMintFee - protocolFee;
+
+        uint256 frontendFee = (remainingFeeAfterProtocolFee *
+            frontendFeeBasisPoints) / basisPointsBase;
+        uint256 remainingFeeAfterFrontendFee = remainingFeeAfterProtocolFee -
+            frontendFee;
+
+        if (frontendFeeRecipient == address(0x0)) {
+            payable(treasuryAddress).transfer(protocolFee + frontendFee);
+        } else {
+            payable(treasuryAddress).transfer(protocolFee);
+            payable(frontendFeeRecipient).transfer(frontendFee);
+        }
+
         _mint(_msgSender(), tokenId, amount, "");
     }
 

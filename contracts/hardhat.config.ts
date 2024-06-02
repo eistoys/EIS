@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 
@@ -6,8 +8,13 @@ const accounts = [process.env.PRIVATE_KEY || ""];
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
   networks: {
+    hardhat: {
+      forking: {
+        url: process.env.FORKING_RPC_URL || "",
+      },
+    },
     sepolia: {
-      url: "https://rpc.sepolia.org",
+      url: process.env.SEPOLIA_RPC_URL || "",
       accounts,
     },
   },
