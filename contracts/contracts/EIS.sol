@@ -7,56 +7,106 @@ import "solady/src/utils/SSTORE2.sol";
 import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/Base64.sol";
 
+struct Split {
+    address[] recipients;
+    uint256[] allocations;
+    uint256 totalAllocation;
+    uint16 distributionIncentive;
+}
+
+interface ISplitFactoryV2 {
+    function createSplit(
+        Split calldata _splitParams,
+        address _owner,
+        address _creator
+    ) external returns (address split);
+}
+
 contract EIS is ERC1155 {
     event Created(uint256 indexed tokenId, address indexed creator);
-    event Forked(
+    event Remixed(
         uint256 indexed tokenId,
         address indexed creator,
-        uint256 indexed referenceTokenId
+        uint256[] indexed referenceTokenIds
     );
 
-    mapping(uint256 => address[]) tokenIdToImageChunks;
-    mapping(uint256 => address) tokenIdToCreator;
-    mapping(uint256 => uint256) tokenIdToRefferenceTokenId;
+    struct Record {
+        address creator;
+        address split;
+        address[] imageChunks;
+        uint256[] referenceTokenIds;
+    }
+
+    mapping(uint256 => Record) records;
+
+    ISplitFactoryV2 public pullSplitFactory;
 
     uint256 public tokenIdCounter;
-    uint256 public createFee;
-    uint256 public forkFee;
-    uint256 public mintFee;
+    uint256 public fixedMintFee;
+    uint256 public basisPointsBase;
+    uint256 public protocolFeeBasisPoints;
+    uint256 public frontendFeeBasisPoints;
+    uint256 public royaltyFeeBasisPoints;
 
-    constructor() ERC1155("") {}
+    constructor(
+        address tresuryAddress,
+        address pullSplitFactoryAddress,
+        uint256 fixedMintFee_,
+        uint256 basisPointsBase_,
+        uint256 protocolFeeBasisPoints_,
+        uint256 frontendFeeBasisPoints_,
+        uint256 royaltyFeeBasisPoints_
+    ) ERC1155("") {
+        pullSplitFactory = ISplitFactoryV2(pullSplitFactoryAddress);
+        fixedMintFee = fixedMintFee_;
+        basisPointsBase = basisPointsBase_;
+        protocolFeeBasisPoints = protocolFeeBasisPoints_;
+        frontendFeeBasisPoints = frontendFeeBasisPoints_;
+        royaltyFeeBasisPoints = royaltyFeeBasisPoints_;
+    }
 
-    function create(bytes[] calldata image) public payable {
-        require(msg.value >= createFee, "EIS: insufficient create fee");
+    function create(bytes[] calldata image) public {
         uint256 tokenId = tokenIdCounter;
-        _setImage(tokenId, image);
-        tokenIdToCreator[tokenId] = _msgSender();
         tokenIdCounter++;
+        address[] memory imageChunks = _setImage(image);
+        records[tokenId] = Record({
+            creator: _msgSender(),
+            split: address(0),
+            imageChunks: imageChunks,
+            referenceTokenIds: new uint256[](0)
+        });
         emit Created(tokenId, _msgSender());
     }
 
-    function fork(
-        uint256 referrenceTokenId,
-        bytes[] calldata image
+    function remix(
+        bytes[] calldata image,
+        uint256[] memory referrenceTokenIds
     ) public payable {
-        require(msg.value >= forkFee, "EIS: insufficient fork fee");
         uint256 tokenId = tokenIdCounter;
-        _setImage(tokenId, image);
-        tokenIdToCreator[tokenId] = _msgSender();
-        tokenIdToRefferenceTokenId[tokenId] = referrenceTokenId;
         tokenIdCounter++;
-        emit Forked(tokenId, _msgSender(), referrenceTokenId);
+        address[] memory imageChunks = _setImage(image);
+        records[tokenId] = Record({
+            creator: _msgSender(),
+            split: address(0),
+            imageChunks: imageChunks,
+            referenceTokenIds: referrenceTokenIds
+        });
+        emit Remixed(tokenId, _msgSender(), referrenceTokenIds);
     }
 
-    function mint(uint256 tokenId, uint256 amount) public payable {
-        uint256 totalMintFee = mintFee * amount;
+    function mint(
+        uint256 tokenId,
+        uint256 amount,
+        address frontendFeeRecipient
+    ) public payable {
+        uint256 totalMintFee = fixedMintFee * amount;
         require(msg.value >= totalMintFee, "EIS: insufficient total mint fee");
         _mint(_msgSender(), tokenId, amount, "");
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
         require(
-            tokenIdToImageChunks[tokenId].length != 0,
+            records[tokenId].creator != address(0x0),
             "EIS: image doesn't exist"
         );
         return
@@ -82,11 +132,9 @@ contract EIS is ERC1155 {
 
     function loadRawImage(uint256 tokenId) public view returns (bytes memory) {
         bytes memory data;
-        for (uint8 i = 0; i < tokenIdToImageChunks[tokenId].length; i++) {
-            data = abi.encodePacked(
-                data,
-                SSTORE2.read(tokenIdToImageChunks[tokenId][i])
-            );
+        address[] memory imageChunks = records[tokenId].imageChunks;
+        for (uint8 i = 0; i < imageChunks.length; i++) {
+            data = abi.encodePacked(data, SSTORE2.read(imageChunks[i]));
         }
         return LibZip.flzDecompress(data);
     }
@@ -110,9 +158,13 @@ contract EIS is ERC1155 {
             );
     }
 
-    function _setImage(uint256 tokenId, bytes[] calldata image) internal {
+    function _setImage(
+        bytes[] calldata image
+    ) internal returns (address[] memory) {
+        address[] memory imageChunks = new address[](image.length);
         for (uint8 i = 0; i < image.length; i++) {
-            tokenIdToImageChunks[tokenId].push(SSTORE2.write(image[i]));
+            imageChunks[i] = (SSTORE2.write(image[i]));
         }
+        return imageChunks;
     }
 }

@@ -1,5 +1,14 @@
 import hre from "hardhat";
 import { toHex } from "viem";
+import {
+  BASIS_POINTS_BASE,
+  FIXED_MINT_FEE,
+  FRONTEND_FEE_BASIS_POINTS,
+  PROTOCOL_FEE_BASIS_POINTS,
+  PULL_SPLIT_FACTORY_ADDRESS,
+  ROYALTY_BASIS_POINTS,
+  TREASURY_ADDRESS,
+} from "../config";
 
 describe("EIP", function () {
   describe("Test", function () {
@@ -25,7 +34,15 @@ describe("EIP", function () {
 
       const svgHex = toHex(svg);
 
-      const eis = await hre.viem.deployContract("EIS");
+      const eis = await hre.viem.deployContract<string>("EIS", [
+        TREASURY_ADDRESS,
+        PULL_SPLIT_FACTORY_ADDRESS,
+        FIXED_MINT_FEE,
+        BASIS_POINTS_BASE,
+        PROTOCOL_FEE_BASIS_POINTS,
+        FRONTEND_FEE_BASIS_POINTS,
+        ROYALTY_BASIS_POINTS,
+      ]);
       console.log("EIS deployed to:", eis.address);
 
       console.log("svgHex", svgHex);
@@ -47,7 +64,13 @@ describe("EIP", function () {
       console.log("tokenURI", tokenURI);
 
       const amount = BigInt(1);
-      const mintTxHash = await eis.write.mint([createdTokenId, amount]);
+      const value = amount * BigInt(FIXED_MINT_FEE);
+      const mintTxHash = await eis.write.mint(
+        [createdTokenId, amount, TREASURY_ADDRESS],
+        {
+          value,
+        }
+      );
       await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
     });
   });
