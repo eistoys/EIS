@@ -73,15 +73,13 @@ contract EIS is ERC1155 {
         uint256 tokenId = tokenIdCounter++;
         address creator = _msgSender();
 
-        address[] memory imageChunks = _setImage(image);
-
         address[] memory recipients = new address[](1);
         recipients[0] = creator;
 
         uint256[] memory allocations = new uint256[](1);
         allocations[0] = basisPointsBase;
 
-        pullSplitFactory.createSplit(
+        address split = pullSplitFactory.createSplit(
             Split({
                 recipients: recipients,
                 allocations: allocations,
@@ -92,11 +90,71 @@ contract EIS is ERC1155 {
             creator
         );
 
+        address[] memory imageChunks = _setImage(image);
+
         records[tokenId] = Record({
             creator: creator,
-            split: address(0),
+            split: split,
             imageChunks: imageChunks,
             referenceTokenIds: new uint256[](0)
+        });
+
+        emit Created(tokenId, _msgSender(), records[tokenId]);
+    }
+
+    function remix(
+        bytes[] calldata image,
+        uint256[] memory referenceTokenIds,
+        uint256[] memory referenceAllocations
+    ) public {
+        uint256 tokenId = tokenIdCounter++;
+        address creator = _msgSender();
+
+        address[] memory recipients = new address[](
+            1 + referenceTokenIds.length
+        );
+        recipients[0] = creator;
+        for (uint8 i = 0; i < referenceTokenIds.length; i++) {
+            recipients[i + 1] = records[referenceTokenIds[i]].split;
+        }
+
+        uint256[] memory allocations = new uint256[](
+            1 + referenceAllocations.length
+        );
+
+        uint256 inputTotalAllocation;
+        for (uint8 i = 0; i < referenceAllocations.length; i++) {
+            inputTotalAllocation += referenceAllocations[i];
+        }
+
+        uint256 totalAllocation = (inputTotalAllocation * basisPointsBase) /
+            royaltyFeeBasisPoints;
+
+        uint256 creatorAllocation = totalAllocation - inputTotalAllocation;
+
+        allocations[0] = creatorAllocation;
+        for (uint8 i = 0; i < referenceAllocations.length; i++) {
+            allocations[i + 1] = referenceAllocations[i];
+        }
+
+        address split = pullSplitFactory.createSplit(
+            Split({
+                recipients: recipients,
+                allocations: allocations,
+                totalAllocation: totalAllocation,
+                distributionIncentive: distributionIncentive
+            }),
+            address(this),
+            creator
+        );
+
+        address[] memory imageChunks = _setImage(image);
+
+        records[tokenId] = Record({
+            creator: creator,
+            split: split,
+            imageChunks: imageChunks,
+            referenceTokenIds: referenceTokenIds
         });
 
         emit Created(tokenId, _msgSender(), records[tokenId]);
@@ -125,6 +183,7 @@ contract EIS is ERC1155 {
             payable(treasuryAddress).transfer(protocolFee);
             payable(frontendFeeRecipient).transfer(frontendFee);
         }
+        payable(records[tokenId].split).transfer(remainingFeeAfterFrontendFee);
 
         _mint(_msgSender(), tokenId, amount, "");
     }
