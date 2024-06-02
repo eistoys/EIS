@@ -8,10 +8,17 @@ import {
   FIXED_MINT_FEE,
   FRONTEND_FEE_BASIS_POINTS,
   PROTOCOL_FEE_BASIS_POINTS,
-  PULL_SPLIT_FACTORY_ADDRESS,
+  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
   ROYALTY_BASIS_POINTS,
+  SPLIT_NATIVE_TOKEN_ADDRESS,
   TREASURY_ADDRESS,
+  SPLIT_WAREHOUSE_ADDRESS,
 } from "../config";
+
+import { pullSplitAbi } from "./abis/PullSplit";
+import { splitsWarehouseAbi } from "./abis/SplitsWarehouse";
+
+import { getContract } from "viem";
 
 const svg = `
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
@@ -32,17 +39,23 @@ const svg = `
 const svgHex = toHex(svg);
 
 const getFixture = async () => {
-  const eis = await hre.viem.deployContract<string>("EIS", [
-    PULL_SPLIT_FACTORY_ADDRESS,
-    TREASURY_ADDRESS,
-    FIXED_MINT_FEE,
-    BASIS_POINTS_BASE,
-    PROTOCOL_FEE_BASIS_POINTS,
-    FRONTEND_FEE_BASIS_POINTS,
-    ROYALTY_BASIS_POINTS,
-    DISTRIBUTION_INCENTIVE,
-  ]);
-  return { eis };
+  const [creator, distributor] = await hre.viem.getWalletClients();
+
+  const eis = await hre.viem.deployContract(
+    "EIS",
+    [
+      SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
+      TREASURY_ADDRESS,
+      FIXED_MINT_FEE,
+      BASIS_POINTS_BASE,
+      PROTOCOL_FEE_BASIS_POINTS,
+      FRONTEND_FEE_BASIS_POINTS,
+      ROYALTY_BASIS_POINTS,
+      DISTRIBUTION_INCENTIVE,
+    ],
+    { client: creator }
+  );
+  return { creator, distributor, eis };
 };
 
 describe("EIP", function () {
@@ -93,8 +106,8 @@ describe("EIP", function () {
   });
 
   describe("Fee", function () {
-    it("Should work with non remixed asset", async function () {
-      const { eis } = await getFixture();
+    it.only("Should work with non remixed asset", async function () {
+      const { creator, distributor, eis } = await getFixture();
       const publicClient = await hre.viem.getPublicClient();
 
       const zipped = await eis.read.zip([svgHex]);
@@ -111,6 +124,41 @@ describe("EIP", function () {
         }
       );
       await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+
+      const [, splitAddress, splitParams] = await eis.read.records([
+        createdTokenId,
+      ]);
+
+      const pullSplit = getContract({
+        address: splitAddress,
+        abi: pullSplitAbi,
+        client: distributor,
+      });
+
+      await pullSplit.write.distribute([
+        splitParams,
+        SPLIT_NATIVE_TOKEN_ADDRESS,
+        distributor.account.address,
+      ]);
+
+      const splitsWarehouse = getContract({
+        address: SPLIT_WAREHOUSE_ADDRESS,
+        abi: splitsWarehouseAbi,
+        client: distributor,
+      });
+
+      const balanceOfCreatorBefore = await publicClient.getBalance({
+        address: creator.account.address,
+      });
+      console.log("balanceOfCreatorBefore", balanceOfCreatorBefore);
+      await splitsWarehouse.write.withdraw([
+        creator.account.address,
+        SPLIT_NATIVE_TOKEN_ADDRESS,
+      ]);
+      const balanceOfCreatorAfter = await publicClient.getBalance({
+        address: creator.account.address,
+      });
+      console.log("balanceOfCreatorAfter", balanceOfCreatorAfter);
     });
   });
 

@@ -7,20 +7,8 @@ import "solady/src/utils/SSTORE2.sol";
 import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/Base64.sol";
 
-struct Split {
-    address[] recipients;
-    uint256[] allocations;
-    uint256 totalAllocation;
-    uint16 distributionIncentive;
-}
-
-interface ISplitFactoryV2 {
-    function createSplit(
-        Split calldata _splitParams,
-        address _owner,
-        address _creator
-    ) external returns (address split);
-}
+import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
+import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 
 contract EIS is ERC1155 {
     event Created(
@@ -34,9 +22,10 @@ contract EIS is ERC1155 {
         address split;
         address[] imageChunks;
         uint256[] referenceTokenIds;
+        SplitV2Lib.Split splitParams;
     }
 
-    mapping(uint256 => Record) records;
+    mapping(uint256 => Record) public records;
 
     ISplitFactoryV2 public pullSplitFactory;
     address public treasuryAddress;
@@ -76,16 +65,20 @@ contract EIS is ERC1155 {
         address[] memory recipients = new address[](1);
         recipients[0] = creator;
 
+        uint256 totalAllocation = basisPointsBase;
+
         uint256[] memory allocations = new uint256[](1);
         allocations[0] = basisPointsBase;
 
+        SplitV2Lib.Split memory splitParams = SplitV2Lib.Split({
+            recipients: recipients,
+            allocations: allocations,
+            totalAllocation: totalAllocation,
+            distributionIncentive: distributionIncentive
+        });
+
         address split = pullSplitFactory.createSplit(
-            Split({
-                recipients: recipients,
-                allocations: allocations,
-                totalAllocation: basisPointsBase,
-                distributionIncentive: distributionIncentive
-            }),
+            splitParams,
             address(this),
             creator
         );
@@ -96,7 +89,8 @@ contract EIS is ERC1155 {
             creator: creator,
             split: split,
             imageChunks: imageChunks,
-            referenceTokenIds: new uint256[](0)
+            referenceTokenIds: new uint256[](0),
+            splitParams: splitParams
         });
 
         emit Created(tokenId, _msgSender(), records[tokenId]);
@@ -137,13 +131,15 @@ contract EIS is ERC1155 {
             allocations[i + 1] = referenceAllocations[i];
         }
 
+        SplitV2Lib.Split memory splitParams = SplitV2Lib.Split({
+            recipients: recipients,
+            allocations: allocations,
+            totalAllocation: totalAllocation,
+            distributionIncentive: distributionIncentive
+        });
+
         address split = pullSplitFactory.createSplit(
-            Split({
-                recipients: recipients,
-                allocations: allocations,
-                totalAllocation: totalAllocation,
-                distributionIncentive: distributionIncentive
-            }),
+            splitParams,
             address(this),
             creator
         );
@@ -154,7 +150,8 @@ contract EIS is ERC1155 {
             creator: creator,
             split: split,
             imageChunks: imageChunks,
-            referenceTokenIds: referenceTokenIds
+            referenceTokenIds: referenceTokenIds,
+            splitParams: splitParams
         });
 
         emit Created(tokenId, _msgSender(), records[tokenId]);
