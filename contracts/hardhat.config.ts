@@ -11,6 +11,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: process.env.FORKING_RPC_URL || "",
+        blockNumber: 6024710,
       },
     },
     sepolia: {

@@ -1,5 +1,7 @@
 import hre from "hardhat";
 import { toHex } from "viem";
+import { expect } from "chai";
+
 import {
   BASIS_POINTS_BASE,
   DISTRIBUTION_INCENTIVE,
@@ -11,12 +13,7 @@ import {
   TREASURY_ADDRESS,
 } from "../config";
 
-describe("EIP", function () {
-  describe("Test", function () {
-    it("Should work", async function () {
-      const publicClient = await hre.viem.getPublicClient();
-
-      const svg = `
+const svg = `
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
  <g>
   <title>Layer 1</title>
@@ -32,38 +29,78 @@ describe("EIP", function () {
  </g>
 </svg>
 `;
+const svgHex = toHex(svg);
 
-      const svgHex = toHex(svg);
+const getFixture = async () => {
+  const eis = await hre.viem.deployContract<string>("EIS", [
+    PULL_SPLIT_FACTORY_ADDRESS,
+    TREASURY_ADDRESS,
+    FIXED_MINT_FEE,
+    BASIS_POINTS_BASE,
+    PROTOCOL_FEE_BASIS_POINTS,
+    FRONTEND_FEE_BASIS_POINTS,
+    ROYALTY_BASIS_POINTS,
+    DISTRIBUTION_INCENTIVE,
+  ]);
+  return { eis };
+};
 
-      const eis = await hre.viem.deployContract<string>("EIS", [
-        PULL_SPLIT_FACTORY_ADDRESS,
-        TREASURY_ADDRESS,
-        FIXED_MINT_FEE,
-        BASIS_POINTS_BASE,
-        PROTOCOL_FEE_BASIS_POINTS,
-        FRONTEND_FEE_BASIS_POINTS,
-        ROYALTY_BASIS_POINTS,
-        DISTRIBUTION_INCENTIVE,
-      ]);
-      console.log("EIS deployed to:", eis.address);
+describe("EIP", function () {
+  describe("Deployment", function () {
+    it("Should work", async function () {
+      const { eis } = await getFixture();
+      expect(eis.address).not.to.be.undefined;
+    });
+  });
 
-      console.log("svgHex", svgHex);
+  describe("Zip", function () {
+    it("Should work", async function () {
+      const { eis } = await getFixture();
       const zipped = await eis.read.zip([svgHex]);
+      const unzipped = await eis.read.unzip([zipped]);
+      expect(unzipped).to.equal(svgHex);
+    });
+  });
 
-      console.log("zipped", zipped);
+  describe("Image", function () {
+    it("Should work", async function () {
+      const { eis } = await getFixture();
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = await eis.read.zip([svgHex]);
       const createTxHash = await eis.write.create([[zipped]]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
-
       const createdTokenId = BigInt(0);
-      const loaded = await eis.read.loadImage([createdTokenId]);
 
-      console.log("loaded", loaded);
+      const loadedImage = await eis.read.loadImage([createdTokenId]);
+
+      const decodedLoadedImage = Buffer.from(
+        loadedImage.split("data:image/svg+xml;base64,")[1],
+        "base64"
+      ).toString("utf-8");
+
+      expect(decodedLoadedImage).to.equal(svg);
 
       const erc4883Data = await eis.read.renderTokenById([createdTokenId]);
-      console.log("erc4883Data", erc4883Data);
+      expect(erc4883Data).to.equal(svg);
 
       const tokenURI = await eis.read.uri([createdTokenId]);
-      console.log("tokenURI", tokenURI);
+      const metadata = JSON.parse(
+        tokenURI.split("data:application/json;utf8,")[1]
+      );
+      expect(metadata.image).to.equal(loadedImage);
+    });
+  });
+
+  describe("Fee", function () {
+    it("Should work with non remixed asset", async function () {
+      const { eis } = await getFixture();
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = await eis.read.zip([svgHex]);
+      const createTxHash = await eis.write.create([[zipped]]);
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
 
       const amount = BigInt(1);
       const value = amount * BigInt(FIXED_MINT_FEE);
@@ -75,5 +112,39 @@ describe("EIP", function () {
       );
       await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
     });
+  });
+
+  it("Should work with remixed asset", async function () {
+    const { eis } = await getFixture();
+    const publicClient = await hre.viem.getPublicClient();
+
+    const zipped = await eis.read.zip([svgHex]);
+    const createTxHash1 = await eis.write.create([[zipped]]);
+    await publicClient.waitForTransactionReceipt({ hash: createTxHash1 });
+    const createdTokenId1 = BigInt(0);
+
+    const createTxHash2 = await eis.write.create([[zipped]]);
+    await publicClient.waitForTransactionReceipt({ hash: createTxHash2 });
+    const createdTokenId2 = BigInt(1);
+
+    const allocation1 = 100;
+    const allocation2 = 400;
+    const remixTxHash = await eis.write.remix([
+      [zipped],
+      [createdTokenId1, createdTokenId2],
+      [allocation1, allocation2],
+    ]);
+    await publicClient.waitForTransactionReceipt({ hash: remixTxHash });
+    const remixedTokenId = BigInt(2);
+
+    const amount = BigInt(1);
+    const value = amount * BigInt(FIXED_MINT_FEE);
+    const mintTxHash = await eis.write.mint(
+      [remixedTokenId, amount, TREASURY_ADDRESS],
+      {
+        value,
+      }
+    );
+    await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
   });
 });
