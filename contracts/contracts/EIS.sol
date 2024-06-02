@@ -112,19 +112,14 @@ contract EIS is ERC1155 {
             recipients[i + 1] = records[referenceTokenIds[i]].split;
         }
 
+        (
+            uint256 totalAllocation,
+            uint256 creatorAllocation
+        ) = getTotalAllocationAndCreatorAllocation(referenceAllocations);
+
         uint256[] memory allocations = new uint256[](
             1 + referenceAllocations.length
         );
-
-        uint256 inputTotalAllocation;
-        for (uint8 i = 0; i < referenceAllocations.length; i++) {
-            inputTotalAllocation += referenceAllocations[i];
-        }
-
-        uint256 totalAllocation = (inputTotalAllocation * basisPointsBase) /
-            royaltyFeeBasisPoints;
-
-        uint256 creatorAllocation = totalAllocation - inputTotalAllocation;
 
         allocations[0] = creatorAllocation;
         for (uint8 i = 0; i < referenceAllocations.length; i++) {
@@ -164,15 +159,11 @@ contract EIS is ERC1155 {
     ) public payable {
         uint256 totalMintFee = fixedMintFee * amount;
         require(msg.value >= totalMintFee, "EIS: insufficient total mint fee");
-
-        uint256 protocolFee = (totalMintFee * protocolFeeBasisPoints) /
-            basisPointsBase;
-        uint256 remainingFeeAfterProtocolFee = totalMintFee - protocolFee;
-
-        uint256 frontendFee = (remainingFeeAfterProtocolFee *
-            frontendFeeBasisPoints) / basisPointsBase;
-        uint256 remainingFeeAfterFrontendFee = remainingFeeAfterProtocolFee -
-            frontendFee;
+        (
+            uint256 protocolFee,
+            uint256 frontendFee,
+            uint256 remainingFeeAfterFrontendFee
+        ) = getDividedFeeFromTotalMintFee(totalMintFee);
 
         if (frontendFeeRecipient == address(0x0)) {
             payable(treasuryAddress).transfer(protocolFee + frontendFee);
@@ -209,6 +200,35 @@ contract EIS is ERC1155 {
 
     function zip(bytes memory data) public pure returns (bytes memory) {
         return abi.encodePacked(LibZip.flzCompress(data));
+    }
+
+    function getDividedFeeFromTotalMintFee(
+        uint256 totalMintFee
+    ) public view returns (uint256, uint256, uint256) {
+        uint256 protocolFee = (totalMintFee * protocolFeeBasisPoints) /
+            basisPointsBase;
+        uint256 remainingFeeAfterProtocolFee = totalMintFee - protocolFee;
+
+        uint256 frontendFee = (remainingFeeAfterProtocolFee *
+            frontendFeeBasisPoints) / basisPointsBase;
+        uint256 remainingFeeAfterFrontendFee = remainingFeeAfterProtocolFee -
+            frontendFee;
+        return (protocolFee, frontendFee, remainingFeeAfterFrontendFee);
+    }
+
+    function getTotalAllocationAndCreatorAllocation(
+        uint256[] memory referenceAllocations
+    ) public view returns (uint256, uint256) {
+        uint256 inputTotalAllocation;
+        for (uint8 i = 0; i < referenceAllocations.length; i++) {
+            inputTotalAllocation += referenceAllocations[i];
+        }
+
+        uint256 totalAllocation = (inputTotalAllocation * basisPointsBase) /
+            royaltyFeeBasisPoints;
+
+        uint256 creatorAllocation = totalAllocation - inputTotalAllocation;
+        return (totalAllocation, creatorAllocation);
     }
 
     function loadRawImage(uint256 tokenId) public view returns (bytes memory) {

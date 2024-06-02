@@ -13,12 +13,15 @@ import {
   SPLIT_NATIVE_TOKEN_ADDRESS,
   TREASURY_ADDRESS,
   SPLIT_WAREHOUSE_ADDRESS,
+  ZERO_ADDRESS,
 } from "../config";
 
 import { pullSplitAbi } from "./abis/PullSplit";
 import { splitsWarehouseAbi } from "./abis/SplitsWarehouse";
 
 import { getContract } from "viem";
+
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 const svg = `
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
@@ -41,20 +44,16 @@ const svgHex = toHex(svg);
 const getFixture = async () => {
   const [creator, distributor] = await hre.viem.getWalletClients();
 
-  const eis = await hre.viem.deployContract(
-    "EIS",
-    [
-      SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-      TREASURY_ADDRESS,
-      FIXED_MINT_FEE,
-      BASIS_POINTS_BASE,
-      PROTOCOL_FEE_BASIS_POINTS,
-      FRONTEND_FEE_BASIS_POINTS,
-      ROYALTY_BASIS_POINTS,
-      DISTRIBUTION_INCENTIVE,
-    ],
-    { client: creator }
-  );
+  const eis = await hre.viem.deployContract("EIS", [
+    SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
+    TREASURY_ADDRESS,
+    FIXED_MINT_FEE,
+    BASIS_POINTS_BASE,
+    PROTOCOL_FEE_BASIS_POINTS,
+    FRONTEND_FEE_BASIS_POINTS,
+    ROYALTY_BASIS_POINTS,
+    DISTRIBUTION_INCENTIVE,
+  ]);
   return { creator, distributor, eis };
 };
 
@@ -66,7 +65,7 @@ describe("EIP", function () {
     });
   });
 
-  describe("Zip", function () {
+  describe("View - Zip", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();
       const zipped = await eis.read.zip([svgHex]);
@@ -75,7 +74,7 @@ describe("EIP", function () {
     });
   });
 
-  describe("Image", function () {
+  describe("View - Image", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();
       const publicClient = await hre.viem.getPublicClient();
@@ -105,8 +104,81 @@ describe("EIP", function () {
     });
   });
 
-  describe("Fee", function () {
-    it.only("Should work with non remixed asset", async function () {
+  describe("View - Fee", function () {
+    it("Should work", async function () {
+      const { eis } = await getFixture();
+      const totalMintFee = 10000;
+      const [protocolFee, frontendFee, remainingFeeAfterFrontendFee] =
+        await eis.read.getDividedFeeFromTotalMintFee([totalMintFee]);
+      expect(protocolFee).to.equal(BigInt(1000));
+      expect(frontendFee).to.equal(BigInt(900));
+      expect(remainingFeeAfterFrontendFee).to.equal(BigInt(8100));
+    });
+  });
+
+  describe("View - Allocation", function () {
+    it("Should work", async function () {
+      const { eis } = await getFixture();
+      const allocations = [10000, 10000];
+      const [totalAllocation, creatorAllocation] =
+        await eis.read.getTotalAllocationAndCreatorAllocation([allocations]);
+      expect(totalAllocation).to.equal(BigInt(100000));
+      expect(creatorAllocation).to.equal(BigInt(80000));
+    });
+  });
+
+  describe("Fee without Splits", function () {
+    it("Should work without frontend fee", async function () {
+      const { eis } = await getFixture();
+
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = await eis.read.zip([svgHex]);
+      const createTxHash = await eis.write.create([[zipped]]);
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
+
+      const amount = BigInt(1);
+      const value = amount * BigInt(FIXED_MINT_FEE);
+      const mintTxHash = await eis.write.mint(
+        [createdTokenId, amount, ZERO_ADDRESS],
+        {
+          value,
+        }
+      );
+      await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+    });
+
+    it("Should work with frontend fee", async function () {
+      const { eis } = await getFixture();
+
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = await eis.read.zip([svgHex]);
+      const createTxHash = await eis.write.create([[zipped]]);
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
+
+      const amount = BigInt(1);
+      const value = amount * BigInt(FIXED_MINT_FEE);
+
+      const frontendFeeRecipientPrivateKey = generatePrivateKey();
+      const frontendFeeRecipient = privateKeyToAccount(
+        frontendFeeRecipientPrivateKey
+      );
+
+      const mintTxHash = await eis.write.mint(
+        [createdTokenId, amount, frontendFeeRecipient.address],
+        {
+          value,
+        }
+      );
+      await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+    });
+  });
+
+  describe("Fee with Splits", function () {
+    it("Should work with non remixed asset", async function () {
       const { creator, distributor, eis } = await getFixture();
       const publicClient = await hre.viem.getPublicClient();
 
@@ -118,7 +190,7 @@ describe("EIP", function () {
       const amount = BigInt(1);
       const value = amount * BigInt(FIXED_MINT_FEE);
       const mintTxHash = await eis.write.mint(
-        [createdTokenId, amount, TREASURY_ADDRESS],
+        [createdTokenId, amount, ZERO_ADDRESS],
         {
           value,
         }
@@ -163,11 +235,13 @@ describe("EIP", function () {
   });
 
   it("Should work with remixed asset", async function () {
-    const { eis } = await getFixture();
+    const { creator, distributor, eis } = await getFixture();
     const publicClient = await hre.viem.getPublicClient();
 
     const zipped = await eis.read.zip([svgHex]);
-    const createTxHash1 = await eis.write.create([[zipped]]);
+    const createTxHash1 = await eis.write.create([[zipped]], {
+      client: creator,
+    });
     await publicClient.waitForTransactionReceipt({ hash: createTxHash1 });
     const createdTokenId1 = BigInt(0);
 
@@ -188,11 +262,40 @@ describe("EIP", function () {
     const amount = BigInt(1);
     const value = amount * BigInt(FIXED_MINT_FEE);
     const mintTxHash = await eis.write.mint(
-      [remixedTokenId, amount, TREASURY_ADDRESS],
+      [remixedTokenId, amount, ZERO_ADDRESS],
       {
         value,
       }
     );
     await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+
+    // TODO: implment the rest of the test
+
+    const [, splitAddressForCreatedToken1, splitParamsForCreatedToken1] =
+      await eis.read.records([createdTokenId1]);
+
+    const [, splitAddressForCreatedToken2, splitParamsForCreatedToken2] =
+      await eis.read.records([createdTokenId2]);
+
+    const [, splitAddressForRemixedToken, splitParamsForRemixedToken] =
+      await eis.read.records([remixedTokenId]);
+
+    const pullSplitForCreatedToken1 = getContract({
+      address: splitAddressForCreatedToken1,
+      abi: pullSplitAbi,
+      client: distributor,
+    });
+
+    const pullSplitForCreatedToken2 = getContract({
+      address: splitAddressForCreatedToken2,
+      abi: pullSplitAbi,
+      client: distributor,
+    });
+
+    const pullSplitForRemixedToken = getContract({
+      address: splitAddressForRemixedToken,
+      abi: pullSplitAbi,
+      client: distributor,
+    });
   });
 });
