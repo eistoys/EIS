@@ -9,8 +9,22 @@ const roboto = Roboto({
 
 export const metadata: Metadata = {
   title: "Ethereum Image Service",
-  description:
-    "Ethereum Image Service is a collaborative hypercanvas where infinite creativity blooms.",
+  description: "Ethereum Image Service is an Infinite Remixable CC0 Garden.",
+  openGraph: {
+    title: "Ethereum Image Service",
+    description: "Ethereum Image Service is an Infinite Remixable CC0 Garden.",
+    url: "https://eis.toys/",
+    siteName: "Ethereum Image Service",
+    images: [
+      {
+        url: "https://eis.toys/assets/ogp.png",
+        width: 800,
+        height: 420,
+        alt: "Ethereum Image Service",
+      },
+    ],
+    type: "website",
+  },
 };
 
 export default function RootLayout({
