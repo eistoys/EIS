@@ -1,6 +1,6 @@
-import { Header } from "@/components/Header";
+"use client";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <div>
       <div className="flex flex-col justify-center items-center">
@@ -26,7 +26,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
         <div className="mt-16 text-4xl tracking-wide text-center text-white leading-[58px] max-md:mt-10 max-md:max-w-full max-md:text-2xl max-md:leading-[36px]">
           Ethereum Image Service is a collaborative hypercanvas
           <br />

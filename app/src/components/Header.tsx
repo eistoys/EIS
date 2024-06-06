@@ -1,3 +1,5 @@
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+
 export const Header = () => {
   return (
     <div className="flex gap-5 justify-between self-stretch px-20 py-3.5 w-full text-lg tracking-wide whitespace-nowrap border-b border-solid border-zinc-600 max-md:flex-wrap max-md:px-5 max-md:max-w-full">
@@ -20,9 +22,11 @@ export const Header = () => {
             <div>CREATE</div>
           </div>
         </div>
-        <div className="justify-center self-start py-3 px-4 border-2 border-solid border-zinc-500 rounded-[100px] max-md:px-5">
-          CONNECT
-        </div>
+        <ConnectButton
+          accountStatus="full"
+          chainStatus="none"
+          showBalance={false}
+        />
       </div>
     </div>
   );
