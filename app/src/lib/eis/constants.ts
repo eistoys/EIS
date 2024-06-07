@@ -1,0 +1,1 @@
+export const EIS_ADDRESS = "0x1d1d69c929ba3a8598ac090df59905265f9353c0";
