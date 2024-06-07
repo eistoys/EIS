@@ -24,10 +24,16 @@ const handleRequest = frames(async (ctx) => {
     buttons: [
       <Button
         action="tx"
-        target={{ pathname: "../../txdata", query: { tokenId } }}
+        target={{ pathname: "/txdata", query: { tokenId } }}
         post_url={`/${tokenId}`}
       >
         MINT
+      </Button>,
+      <Button
+        action="link"
+        target={`https://eis.toys/create?tokenId=${tokenId}`}
+      >
+        REMIX
       </Button>,
     ],
   };
