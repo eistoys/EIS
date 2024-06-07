@@ -19,26 +19,30 @@ export default function CreatePage() {
           />
           <div className="flex flex-col justify-center px-16 py-5 text-lg tracking-wide whitespace-nowrap border-t border-solid border-zinc-600 max-md:px-5 max-md:max-w-full">
             <div className="flex gap-5 justify-between pr-20 mr-7 ml-8 max-w-full w-[1434px] max-md:flex-wrap max-md:pr-5 max-md:mr-2.5">
-              <div className="justify-center p-3 font-medium border-2 border-solid border-zinc-500 leading-[100%] rounded-[100px] text-zinc-500 max-md:px-5">
-                BACK
-              </div>
-              <div className="flex flex-col justify-center self-start p-3 font-extrabold text-green-500 bg-green-900 border-2 border-green-500 border-solid leading-[89%] rounded-[100px]">
-                <div className="flex gap-2.5 justify-center px-2.5">
+              <button
+                type="button"
+                className="py-2.5 px-5 me-2 mb-2 text-sm text-gray-900 focus:outline-none bg-white rounded-full border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 focus:ring-gray-700 bg-gray-800 text-gray-400 border-gray-600 hover:text-white hover:bg-gray-700 font-bold"
+              >
+                Back
+              </button>
+
+              {/* <div className="flex flex-col justify-center self-start p-3 font-extrabold text-green-500 bg-green-900 border-2 border-green-500 border-solid leading-[89%] rounded-[100px]"> */}
+              {/* <div className="flex gap-2.5 justify-center px-2.5">
                   <img
                     loading="lazy"
                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/87afd48c5981c21011d57836bf22bd2d3081ccbb548daba1c72162176ee9786f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
                     className="shrink-0 self-start border-2 border-green-500 border-solid aspect-[1.28] stroke-[2px] stroke-green-500 w-[18px]"
-                  />
-                  <div
-                    className="cursor-pointer"
-                    onClick={() => {
-                      setMode("info");
-                    }}
-                  >
-                    CREATE
-                  </div>
-                </div>
+                  /> */}
+              <div
+                className="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 focus:ring-green-800 font-bold rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2"
+                onClick={() => {
+                  setMode("info");
+                }}
+              >
+                CREATE
               </div>
+              {/* </div> */}
+              {/* </div> */}
             </div>
           </div>
         </div>
@@ -84,9 +88,14 @@ export default function CreatePage() {
                 <div className="text-lg font-bold tracking-wide leading-5 text-red-600 max-md:max-w-full">
                   TITLE<span className="text-red-600">*</span>
                 </div>
-                <div className="justify-center px-5 py-2.5 mt-2.5 text-base tracking-wide leading-5 text-white rounded-xl border border-solid border-zinc-500 max-md:max-w-full">
-                  This piece delves into the therapeutic role
-                </div>
+                <input
+                  type="text"
+                  id="first_name"
+                  className="mt-4 bg-gray-50 border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="John"
+                  required
+                />
+
                 <div className="mt-5 text-lg font-bold tracking-wide leading-5 text-white max-md:max-w-full">
                   DESCRIPTION{" "}
                   <span className="text-base font-medium">(Optional)</span>
