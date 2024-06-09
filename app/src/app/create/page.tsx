@@ -224,7 +224,7 @@ function CreatePage() {
                 <div className="text-lg font-bold tracking-wider text-white">
                   PRICE
                 </div>
-                <div
+                {/* <div
                   className="underline tracking-wider text-white cursor-pointer"
                   onClick={() => {
                     setPrice("0.00069");
@@ -232,17 +232,18 @@ function CreatePage() {
                   }}
                 >
                   Reset
-                </div>
+                </div> */}
               </div>
               <div className="relative mb-6">
                 <input
                   type="text"
                   className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
                   required
+                  disabled
                   value={price}
-                  onChange={(e) =>
-                    setPrice(e.target.value.replace(/[^0-9.]/g, ""))
-                  }
+                  // onChange={(e) =>
+                  //   setPrice(e.target.value.replace(/[^0-9.]/g, ""))
+                  // }
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                   <span className="text-white">ETH</span>
@@ -255,19 +256,19 @@ function CreatePage() {
                 <button
                   type="button"
                   className="absolute left-0 text-white w-12 h-12"
-                  onClick={() => {
-                    setSupply((prev) => {
-                      if (prev === "∞") {
-                        return "0";
-                      } else {
-                        const num = parseFloat(prev);
-                        if (num === 0) {
-                          return "0";
-                        }
-                        return (num + -1).toString();
-                      }
-                    });
-                  }}
+                  // onClick={() => {
+                  //   setSupply((prev) => {
+                  //     if (prev === "∞") {
+                  //       return "0";
+                  //     } else {
+                  //       const num = parseFloat(prev);
+                  //       if (num === 0) {
+                  //         return "0";
+                  //       }
+                  //       return (num + -1).toString();
+                  //     }
+                  //   });
+                  // }}
                 >
                   -
                 </button>
@@ -275,24 +276,25 @@ function CreatePage() {
                   type="text"
                   className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
                   required
+                  disabled
                   value={supply}
-                  onChange={(e) =>
-                    setSupply(e.target.value.replace(/[^0-9.∞]/g, ""))
-                  }
+                  // onChange={(e) =>
+                  //   setSupply(e.target.value.replace(/[^0-9.∞]/g, ""))
+                  // }
                 />
                 <button
                   type="button"
                   className="absolute right-0 text-white w-12 h-12"
-                  onClick={() => {
-                    setSupply((prev) => {
-                      if (prev === "∞") {
-                        return "0";
-                      } else {
-                        const num = parseFloat(prev);
-                        return (num + 1).toString();
-                      }
-                    });
-                  }}
+                  // onClick={() => {
+                  //   setSupply((prev) => {
+                  //     if (prev === "∞") {
+                  //       return "0";
+                  //     } else {
+                  //       const num = parseFloat(prev);
+                  //       return (num + 1).toString();
+                  //     }
+                  //   });
+                  // }}
                 >
                   +
                 </button>
@@ -311,10 +313,10 @@ function CreatePage() {
                   onChange={(e) => setIsLicenseChecked(e.target.checked)}
                 />
                 <div className="text-lg tracking-wide text-white mr-2">CC0</div>
-                <FaRegQuestionCircle
+                {/* <FaRegQuestionCircle
                   className="text-gray-500 cursor-pointer"
                   size="12"
-                />
+                /> */}
               </div>
             </div>
           </div>
