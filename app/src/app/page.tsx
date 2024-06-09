@@ -29,9 +29,7 @@ export default function Home() {
           </div>
         </div>
         <div className="mt-16 text-4xl tracking-wide text-center text-white leading-[58px] max-md:mt-10 max-md:max-w-full max-md:text-2xl max-md:leading-[36px] mb-12">
-          Ethereum Image Service is a collaborative hypercanvas
-          <br />
-          where infinite creativity blooms.
+          Ethereum Image Service is an Infinite Remixable CC0 Garden.
         </div>
         <Link href="/create">
           <button className="w-96 text-xl px-4 py-2 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
