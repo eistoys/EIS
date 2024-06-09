@@ -35,7 +35,7 @@ const handleRequest = frames(async (ctx) => {
 
   return {
     image: (
-      <div tw="flex bg-neutral-800">
+      <div tw="flex bg-neutral-800 rounded-xl">
         <div tw="flex w-6/12 p-8 my-auto">
           <img
             loading="lazy"

@@ -20,6 +20,8 @@ contract EIS is ERC1155 {
     struct Record {
         address creator;
         address split;
+        string name;
+        string description;
         address[] imageChunks;
         uint256[] referenceTokenIds;
         SplitV2Lib.Split splitParams;
@@ -58,7 +60,11 @@ contract EIS is ERC1155 {
         distributionIncentive = distributionIncentive_;
     }
 
-    function create(bytes[] calldata image) public {
+    function create(
+        string memory name,
+        string memory description,
+        bytes[] calldata image
+    ) public {
         uint256 tokenId = tokenIdCounter++;
         address creator = _msgSender();
 
@@ -83,12 +89,12 @@ contract EIS is ERC1155 {
             creator
         );
 
-        address[] memory imageChunks = _setImage(image);
-
         records[tokenId] = Record({
             creator: creator,
             split: split,
-            imageChunks: imageChunks,
+            name: name,
+            description: description,
+            imageChunks: _setImage(image),
             referenceTokenIds: new uint256[](0),
             splitParams: splitParams
         });
@@ -97,6 +103,8 @@ contract EIS is ERC1155 {
     }
 
     function remix(
+        string memory name,
+        string memory description,
         bytes[] calldata image,
         uint256[] memory referenceTokenIds,
         uint256[] memory referenceAllocations
@@ -139,12 +147,12 @@ contract EIS is ERC1155 {
             creator
         );
 
-        address[] memory imageChunks = _setImage(image);
-
         records[tokenId] = Record({
             creator: creator,
             split: split,
-            imageChunks: imageChunks,
+            name: name,
+            description: description,
+            imageChunks: _setImage(image),
             referenceTokenIds: referenceTokenIds,
             splitParams: splitParams
         });
@@ -177,17 +185,16 @@ contract EIS is ERC1155 {
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
-        require(
-            records[tokenId].creator != address(0x0),
-            "EIS: image doesn't exist"
-        );
+        Record memory record = records[tokenId];
+        require(record.creator != address(0x0), "EIS: image doesn't exist");
         return
             string(
                 abi.encodePacked(
                     "data:application/json;utf8,{",
-                    '"name": "Test SVG NFT"',
-                    ', "description": "This is test SVG NFT"',
-                    ', "image": "',
+                    '"name": "',
+                    record.name,
+                    '", "description": "',
+                    '", "image": "',
                     loadImage(tokenId),
                     '"}'
                 )

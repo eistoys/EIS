@@ -23,6 +23,9 @@ import { getContract } from "viem";
 
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
+const name = "name";
+const description = "description";
+
 const svg = `
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
  <g>
@@ -43,7 +46,6 @@ const svgHex = toHex(svg);
 
 const getFixture = async () => {
   const [creator, distributor] = await hre.viem.getWalletClients();
-
   const eis = await hre.viem.deployContract("EIS", [
     SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
     TREASURY_ADDRESS,
@@ -80,7 +82,11 @@ describe("EIP", function () {
       const publicClient = await hre.viem.getPublicClient();
 
       const zipped = await eis.read.zip([svgHex]);
-      const createTxHash = await eis.write.create([[zipped]]);
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        [zipped],
+      ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
 
@@ -107,23 +113,23 @@ describe("EIP", function () {
   describe("View - Fee", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();
-      const totalMintFee = 10000;
+      const totalMintFee = BigInt("10000");
       const [protocolFee, frontendFee, remainingFeeAfterFrontendFee] =
         await eis.read.getDividedFeeFromTotalMintFee([totalMintFee]);
-      expect(protocolFee).to.equal(BigInt(1000));
-      expect(frontendFee).to.equal(BigInt(900));
-      expect(remainingFeeAfterFrontendFee).to.equal(BigInt(8100));
+      expect(protocolFee).to.equal(BigInt("1000"));
+      expect(frontendFee).to.equal(BigInt("900"));
+      expect(remainingFeeAfterFrontendFee).to.equal(BigInt("8100"));
     });
   });
 
   describe("View - Allocation", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();
-      const allocations = [10000, 10000];
+      const allocations = [BigInt("10000"), BigInt("10000")];
       const [totalAllocation, creatorAllocation] =
         await eis.read.getTotalAllocationAndCreatorAllocation([allocations]);
-      expect(totalAllocation).to.equal(BigInt(100000));
-      expect(creatorAllocation).to.equal(BigInt(80000));
+      expect(totalAllocation).to.equal(BigInt("100000"));
+      expect(creatorAllocation).to.equal(BigInt("80000"));
     });
   });
 
@@ -134,7 +140,11 @@ describe("EIP", function () {
       const publicClient = await hre.viem.getPublicClient();
 
       const zipped = await eis.read.zip([svgHex]);
-      const createTxHash = await eis.write.create([[zipped]]);
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        [zipped],
+      ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
 
@@ -155,7 +165,11 @@ describe("EIP", function () {
       const publicClient = await hre.viem.getPublicClient();
 
       const zipped = await eis.read.zip([svgHex]);
-      const createTxHash = await eis.write.create([[zipped]]);
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        [zipped],
+      ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
 
@@ -183,12 +197,16 @@ describe("EIP", function () {
       const publicClient = await hre.viem.getPublicClient();
 
       const zipped = await eis.read.zip([svgHex]);
-      const createTxHash = await eis.write.create([[zipped]]);
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        [zipped],
+      ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
 
       const amount = BigInt(1);
-      const value = amount * BigInt(FIXED_MINT_FEE);
+      const value = amount * FIXED_MINT_FEE;
       const mintTxHash = await eis.write.mint(
         [createdTokenId, amount, ZERO_ADDRESS],
         {
@@ -197,7 +215,7 @@ describe("EIP", function () {
       );
       await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
 
-      const [, splitAddress, splitParams] = await eis.read.records([
+      const [, splitAddress, , , splitParams] = await eis.read.records([
         createdTokenId,
       ]);
 
@@ -239,19 +257,19 @@ describe("EIP", function () {
     const publicClient = await hre.viem.getPublicClient();
 
     const zipped = await eis.read.zip([svgHex]);
-    const createTxHash1 = await eis.write.create([[zipped]], {
-      client: creator,
-    });
+    const createTxHash1 = await eis.write.create([name, description, [zipped]]);
     await publicClient.waitForTransactionReceipt({ hash: createTxHash1 });
     const createdTokenId1 = BigInt(0);
 
-    const createTxHash2 = await eis.write.create([[zipped]]);
+    const createTxHash2 = await eis.write.create([name, description, [zipped]]);
     await publicClient.waitForTransactionReceipt({ hash: createTxHash2 });
     const createdTokenId2 = BigInt(1);
 
-    const allocation1 = 100;
-    const allocation2 = 400;
+    const allocation1 = BigInt("100");
+    const allocation2 = BigInt("400");
     const remixTxHash = await eis.write.remix([
+      name,
+      description,
       [zipped],
       [createdTokenId1, createdTokenId2],
       [allocation1, allocation2],
