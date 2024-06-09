@@ -148,6 +148,22 @@ export const eisAbi = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "length",
+        type: "uint256",
+      },
+    ],
+    name: "StringsInsufficientHexLength",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {

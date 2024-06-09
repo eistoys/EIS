@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "solady/src/utils/SSTORE2.sol";
 import "solady/src/utils/LibZip.sol";
@@ -194,6 +195,9 @@ contract EIS is ERC1155 {
                     '"name": "',
                     record.name,
                     '", "description": "',
+                    record.description,
+                    '", "creator": "',
+                    Strings.toHexString(record.creator),
                     '", "image": "',
                     loadImage(tokenId),
                     '"}'

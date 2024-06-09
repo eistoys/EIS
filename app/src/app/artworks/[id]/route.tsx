@@ -5,6 +5,7 @@ import { readContract } from "@wagmi/core";
 import { wagmiConfig } from "@/lib/wagmi";
 import { eisAbi } from "@/lib/eis/abi";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
+import { truncateString } from "@/lib/utils";
 
 export const runtime = "edge";
 
@@ -22,39 +23,35 @@ const handleRequest = frames(async (ctx) => {
   ]);
 
   const tokenId = ctx.url.pathname.split("/").pop();
-  console.log("tokenId", tokenId);
+  if (!tokenId) {
+    throw new Error("Token ID not defined");
+  }
 
-  const image = await readContract(wagmiConfig, {
+  const uri = await readContract(wagmiConfig, {
     address: EIS_ADDRESS,
     abi: eisAbi,
-    functionName: "loadImage",
-    args: [tokenId],
+    functionName: "uri",
+    args: [BigInt(tokenId)],
   });
 
-  console.log(image);
+  const metadata = JSON.parse(uri.split("data:application/json;utf8,")[1]);
 
   return {
     image: (
       <div tw="flex bg-neutral-800 rounded-xl">
         <div tw="flex w-6/12 p-8 my-auto">
-          <img
-            loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/eceeae9e998c00c77f9c55f79f09b4a51381bfc1621f3a0f1a40136df5f2e09f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-          />
+          <img src={metadata.image} tw="bg-white rounded-xl" />
         </div>
         <div tw="flex flex-col w-6/12 py-20 pr-12">
           <div tw="flex flex-col text-xs text-white h-full">
             <div tw="text-[2.625rem] font-bold">
-              TITLE TITLE TITLE TITLE TITLE
+              {truncateString(metadata.name, 20)}
             </div>
-            <div tw="mt-4 text-2xl text-zinc-400">yamadatarou.eth</div>
+            <div tw="mt-4 text-2xl text-zinc-400">{metadata.creator}</div>
             <div tw="mt-4 text-2xl leading-8">
-              This piece delves into the therapeutic role of art in our lives.
-              It highlights how art can transport us to places of calmness and
-              tranquillity, symbolized by nature and water, providing a reprieve
-              from the chaos of daily city life.
+              {truncateString(metadata.description, 200)}
             </div>
-            <div tw="mt-auto text-2xl font-bold">0.00069 ETH</div>
+            <div tw="mt-auto text-3xl font-bold">0.00069 ETH</div>
           </div>
         </div>
       </div>
@@ -69,7 +66,7 @@ const handleRequest = frames(async (ctx) => {
       </Button>,
       <Button
         action="link"
-        target={`https://eis.toys/create?tokenId=${tokenId}`}
+        target={`https://eis.toys/create?referenceTokenId=${tokenId}`}
       >
         REMIX
       </Button>,

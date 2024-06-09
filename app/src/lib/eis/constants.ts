@@ -1,1 +1,1 @@
-export const EIS_ADDRESS = "0x51370e05f8f61875c7f41bcd181e8d8660ef4af8";
+export const EIS_ADDRESS = "0xaf62f4b8f0677069bf89be5cc9aa598ece308fce";

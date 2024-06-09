@@ -1,16 +1,13 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
-
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
-
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { readContract } from "@wagmi/core";
-
-import { encodeSVGToDataURL } from "@/lib/svg";
+import { encodeSVGToDataURL } from "@/lib/utils";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
 import { eisAbi } from "@/lib/eis/abi";
 import { toHex } from "viem";
@@ -18,14 +15,14 @@ import { toHex } from "viem";
 import { wagmiConfig } from "@/lib/wagmi";
 
 export default function CreatePage() {
+  const searchParams = useSearchParams();
+  const referenceTokenId = searchParams.get("referenceTokenId");
   const { width, height } = useWindowSize();
-
   const { data: hash, writeContract, reset, error } = useWriteContract();
-
   const { data } = useWaitForTransactionReceipt({
     hash,
   });
-
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [mode, setMode] = useState<"image" | "info">("image");
   const [modalMode, setModalMode] = useState<"loading" | "created">("loading");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,12 +33,35 @@ export default function CreatePage() {
   const [supply, setSupply] = useState("∞");
 
   const [image, setImage] = useState("");
+  const [createdTokenId, setCreatedTokenId] = useState("");
   const imageDataURL = useMemo(() => {
     if (!image) {
       return "";
     }
     return encodeSVGToDataURL(image);
   }, [image]);
+
+  useEffect(() => {
+    if (!referenceTokenId) {
+      setImageLoaded(true);
+      return;
+    }
+    readContract(wagmiConfig, {
+      address: EIS_ADDRESS,
+      abi: eisAbi,
+      functionName: "renderTokenById",
+      args: [BigInt(referenceTokenId)],
+    })
+      .then((data) => {
+        if (data) {
+          window.localStorage.setItem("md-canvasContent", data);
+        }
+        setImageLoaded(true);
+      })
+      .catch(() => {
+        setImageLoaded(true);
+      });
+  }, [referenceTokenId]);
 
   useEffect(() => {
     if (!error) {
@@ -69,7 +89,7 @@ export default function CreatePage() {
       return;
     }
     const tokenId = parseInt(tokenIdHex, 16);
-    console.log("tokenId", tokenId);
+    setCreatedTokenId(tokenId.toString());
     setModalMode("created");
   }, [data]);
 
@@ -88,28 +108,33 @@ export default function CreatePage() {
     <>
       {mode === "image" && (
         <div className="flex flex-col flex-grow">
-          <iframe
-            id="svg-editor-iframe"
-            src="/editor/index.html"
-            className="flex-grow"
-            style={{ border: "none" }}
-          />
-          <div className="flex justify-end py-4 px-8">
-            <button
-              type="button"
-              className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
-              onClick={() => {
-                const image = window.localStorage.getItem("md-canvasContent");
-                if (!image) {
-                  throw new Error("Image not set");
-                }
-                setImage(image);
-                setMode("info");
-              }}
-            >
-              COMPLETE
-            </button>
-          </div>
+          {imageLoaded && (
+            <>
+              <iframe
+                id="svg-editor-iframe"
+                src="/editor/index.html"
+                className="flex-grow"
+                style={{ border: "none" }}
+              />
+              <div className="flex justify-end py-4 px-8">
+                <button
+                  type="button"
+                  className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
+                  onClick={() => {
+                    const image =
+                      window.localStorage.getItem("md-canvasContent");
+                    if (!image) {
+                      throw new Error("Image not set");
+                    }
+                    setImage(image);
+                    setMode("info");
+                  }}
+                >
+                  COMPLETE
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
       {mode === "info" && (
@@ -341,7 +366,16 @@ export default function CreatePage() {
                   >
                     OK
                   </button>
-                  <button className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
+
+                  <button
+                    className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                    onClick={() => {
+                      window.open(
+                        `https://warpcast.com/~/compose?text=Check%20out%20the%20image%20created%20in%20@eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}`,
+                        "_blank"
+                      );
+                    }}
+                  >
                     <img
                       loading="lazy"
                       src="https://cdn.builder.io/api/v1/image/assets/TEMP/2ba240d0e724425be2b041267b06998427ee6b477e1e5c751c1cda26a12580b1?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
