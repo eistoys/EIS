@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 
+import useWindowSize from "react-use/lib/useWindowSize";
+import Confetti from "react-confetti";
+
 export default function CreatePage() {
+  const { width, height } = useWindowSize();
+
   const [mode, setMode] = useState<"image" | "info">("image");
   const [modalMode, setModalMode] = useState<"loading" | "created">("loading");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,7 +63,7 @@ export default function CreatePage() {
               </div>
             </div>
 
-            <div className="flex flex-col w-1/3 justify-center py-12 pl-12 w-full border-l border-solid border-zinc-600">
+            <div className="flex flex-col w-1/3 justify-center py-12 pl-12 border-l border-solid border-zinc-600">
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 TITLE <span className="text-red-600">*</span>
               </div>
@@ -152,6 +157,7 @@ export default function CreatePage() {
               type="button"
               className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 hover:opacity-75 transition-opacity duration-300 tracking-wide flex items-center"
               onClick={() => {
+                setModalMode("loading");
                 setIsModalOpen(true);
                 setTimeout(() => {
                   setModalMode("created");
@@ -166,6 +172,7 @@ export default function CreatePage() {
       )}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
+          {modalMode == "created" && <Confetti width={width} height={height} />}
           <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-3xl shadow-2xl bg-neutral-800">
             {modalMode == "loading" && (
               <>
