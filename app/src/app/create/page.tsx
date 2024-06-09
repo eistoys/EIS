@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 
@@ -8,6 +8,17 @@ export default function CreatePage() {
   const [mode, setMode] = useState<"image" | "info">("image");
   const [modalMode, setModalMode] = useState<"loading" | "created">("loading");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isModalOpen]);
 
   return (
     <>
@@ -22,7 +33,7 @@ export default function CreatePage() {
           <div className="flex justify-end py-4 px-20">
             <button
               type="button"
-              className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:bg-[#0F1E0F] transition-colors duration-300"
+              className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
               onClick={() => setMode("info")}
             >
               COMPLETE
@@ -78,8 +89,7 @@ export default function CreatePage() {
               <div className="relative mb-6">
                 <input
                   type="text"
-                  className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full"
-                  placeholder="Enter price here"
+                  className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
                   required
                   onChange={(e) => {
                     e.target.value = e.target.value.replace(/[^0-9.]/g, "");
@@ -122,10 +132,11 @@ export default function CreatePage() {
               </div>
               <div className="flex items-center">
                 <input type="checkbox" className="accent-green-600 mr-4" />
-                <div className="text-xl font-semibold tracking-wide leading-6 text-right text-white mr-2">
-                  CC0
-                </div>
-                <FaRegQuestionCircle className="text-gray-500" size="12" />
+                <div className="text-lg tracking-wide text-white mr-2">CC0</div>
+                <FaRegQuestionCircle
+                  className="text-gray-500 cursor-pointer"
+                  size="12"
+                />
               </div>
             </div>
           </div>
@@ -140,7 +151,12 @@ export default function CreatePage() {
             <button
               type="button"
               className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 hover:opacity-75 transition-opacity duration-300 tracking-wide flex items-center"
-              onClick={() => setMode("info")}
+              onClick={() => {
+                setIsModalOpen(true);
+                setTimeout(() => {
+                  setModalMode("created");
+                }, 3000);
+              }}
             >
               <FaCheck className="mr-2" size="18" />
               CREATE
@@ -149,19 +165,32 @@ export default function CreatePage() {
         </div>
       )}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="flex flex-col self-stretch px-5 pt-5 pb-10 my-auto w-full max-w-lg text-2xl font-bold tracking-wide text-white rounded-3xl shadow-2xl bg-neutral-800 max-md:mt-10 max-md:max-w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
+          <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-3xl shadow-2xl bg-neutral-800">
             {modalMode == "loading" && (
               <>
-                <div className="leading-[120%] max-md:max-w-full">
+                <div className="text-white text-xl font-bold tracking-wider">
                   CREATING...
                 </div>
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8325f464b2e0e5f77b6412f7fac6008931b132ddce73d8374b3c1eeded246e8e?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                  className="self-center mt-5 max-w-full aspect-square w-[180px]"
-                />
-                <div className="mt-10 leading-7 text-center max-md:max-w-full">
+                <div className="flex items-center justify-center h-60">
+                  <svg
+                    aria-hidden="true"
+                    className="w-20 h-20 text-gray-200 animate-spin dark:text-gray-600 fill-[#22CC02]"
+                    viewBox="0 0 100 101"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                      fill="currentFill"
+                    />
+                  </svg>
+                </div>
+                <div className="text-white tracking-wider text-center text-xl font-bold">
                   Please don't close this modal
                   <br />
                   until the transaction is completed.
@@ -170,49 +199,42 @@ export default function CreatePage() {
             )}
             {modalMode == "created" && (
               <>
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/7f9ff530bdff025ad40766568e553b22359e37e8db9bc40a7e02dafc4935b64a?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                  className="self-end border-2 border-white border-solid aspect-square stroke-[2px] stroke-white w-[18px] cursor-pointer"
-                  onClick={() => setIsModalOpen(false)}
-                />
-                <div className="mt-2.5 text-2xl leading-7 max-md:max-w-full">
-                  CREATE COMPLETED !! 🎉
+                <div className="flex mb-4">
+                  <div className="text-white text-xl font-bold tracking-wider">
+                    CREATE COMPLETED
+                  </div>
+                  <button
+                    className="absolute top-6 right-4 text-4xl text-white"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    &times;
+                  </button>
                 </div>
                 <img
                   loading="lazy"
                   srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                  className="self-center mt-5 max-w-full aspect-square w-[400px]"
+                  className="h-64 w-64 mx-auto mb-8"
                 />
-                <div className="mt-5 text-lg leading-5 max-md:max-w-full">
-                  TITLE TITLE TITLE TITLE TITLE
-                </div>
-                <div className="mt-2.5 text-base leading-5 max-md:max-w-full">
-                  This piece delves into the therapeutic role of art in our
-                  lives. It highlights how art can transport us to places of
-                  calmness and tranquillity, symbolized by nature and water,
-                  providing a reprieve from the chaos of daily city life.
-                </div>
-                <div className="justify-center pt-5 mt-10 text-xl leading-6 text-center border-t border-solid border-zinc-600 max-md:max-w-full">
-                  The artwork you created has been carved
-                  <br />
-                  onchain as CC0. 🎉 This is a public good and will benefit
-                  everyone ! ✨
-                </div>
-                <div className="flex gap-5 py-5 mt-5 text-2xl font-extrabold leading-6 whitespace-nowrap max-md:flex-wrap max-md:max-w-full">
-                  <div className="flex-1 justify-center items-center px-16 py-4 rounded-xl border-2 border-white border-solid max-md:px-5">
+                <div className="flex gap-4 px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
+                  <button
+                    className="w-1/2 font-bold text-white px-4 py-2 text-lg font-bold border-2 rounded-xl border-white hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                    onClick={() => setIsModalOpen(false)}
+                  >
                     OK
-                  </div>
-                  <div className="flex flex-col flex-1 justify-center px-14 py-4 bg-violet-800 rounded-xl max-md:px-5">
-                    <div className="flex gap-5 justify-center px-2.5">
-                      <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/2ba240d0e724425be2b041267b06998427ee6b477e1e5c751c1cda26a12580b1?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                        className="shrink-0 aspect-[1.41] fill-white w-[34px]"
-                      />
-                      <div>SHARE</div>
-                    </div>
-                  </div>
+                  </button>
+                  <button className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
+                    <img
+                      loading="lazy"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/2ba240d0e724425be2b041267b06998427ee6b477e1e5c751c1cda26a12580b1?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
+                      className="shrink-0 aspect-[1.41] fill-white w-6"
+                    />
+                    <div>SHARE</div>
+                  </button>
+                </div>
+                <div className="text-white tracking-wider text-center text-sm font-bold">
+                  The artwork you created has been carved onchain as CC0. 🎉
+                  <br />
+                  This is a public good and will benefit everyone ! ✨
                 </div>
               </>
             )}
