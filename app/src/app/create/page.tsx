@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -13,16 +13,15 @@ import { eisAbi } from "@/lib/eis/abi";
 import { toHex } from "viem";
 
 import { wagmiConfig } from "@/lib/wagmi";
+import { Editor } from "@/components/Editor";
 
 export default function CreatePage() {
-  const searchParams = useSearchParams();
-  const referenceTokenId = searchParams.get("referenceTokenId");
   const { width, height } = useWindowSize();
   const { data: hash, writeContract, reset, error } = useWriteContract();
   const { data } = useWaitForTransactionReceipt({
     hash,
   });
-  const [imageLoaded, setImageLoaded] = useState(false);
+
   const [mode, setMode] = useState<"image" | "info">("image");
   const [modalMode, setModalMode] = useState<"loading" | "created">("loading");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,28 +39,6 @@ export default function CreatePage() {
     }
     return encodeSVGToDataURL(image);
   }, [image]);
-
-  useEffect(() => {
-    if (!referenceTokenId) {
-      setImageLoaded(true);
-      return;
-    }
-    readContract(wagmiConfig, {
-      address: EIS_ADDRESS,
-      abi: eisAbi,
-      functionName: "renderTokenById",
-      args: [BigInt(referenceTokenId)],
-    })
-      .then((data) => {
-        if (data) {
-          window.localStorage.setItem("md-canvasContent", data);
-        }
-        setImageLoaded(true);
-      })
-      .catch(() => {
-        setImageLoaded(true);
-      });
-  }, [referenceTokenId]);
 
   useEffect(() => {
     if (!error) {
@@ -108,33 +85,25 @@ export default function CreatePage() {
     <>
       {mode === "image" && (
         <div className="flex flex-col flex-grow">
-          {imageLoaded && (
-            <>
-              <iframe
-                id="svg-editor-iframe"
-                src="/editor/index.html"
-                className="flex-grow"
-                style={{ border: "none" }}
-              />
-              <div className="flex justify-end py-4 px-8">
-                <button
-                  type="button"
-                  className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
-                  onClick={() => {
-                    const image =
-                      window.localStorage.getItem("md-canvasContent");
-                    if (!image) {
-                      throw new Error("Image not set");
-                    }
-                    setImage(image);
-                    setMode("info");
-                  }}
-                >
-                  COMPLETE
-                </button>
-              </div>
-            </>
-          )}
+          <Suspense fallback={null}>
+            <Editor />
+          </Suspense>
+          <div className="flex justify-end py-4 px-8">
+            <button
+              type="button"
+              className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
+              onClick={() => {
+                const image = window.localStorage.getItem("md-canvasContent");
+                if (!image) {
+                  throw new Error("Image not set");
+                }
+                setImage(image);
+                setMode("info");
+              }}
+            >
+              COMPLETE
+            </button>
+          </div>
         </div>
       )}
       {mode === "info" && (

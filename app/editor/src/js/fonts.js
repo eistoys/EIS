@@ -1,4 +1,4 @@
-function populateFonts(fonts){
+function populateFonts(fonts) {
   let options = `
     <option value='sans-serif' selected>sans-serif</option>
     <option value='serif' selected>serif</option>
@@ -16,1654 +16,1647 @@ function populateFonts(fonts){
     const font = fonts[fontName];
     const axes = Object.keys(font.axes).join(",");
     const pairs = Object.keys(font.axes);
-    fontLinks += `<link href="https://fonts.googleapis.com/css2?family=${fontName.split(" ").join("+")}" rel="stylesheet">`
+    fontLinks += `<link href="https://fonts.googleapis.com/css2?family=${fontName
+      .split(" ")
+      .join("+")}" rel="stylesheet">`;
     options += `
       <option value="${fontName}">${fontName}</option>
     `;
   }
 
   $("#font_family_dropdown").append(options);
-  $("head").append('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
+  $("head").append(
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+  );
   $("head").append(fontLinks);
-};
+}
 
 const fonts = {
-
-  "Alegreya": {
-    "axes": {
-      "ital": {
+  Alegreya: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Alumni Sans": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Andada Pro": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 840],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Antonio": {
-    "axes": {
-      "wght": {
+  Antonio: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Archivo": {
-    "axes": {
-      "ital": {
+  Archivo: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [62,125],
+        range: [62, 125],
         step: 0.1,
-        value: 100
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Arimo": {
-    "axes": {
-      "ital": {
+  Arimo: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Arimo": {
-    "axes": {
-      "ital": {
+  Arimo: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Asap": {
-    "axes": {
-      "ital": {
+  Asap: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Assistant": {
-    "axes": {
-      "wght": {
+  Assistant: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Azeret Mono": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Besley": {
-    "axes": {
-      "ital": {
+  Besley: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Big Shoulders Display": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Bitter": {
-    "axes": {
-      "ital": {
+  Bitter: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Bodoni Moda": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "opsz": {
+      opsz: {
         name: "Optical Size",
         range: [6, 96],
         value: 14,
-        step: 0.1
+        step: 0.1,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Brygada 1918": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Cabin": {
-    "axes": {
-      "ital": {
+  Cabin: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [75,100],
+        range: [75, 100],
         step: 0.1,
-        value: 100
-
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Catamaran": {
-    "axes": {
-      "wght": {
+  Catamaran: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Caveat": {
-    "axes": {
-      "wght": {
+  Caveat: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Changa": {
-    "axes": {
-      "wght": {
+  Changa: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Cinzel": {
-    "axes": {
-      "wght": {
+  Cinzel: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Comfortaa": {
-    "axes": {
-      "wght": {
+  Comfortaa: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Commissioner": {
-    "axes": {
-      "wght": {
+  Commissioner: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Crimson Pro": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [200, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Cuprum": {
-    "axes": {
-      "ital": {
+  Cuprum: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Dancing Script": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Domine": {
-    "axes": {
-      "wght": {
+  Domine: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Dosis": {
-    "axes": {
-      "wght": {
+  Dosis: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "EB Garamond": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "El Messiri": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Encode Sans": {
-    "axes": {
-      "wdth": {
+    axes: {
+      wdth: {
         name: "Width",
-        range: [75,125],
+        range: [75, 125],
         step: 0.1,
-        value: 100
-
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Epilogue": {
-    "axes": {
-      "ital": {
+  Epilogue: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-
-  "Exo": {
-    "axes": {
-      "ital": {
+  Exo: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Faustina": {
-    "axes": {
-      "ital": {
+  Faustina: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Fira Code": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-
-  "Fraunces": {
-    "axes": {
-      "ital": {
+  Fraunces: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "opsz": {
+      opsz: {
         name: "Optical Size",
         range: [9, 144],
         value: 14,
-        step: 0.1
+        step: 0.1,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
+        value: 400,
       },
-      "SOFT": {
+      SOFT: {
         name: "Softness",
         range: [0, 100],
         value: 0,
-        step: 0.1
+        step: 0.1,
       },
-      "WONK": {
+      WONK: {
         name: "Wonky",
         range: [0, 1],
-        value: 0
-      }
-    }
+        value: 0,
+      },
+    },
   },
 
   "Gemunu Libre": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Georama": {
-    "axes": {
-      "ital": {
+  Georama: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [62.5,125],
+        range: [62.5, 125],
         step: 0.1,
-        value: 100
-
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Glory": {
-    "axes": {
-      "ital": {
+  Glory: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 800],
-        value: 400
-      }
-    }
-  },
-
-
-  "Gluten": {
-    "axes": {
-      "wght": {
-        name: "Weight",
-        range: [100, 900],
-        value: 400
-      }
-    }
-  },
-
-  "Grandstander": {
-    "axes": {
-      "ital": {
-        name: "Italic",
-        range: [0,1],
-        value: 0
+        value: 400,
       },
-      "wght": {
+    },
+  },
+
+  Gluten: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
+  },
+
+  Grandstander: {
+    axes: {
+      ital: {
+        name: "Italic",
+        range: [0, 1],
+        value: 0,
+      },
+      wght: {
+        name: "Weight",
+        range: [100, 900],
+        value: 400,
+      },
+    },
   },
 
   "Grenze Gotisch": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Hahmlet": {
-    "axes": {
-      "wght": {
+  Hahmlet: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Heebo": {
-    "axes": {
-      "wght": {
+  Heebo: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Hepta Slab": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [1, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Ibarra Real Nova": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Imbue": {
-    "axes": {
-      "opsz": {
+  Imbue: {
+    axes: {
+      opsz: {
         name: "Optical Size",
         range: [10, 100],
         value: 14,
-        step: 0.1
+        step: 0.1,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Inconsolata": {
-    "axes": {
-      "wdth": {
+  Inconsolata: {
+    axes: {
+      wdth: {
         name: "Width",
-        range: [50,200],
+        range: [50, 200],
         step: 0.1,
-        value: 100
-
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [200, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Inter": {
-    "axes": {
-      "slnt": {
+  Inter: {
+    axes: {
+      slnt: {
         name: "Slant",
-        range: [-10,0],
+        range: [-10, 0],
         step: 1,
-        value: 0
-
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "JetBrains Mono": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Josefin Sans": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Josefin Slab": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Jost": {
-    "axes": {
-      "ital": {
+  Jost: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Jura": {
-    "axes": {
-      "wght": {
+  Jura: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Karla": {
-    "axes": {
-      "ital": {
+  Karla: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Kreon": {
-    "axes": {
-      "wght": {
+  Kreon: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Kufam": {
-    "axes": {
-      "ital": {
+  Kufam: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Kumbh Sans": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Lemonada": {
-    "axes": {
-      "wght": {
+  Lemonada: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Lexend": {
-    "axes": {
-      "wght": {
+  Lexend: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Libre Franklin": {
-    "axes": {
-      "ital": {
+  "Libre Franklin": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Literata": {
-    "axes": {
-      "ital": {
+  Literata: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "opsz": {
+      opsz: {
         name: "Optical Size",
         range: [7, 72],
         value: 14,
-        step: 0.1
+        step: 0.1,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [200, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Lora": {
-    "axes": {
-      "ital": {
+  Lora: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Manrope": {
-    "axes": {
-      "ital": {
+  Manrope: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
- "Manuale": {
-    "axes": {
-      "ital": {
+  Manuale: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Markazi Text": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Maven Pro": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Merriweather Sans": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Mulish": {
-    "axes": {
-      "ital": {
+  Mulish: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [200, 1000],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "MuseoModerno": {
-    "axes": {
-      "wght": {
+  MuseoModerno: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Newsreader": {
-    "axes": {
-      "ital": {
+  Newsreader: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "opsz": {
+      opsz: {
         name: "Optical Size",
         range: [6, 72],
         value: 14,
-        step: 0.1
+        step: 0.1,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Noto Sans Display": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [62.5,100],
+        range: [62.5, 100],
         step: 0.1,
-        value: 100
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Noto Sans Mono": {
-    "axes": {
-      "wdth": {
+    axes: {
+      wdth: {
         name: "Width",
-        range: [62.5,100],
+        range: [62.5, 100],
         step: 0.1,
-        value: 100
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Noto Serif Display": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [62.5,100],
+        range: [62.5, 100],
         step: 0.1,
-        value: 100
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Open Sans": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [75,100],
+        range: [75, 100],
         step: 0.1,
-        value: 100
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Orbitron": {
-    "axes": {
-      "wght": {
+  Orbitron: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Oswald": {
-    "axes": {
-      "wght": {
+  Oswald: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Oxanium": {
-    "axes": {
-      "wght": {
+  Oxanium: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Petrona": {
-    "axes": {
-      "ital": {
+  Petrona: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Piazzolla": {
-    "axes": {
-      "ital": {
+  Piazzolla: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "opsz": {
+      opsz: {
         name: "Optical Size",
         range: [8, 30],
         value: 14,
-        step: 0.1
+        step: 0.1,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Playfair Display": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Podkova": {
-    "axes": {
-      "wght": {
+  Podkova: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Public Sans": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Quicksand": {
-    "axes": {
-      "wght": {
+  Quicksand: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Raleway": {
-    "axes": {
-      "ital": {
+  Raleway: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Rasa": {
-    "axes": {
-      "ital": {
+  Rasa: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Recursive": {
-    "axes": {
-      "slnt": {
+  Recursive: {
+    axes: {
+      slnt: {
         name: "Slant",
-        range: [-15,0],
-        value: 0
+        range: [-15, 0],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 1000],
-        value: 400
+        value: 400,
       },
-      "CASL": {
+      CASL: {
         name: "Casual",
-        range: [0,1],
+        range: [0, 1],
         value: 0,
-        step: 0.01
+        step: 0.01,
       },
-      "CRSV": {
+      CRSV: {
         name: "Cursive",
-        range: [0,1],
+        range: [0, 1],
         value: 0.5,
-        step: 0.1
+        step: 0.1,
       },
-      "MONO": {
+      MONO: {
         name: "Monospace",
-        range: [0,1],
+        range: [0, 1],
         value: 0,
-        step: 0.01
-      }
-    }
+        step: 0.01,
+      },
+    },
   },
 
   "Red Hat Display": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Red Hat Text": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Red Rose": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Reem Kufi": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Roboto Mono": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Roboto Slab": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
-  },
-
-  "Rokkitt": {
-    "axes": {
-      "wght": {
-        name: "Weight",
-        range: [100, 900],
-        value: 400
-      }
-    }
-  },
-
-  "Rosario": {
-    "axes": {
-      "ital": {
-        name: "Italic",
-        range: [0,1],
-        value: 0
+        value: 400,
       },
-      "wght": {
+    },
+  },
+
+  Rokkitt: {
+    axes: {
+      wght: {
+        name: "Weight",
+        range: [100, 900],
+        value: 400,
+      },
+    },
+  },
+
+  Rosario: {
+    axes: {
+      ital: {
+        name: "Italic",
+        range: [0, 1],
+        value: 0,
+      },
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Rubik": {
-    "axes": {
-      "ital": {
+  Rubik: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Ruda": {
-    "axes": {
-      "wght": {
+  Ruda: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "STIX Two Text": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Saira": {
-    "axes": {
-      "ital": {
+  Saira: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [50,125],
+        range: [50, 125],
         step: 0.1,
-        value: 125
+        value: 125,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Sansita Swashed": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Signika": {
-    "axes": {
-      "wght": {
+  Signika: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Sora": {
-    "axes": {
-      "wght": {
+  Sora: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Space Grotesk": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Spartan": {
-    "axes": {
-      "wght": {
+  Spartan: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Stick No Bills": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Syne": {
-    "axes": {
-      "wght": {
+  Syne: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [400, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Texturina": {
-    "axes": {
-      "ital": {
+  Texturina: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "opsz": {
+      opsz: {
         name: "Optical Size",
         range: [12, 72],
         value: 14,
-        step: 0.1
+        step: 0.1,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Tourney": {
-    "axes": {
-      "ital": {
+  Tourney: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wdth": {
+      wdth: {
         name: "Width",
-        range: [75,125],
+        range: [75, 125],
         step: 0.1,
-        value: 100
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-
-  "Trispace": {
-    "axes": {
-      "wdth": {
+  Trispace: {
+    axes: {
+      wdth: {
         name: "Width",
-        range: [75,125],
+        range: [75, 125],
         step: 0.1,
-        value: 100
+        value: 100,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 800],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Truculenta": {
-    "axes": {
-      "opsz": {
+  Truculenta: {
+    axes: {
+      opsz: {
         name: "Optical Size",
         range: [12, 72],
         value: 14,
-        step: 0.1
-      },
-      "wdth": {
-        name: "Width",
-        range: [75,125],
         step: 0.1,
-        value: 100
       },
-      "wght": {
+      wdth: {
+        name: "Width",
+        range: [75, 125],
+        step: 0.1,
+        value: 100,
+      },
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Urbanist": {
-    "axes": {
-      "ital": {
+  Urbanist: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Varta": {
-    "axes": {
-      "wght": {
+  Varta: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-
-  "Vollkorn": {
-    "axes": {
-      "ital": {
+  Vollkorn: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [400, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Work Sans": {
-    "axes": {
-      "ital": {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [100, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Yaldevi": {
-    "axes": {
-      "wght": {
+  Yaldevi: {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 900],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
   "Yanone Kaffeesatz": {
-    "axes": {
-      "wght": {
+    axes: {
+      wght: {
         name: "Weight",
         range: [200, 700],
-        value: 400
-      }
-    }
+        value: 400,
+      },
+    },
   },
 
-  "Yrsa": {
-    "axes": {
-      "ital": {
+  Yrsa: {
+    axes: {
+      ital: {
         name: "Italic",
-        range: [0,1],
-        value: 0
+        range: [0, 1],
+        value: 0,
       },
-      "wght": {
+      wght: {
         name: "Weight",
         range: [300, 700],
-        value: 400
-      }
-    }
-  }
+        value: 400,
+      },
+    },
+  },
 };
 
 populateFonts(fonts);

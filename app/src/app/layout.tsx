@@ -6,6 +6,7 @@ import { Roboto } from "next/font/google";
 
 import { Providers } from "./providers";
 import { Header } from "@/components/Header";
+import { Suspense } from "react";
 
 const roboto = Roboto({
   weight: ["400", "700", "900"],
@@ -39,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <Providers>
           <div
             className={`${roboto.className} bg-[#222222] min-h-screen flex flex-col`}

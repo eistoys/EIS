@@ -1,4 +1,4 @@
-import { Abi, encodeFunctionData } from "viem";
+import { Abi, encodeFunctionData, zeroAddress } from "viem";
 
 import { eisAbi } from "@/lib/eis/abi";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
@@ -11,19 +11,24 @@ export async function POST(
   const url = new URL(req.url);
   const tokenId = url.searchParams.get("tokenId");
 
+  if (!tokenId) {
+    throw new Error("Token ID not defined");
+  }
+
   const calldata = encodeFunctionData({
     abi: eisAbi,
     functionName: "mint",
-    args: [tokenId, 1],
+    args: [BigInt(tokenId), BigInt(1), zeroAddress],
   });
 
   return NextResponse.json({
-    chainId: "eip155:11155111",
+    chainId: "eip155:84532",
     method: "eth_sendTransaction",
     params: {
       abi: eisAbi as Abi,
       to: EIS_ADDRESS,
       data: calldata,
+      value: "690000000000000",
     },
   });
 }
