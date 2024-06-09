@@ -393,6 +393,9 @@ function CreatePage() {
                     &times;
                   </button>
                 </div>
+                <div className="text-white tracking-wider text-sm font-bold">
+                  Coming soon!
+                </div>
               </>
             )}
             {modalMode == "loading" && (
