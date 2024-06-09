@@ -948,4 +948,4 @@ export const eisAbi = [
     stateMutability: "pure",
     type: "function",
   },
-];
+] as const;

@@ -1,18 +1,77 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { readContract } from "@wagmi/core";
+
+import { encodeSVGToDataURL } from "@/lib/svg";
+import { EIS_ADDRESS } from "@/lib/eis/constants";
+import { eisAbi } from "@/lib/eis/abi";
+import { toHex } from "viem";
+
+import { wagmiConfig } from "@/lib/wagmi";
+
 export default function CreatePage() {
   const { width, height } = useWindowSize();
+
+  const { data: hash, writeContract, reset, error } = useWriteContract();
+
+  const { data } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   const [mode, setMode] = useState<"image" | "info">("image");
   const [modalMode, setModalMode] = useState<"loading" | "created">("loading");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("0.00069");
+  const [supply, setSupply] = useState("∞");
+
+  const [image, setImage] = useState("");
+  const imageDataURL = useMemo(() => {
+    if (!image) {
+      return "";
+    }
+    return encodeSVGToDataURL(image);
+  }, [image]);
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    console.error(error);
+    setIsModalOpen(false);
+  }, [error]);
+
+  useEffect(() => {
+    if (!hash) {
+      return;
+    }
+    console.log("hash", hash);
+  }, [hash]);
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    console.log("data", data);
+    const event = data.logs[data.logs.length - 1];
+    const tokenIdHex = event.topics[1];
+    if (!tokenIdHex) {
+      return;
+    }
+    const tokenId = parseInt(tokenIdHex, 16);
+    console.log("tokenId", tokenId);
+    setModalMode("created");
+  }, [data]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -35,11 +94,18 @@ export default function CreatePage() {
             className="flex-grow"
             style={{ border: "none" }}
           />
-          <div className="flex justify-end py-4 px-20">
+          <div className="flex justify-end py-4 px-8">
             <button
               type="button"
               className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
-              onClick={() => setMode("info")}
+              onClick={() => {
+                const image = window.localStorage.getItem("md-canvasContent");
+                if (!image) {
+                  throw new Error("Image not set");
+                }
+                setImage(image);
+                setMode("info");
+              }}
             >
               COMPLETE
             </button>
@@ -48,12 +114,12 @@ export default function CreatePage() {
       )}
       {mode === "info" && (
         <div>
-          <div className="flex border-b border-solid border-zinc-600 px-20">
+          <div className="flex border-b border-solid border-zinc-600 px-8">
             <div className="flex flex-col w-2/3 py-12">
               <img
                 loading="lazy"
-                srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/a4791fe2b20660da9f933316b81dec9569baa1b2f0dc477ce4a9dd5bb9823c7f?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                className="h-96 w-96 mx-auto mb-8"
+                srcSet={imageDataURL}
+                className="bg-white rounded-xl h-96 w-96 mx-auto mb-8"
               />
               <div className="text-xl font-bold tracking-wide text-white mb-4">
                 SOURCE
@@ -72,6 +138,8 @@ export default function CreatePage() {
                 className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
                 placeholder="Enter title here"
                 required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
               />
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 DESCRIPTION{" "}
@@ -81,24 +149,33 @@ export default function CreatePage() {
                 className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
                 rows={5}
                 placeholder="Enter description here"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
 
               <div className="flex justify-between mb-2">
                 <div className="text-lg font-bold tracking-wider text-white">
                   PRICE
                 </div>
-                <div className="text-base underline tracking-wider text-white cursor-pointer">
+                <div
+                  className="underline tracking-wider text-white cursor-pointer"
+                  onClick={() => {
+                    setPrice("0.00069");
+                    setSupply("∞");
+                  }}
+                >
                   Reset
                 </div>
               </div>
               <div className="relative mb-6">
                 <input
                   type="text"
-                  className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
+                  className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
                   required
-                  onChange={(e) => {
-                    e.target.value = e.target.value.replace(/[^0-9.]/g, "");
-                  }}
+                  value={price}
+                  onChange={(e) =>
+                    setPrice(e.target.value.replace(/[^0-9.]/g, ""))
+                  }
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                   <span className="text-white">ETH</span>
@@ -111,20 +188,44 @@ export default function CreatePage() {
                 <button
                   type="button"
                   className="absolute left-0 text-white w-12 h-12"
+                  onClick={() => {
+                    setSupply((prev) => {
+                      if (prev === "∞") {
+                        return "0";
+                      } else {
+                        const num = parseFloat(prev);
+                        if (num === 0) {
+                          return "0";
+                        }
+                        return (num + -1).toString();
+                      }
+                    });
+                  }}
                 >
                   -
                 </button>
                 <input
                   type="text"
-                  className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
+                  className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
                   required
-                  onChange={(e) => {
-                    e.target.value = e.target.value.replace(/[^0-9.∞]/g, "");
-                  }}
+                  value={supply}
+                  onChange={(e) =>
+                    setSupply(e.target.value.replace(/[^0-9.∞]/g, ""))
+                  }
                 />
                 <button
                   type="button"
                   className="absolute right-0 text-white w-12 h-12"
+                  onClick={() => {
+                    setSupply((prev) => {
+                      if (prev === "∞") {
+                        return "0";
+                      } else {
+                        const num = parseFloat(prev);
+                        return (num + 1).toString();
+                      }
+                    });
+                  }}
                 >
                   +
                 </button>
@@ -145,7 +246,7 @@ export default function CreatePage() {
               </div>
             </div>
           </div>
-          <div className="flex justify-between py-4 px-20">
+          <div className="flex justify-between py-4 px-8">
             <button
               type="button"
               className="px-4 py-1.5 font-bold border border-gray-500 text-gray-500 rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wide"
@@ -156,12 +257,23 @@ export default function CreatePage() {
             <button
               type="button"
               className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 hover:opacity-75 transition-opacity duration-300 tracking-wide flex items-center"
-              onClick={() => {
+              onClick={async () => {
+                reset();
                 setModalMode("loading");
                 setIsModalOpen(true);
-                setTimeout(() => {
-                  setModalMode("created");
-                }, 3000);
+                const hexImage = toHex(image);
+                const zippedHexImage = await readContract(wagmiConfig, {
+                  address: EIS_ADDRESS,
+                  abi: eisAbi,
+                  functionName: "zip",
+                  args: [hexImage],
+                });
+                writeContract({
+                  address: EIS_ADDRESS,
+                  abi: eisAbi,
+                  functionName: "create",
+                  args: [title, description, [zippedHexImage]],
+                });
               }}
             >
               <FaCheck className="mr-2" size="18" />
@@ -219,8 +331,8 @@ export default function CreatePage() {
                 </div>
                 <img
                   loading="lazy"
-                  srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/626acacdbbd55d47b9ea169c7baba3cf3d7b6e92cf32817dbc902fac3df3811d?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                  className="h-64 w-64 mx-auto mb-8"
+                  srcSet={imageDataURL}
+                  className="bg-white rounded-xl h-64 w-64 mx-auto mb-8"
                 />
                 <div className="flex gap-4 px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
                   <button

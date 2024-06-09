@@ -12,7 +12,7 @@ export const Header = () => {
   const pathname = usePathname();
 
   return (
-    <div className="flex justify-between px-20 py-2 w-full border-b border-solid border-zinc-600">
+    <div className="flex justify-between px-8 py-4 w-full border-b border-solid border-zinc-600">
       <div className="flex items-center space-x-8">
         <Link href="/">
           <img
