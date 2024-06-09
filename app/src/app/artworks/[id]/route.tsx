@@ -35,34 +35,17 @@ const handleRequest = frames(async (ctx) => {
   });
 
   const metadata = JSON.parse(uri.split("data:application/json;utf8,")[1]);
+  const price = "0.00069";
 
   return {
-    image: (
-      <div tw="flex bg-neutral-800 rounded-xl">
-        <div tw="flex w-6/12 p-8 my-auto">
-          <img src={metadata.image} tw="bg-white rounded-xl" />
-        </div>
-        <div tw="flex flex-col w-6/12 py-20 pr-12">
-          <div tw="flex flex-col text-xs text-white h-full">
-            <div tw="text-[2.625rem] font-bold">
-              {truncateString(metadata.name, 20)}
-            </div>
-            <div tw="mt-4 text-2xl text-zinc-400">{metadata.creator}</div>
-            <div tw="mt-4 text-2xl leading-8">
-              {truncateString(metadata.description, 200)}
-            </div>
-            <div tw="mt-auto text-3xl font-bold">0.00069 ETH</div>
-          </div>
-        </div>
-      </div>
-    ),
+    image: <img src={metadata.image} />,
     buttons: [
       <Button
         action="tx"
         target={{ pathname: "/txdata", query: { tokenId } }}
         post_url={`/${tokenId}`}
       >
-        MINT
+        {`MINT (${price} ETH)`}
       </Button>,
       <Button
         action="link"
@@ -84,6 +67,7 @@ const handleRequest = frames(async (ctx) => {
           weight: 700,
         },
       ],
+      aspectRatio: "1:1",
     },
   };
 });

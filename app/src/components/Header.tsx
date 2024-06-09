@@ -49,7 +49,7 @@ export const Header = () => {
         )}
         <ConnectButton
           accountStatus="full"
-          chainStatus="none"
+          chainStatus="name"
           showBalance={false}
         />
       </div>
