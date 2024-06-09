@@ -10,12 +10,12 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.FORKING_RPC_URL || "",
-        blockNumber: 6024710,
+        url: "https://sepolia.base.org",
+        blockNumber: 11062685, // Jun-09-2024 12:40:58 AM +UTC
       },
     },
-    sepolia: {
-      url: process.env.SEPOLIA_RPC_URL || "",
+    baseSepolia: {
+      url: "https://sepolia.base.org",
       accounts,
     },
   },

@@ -56,6 +56,7 @@ const getFixture = async () => {
     ROYALTY_BASIS_POINTS,
     DISTRIBUTION_INCENTIVE,
   ]);
+
   return { creator, distributor, eis };
 };
 
@@ -82,11 +83,13 @@ describe("EIP", function () {
       const publicClient = await hre.viem.getPublicClient();
 
       const zipped = await eis.read.zip([svgHex]);
+
       const createTxHash = await eis.write.create([
         name,
         description,
         [zipped],
       ]);
+
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
 

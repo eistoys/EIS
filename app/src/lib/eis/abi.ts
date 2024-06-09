@@ -1,6 +1,47 @@
 export const eisAbi = [
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "address",
+        name: "pullSplitFactoryAddress",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "treasuryAddress_",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "fixedMintFee_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "basisPointsBase_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "protocolFeeBasisPoints_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "frontendFeeBasisPoints_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "royaltyFeeBasisPoints_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint16",
+        name: "distributionIncentive_",
+        type: "uint16",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "constructor",
   },
@@ -146,33 +187,73 @@ export const eisAbi = [
         name: "creator",
         type: "address",
       },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "creator",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "split",
+            type: "address",
+          },
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "description",
+            type: "string",
+          },
+          {
+            internalType: "address[]",
+            name: "imageChunks",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "referenceTokenIds",
+            type: "uint256[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address[]",
+                name: "recipients",
+                type: "address[]",
+              },
+              {
+                internalType: "uint256[]",
+                name: "allocations",
+                type: "uint256[]",
+              },
+              {
+                internalType: "uint256",
+                name: "totalAllocation",
+                type: "uint256",
+              },
+              {
+                internalType: "uint16",
+                name: "distributionIncentive",
+                type: "uint16",
+              },
+            ],
+            internalType: "struct SplitV2Lib.Split",
+            name: "splitParams",
+            type: "tuple",
+          },
+        ],
+        indexed: false,
+        internalType: "struct EIS.Record",
+        name: "record",
+        type: "tuple",
+      },
     ],
     name: "Created",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creator",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "referenceTokenId",
-        type: "uint256",
-      },
-    ],
-    name: "Forked",
     type: "event",
   },
   {
@@ -317,7 +398,30 @@ export const eisAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "basisPointsBase",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
       {
         internalType: "bytes[]",
         name: "image",
@@ -326,12 +430,38 @@ export const eisAbi = [
     ],
     name: "create",
     outputs: [],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
     inputs: [],
-    name: "createFee",
+    name: "distributionIncentive",
+    outputs: [
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "fixedMintFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "frontendFeeBasisPoints",
     outputs: [
       {
         internalType: "uint256",
@@ -346,24 +476,46 @@ export const eisAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "referrenceTokenId",
+        name: "totalMintFee",
+        type: "uint256",
+      },
+    ],
+    name: "getDividedFeeFromTotalMintFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
         type: "uint256",
       },
       {
-        internalType: "bytes[]",
-        name: "image",
-        type: "bytes[]",
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
-    name: "fork",
-    outputs: [],
-    stateMutability: "payable",
+    stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [],
-    name: "forkFee",
+    inputs: [
+      {
+        internalType: "uint256[]",
+        name: "referenceAllocations",
+        type: "uint256[]",
+      },
+    ],
+    name: "getTotalAllocationAndCreatorAllocation",
     outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
       {
         internalType: "uint256",
         name: "",
@@ -447,6 +599,11 @@ export const eisAbi = [
         name: "amount",
         type: "uint256",
       },
+      {
+        internalType: "address",
+        name: "frontendFeeRecipient",
+        type: "address",
+      },
     ],
     name: "mint",
     outputs: [],
@@ -455,7 +612,7 @@ export const eisAbi = [
   },
   {
     inputs: [],
-    name: "mintFee",
+    name: "protocolFeeBasisPoints",
     outputs: [
       {
         internalType: "uint256",
@@ -464,6 +621,113 @@ export const eisAbi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "pullSplitFactory",
+    outputs: [
+      {
+        internalType: "contract ISplitFactoryV2",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "records",
+    outputs: [
+      {
+        internalType: "address",
+        name: "creator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "split",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "recipients",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "allocations",
+            type: "uint256[]",
+          },
+          {
+            internalType: "uint256",
+            name: "totalAllocation",
+            type: "uint256",
+          },
+          {
+            internalType: "uint16",
+            name: "distributionIncentive",
+            type: "uint16",
+          },
+        ],
+        internalType: "struct SplitV2Lib.Split",
+        name: "splitParams",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        internalType: "bytes[]",
+        name: "image",
+        type: "bytes[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "referenceTokenIds",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "referenceAllocations",
+        type: "uint256[]",
+      },
+    ],
+    name: "remix",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -480,6 +744,19 @@ export const eisAbi = [
         internalType: "string",
         name: "",
         type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "royaltyFeeBasisPoints",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -596,6 +873,19 @@ export const eisAbi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "treasuryAddress",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
