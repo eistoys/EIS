@@ -21,14 +21,14 @@ export const Header = () => {
             className="w-28 cursor-pointer"
           />
         </Link>
-        <Link
+        {/* <Link
           href="/concept"
           className="hover:opacity-75 hover:opacity-75 transition-opacity"
         >
           <p className="text-lg font-bold text-white cursor-pointer tracking-wider">
             CONCEPT
           </p>
-        </Link>
+        </Link> */}
         <a
           target="_blank"
           href="https://warpcast.com/~/channel/eis"
