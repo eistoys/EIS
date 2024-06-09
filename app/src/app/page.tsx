@@ -32,7 +32,7 @@ export default function Home() {
           Ethereum Image Service is an Infinite Remixable CC0 Garden.
         </div>
         <Link href="/create">
-          <button className="w-96 text-xl px-4 py-2 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
+          <button className="w-96 text-xl p-4 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
             LAUNCH APP
           </button>
         </Link>

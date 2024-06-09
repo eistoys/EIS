@@ -44,7 +44,7 @@ $.SvgCanvas = function (container, config) {
   var curConfig = {
     show_outside_canvas: true,
     selectNew: true,
-    dimensions: [800, 600],
+    dimensions: [500, 500],
     initFill: { color: "fff", opacity: 1 },
     initStroke: { width: 1, color: "000", opacity: 1 },
     imgPath: "images/",

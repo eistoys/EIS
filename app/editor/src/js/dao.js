@@ -1,5 +1,4 @@
 const dao = [
-
   // public, appears in builder
 
   {
@@ -8,7 +7,7 @@ const dao = [
     type: "id",
     default: "",
     private: true,
-    save: true
+    save: true,
   },
 
   {
@@ -17,16 +16,16 @@ const dao = [
     type: "string",
     default: "Drawing",
     private: false,
-    save: true
+    save: true,
   },
 
   {
     name: "canvasSize",
     label: "Canvas Size",
     type: "array",
-    default: [800, 600],
+    default: [500, 500],
     private: false,
-    save: true
+    save: true,
   },
 
   {
@@ -35,7 +34,7 @@ const dao = [
     type: "boolean",
     default: false,
     private: false,
-    save: true
+    save: true,
   },
 
   {
@@ -44,7 +43,7 @@ const dao = [
     type: "number",
     default: 10,
     private: false,
-    save: true
+    save: true,
   },
 
   {
@@ -53,16 +52,17 @@ const dao = [
     type: "boolean",
     default: true,
     private: false,
-    save: true
+    save: true,
   },
 
   {
     name: "canvasContent",
     label: "Canvas Content",
     type: "string",
-    default: "<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'></svg>",
+    default:
+      "<svg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'></svg>",
     private: true,
-    save: true
+    save: true,
   },
 
   {
@@ -71,34 +71,34 @@ const dao = [
     type: "string",
     default: "select",
     private: true,
-    save: true
+    save: true,
   },
 
   {
     name: "canvasFill",
     label: "Canvas Fill",
     type: "object",
-    default: {type: "solidColor", solidColor: 'ffffff', alpha: 100},
+    default: { type: "solidColor", solidColor: "ffffff", alpha: 100 },
     private: true,
-    save: true
+    save: true,
   },
 
   {
     name: "canvasStroke",
     label: "Canvas Stroke",
     type: "object",
-    default: {type: "solidColor", solidColor: '000000', alpha: 100},
+    default: { type: "solidColor", solidColor: "000000", alpha: 100 },
     private: true,
-    save: true
+    save: true,
   },
 
   {
     name: "canvasBackground",
     label: "Canvas Background",
     type: "object",
-    default: {type: "solidColor", solidColor: 'ffffff', alpha: 100},
+    default: { type: "solidColor", solidColor: "ffffff", alpha: 100 },
     private: true,
-    save: true
+    save: true,
   },
 
   {
@@ -107,7 +107,7 @@ const dao = [
     type: "string",
     default: new Date().toString(),
     private: true,
-    save: false
+    save: false,
   },
   // When this page was created
   {
@@ -116,9 +116,9 @@ const dao = [
     type: "string",
     default: new Date().toString(),
     private: true,
-    save: false
+    save: false,
   },
- 
+
   // system level fields
   {
     name: "darkmode",
@@ -146,18 +146,20 @@ const dao = [
     private: true,
     save: true,
   },
-
 ];
 
-dao.forEach(thing => {
-  thing.clean = function(value){
-     if (thing.type === "number") return isNaN(value) ? 0 : parseInt(value, 10);
-     if (thing.type === "string") return value  || "";
-     if (thing.type === "boolean") return value === "true" || value === true ? true : false;
-     if (thing.type === "url") return value || "";
-     if (thing.type === "id") return value || 0;
-     if (thing.type === "array") return typeof value === "object" ? value : value ? value.split(",") : [];
-     if (thing.type === "object") return typeof value === "object" ? value : value ? JSON.parse(value) : {};
-     else throw "type " + thing.type + " does not exist";
-  }
+dao.forEach((thing) => {
+  thing.clean = function (value) {
+    if (thing.type === "number") return isNaN(value) ? 0 : parseInt(value, 10);
+    if (thing.type === "string") return value || "";
+    if (thing.type === "boolean")
+      return value === "true" || value === true ? true : false;
+    if (thing.type === "url") return value || "";
+    if (thing.type === "id") return value || 0;
+    if (thing.type === "array")
+      return typeof value === "object" ? value : value ? value.split(",") : [];
+    if (thing.type === "object")
+      return typeof value === "object" ? value : value ? JSON.parse(value) : {};
+    else throw "type " + thing.type + " does not exist";
+  };
 });
