@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 import useWindowSize from "react-use/lib/useWindowSize";
@@ -13,9 +12,14 @@ import { eisAbi } from "@/lib/eis/abi";
 import { toHex } from "viem";
 
 import { wagmiConfig } from "@/lib/wagmi";
-import { Editor } from "@/components/Editor";
 
-export default function CreatePage() {
+import { useSearchParams } from "next/navigation";
+
+function CreatePage() {
+  const searchParams = useSearchParams();
+  const referenceTokenId = searchParams.get("referenceTokenId");
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   const { width, height } = useWindowSize();
   const { data: hash, writeContract, reset, error } = useWriteContract();
   const { data } = useWaitForTransactionReceipt({
@@ -30,15 +34,47 @@ export default function CreatePage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("0.00069");
   const [supply, setSupply] = useState("∞");
+  const [isLicenseChecked, setIsLicenseChecked] = useState(false);
 
+  const [referenceImage, setReferenceImage] = useState("");
+  const referenceImageDataURL = useMemo(() => {
+    if (!referenceImage) {
+      return "";
+    }
+    return encodeSVGToDataURL(referenceImage);
+  }, [referenceImage]);
   const [image, setImage] = useState("");
-  const [createdTokenId, setCreatedTokenId] = useState("");
   const imageDataURL = useMemo(() => {
     if (!image) {
       return "";
     }
     return encodeSVGToDataURL(image);
   }, [image]);
+
+  const [createdTokenId, setCreatedTokenId] = useState("");
+
+  useEffect(() => {
+    if (!referenceTokenId) {
+      setImageLoaded(true);
+      return;
+    }
+    readContract(wagmiConfig, {
+      address: EIS_ADDRESS,
+      abi: eisAbi,
+      functionName: "renderTokenById",
+      args: [BigInt(referenceTokenId)],
+    })
+      .then((data) => {
+        if (data) {
+          window.localStorage.setItem("md-canvasContent", data);
+          setReferenceImage(data);
+        }
+        setImageLoaded(true);
+      })
+      .catch(() => {
+        setImageLoaded(true);
+      });
+  }, [referenceTokenId]);
 
   useEffect(() => {
     if (!error) {
@@ -85,25 +121,34 @@ export default function CreatePage() {
     <>
       {mode === "image" && (
         <div className="flex flex-col flex-grow">
-          <Suspense fallback={null}>
-            <Editor />
-          </Suspense>
-          <div className="flex justify-end py-4 px-8">
-            <button
-              type="button"
-              className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
-              onClick={() => {
-                const image = window.localStorage.getItem("md-canvasContent");
-                if (!image) {
-                  throw new Error("Image not set");
-                }
-                setImage(image);
-                setMode("info");
-              }}
-            >
-              COMPLETE
-            </button>
-          </div>
+          {imageLoaded && (
+            <>
+              <iframe
+                id="svg-editor-iframe"
+                src="/editor/index.html"
+                className="flex-grow"
+                style={{ border: "none" }}
+              />
+
+              <div className="flex justify-end py-4 px-8">
+                <button
+                  type="button"
+                  className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
+                  onClick={() => {
+                    const image =
+                      window.localStorage.getItem("md-canvasContent");
+                    if (!image) {
+                      throw new Error("Image not set");
+                    }
+                    setImage(image);
+                    setMode("info");
+                  }}
+                >
+                  COMPLETE
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
       {mode === "info" && (
@@ -115,12 +160,19 @@ export default function CreatePage() {
                 srcSet={imageDataURL}
                 className="bg-white rounded-xl h-96 w-96 mx-auto mb-8"
               />
-              <div className="text-xl font-bold tracking-wide text-white mb-4">
-                SOURCE
-              </div>
-              <div className="flex gap-4">
-                <div className="bg-white rounded-xl h-40 w-40" />
-              </div>
+              {referenceImageDataURL && (
+                <>
+                  <div className="text-xl font-bold tracking-wide text-white mb-4">
+                    SOURCE
+                  </div>
+                  <div className="flex gap-4">
+                    <img
+                      src={referenceImageDataURL}
+                      className="bg-white rounded-xl h-40 w-40"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex flex-col w-1/3 justify-center py-12 pl-12 border-l border-solid border-zinc-600">
@@ -231,7 +283,12 @@ export default function CreatePage() {
                 </div>
               </div>
               <div className="flex items-center">
-                <input type="checkbox" className="accent-green-600 mr-4" />
+                <input
+                  type="checkbox"
+                  className="accent-green-600 mr-4"
+                  checked={isLicenseChecked}
+                  onChange={(e) => setIsLicenseChecked(e.target.checked)}
+                />
                 <div className="text-lg tracking-wide text-white mr-2">CC0</div>
                 <FaRegQuestionCircle
                   className="text-gray-500 cursor-pointer"
@@ -250,7 +307,8 @@ export default function CreatePage() {
             </button>
             <button
               type="button"
-              className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 hover:opacity-75 transition-opacity duration-300 tracking-wide flex items-center"
+              className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 hover:opacity-75 transition-opacity duration-300 tracking-wide flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!title || !isLicenseChecked}
               onClick={async () => {
                 reset();
                 setModalMode("loading");
@@ -262,12 +320,27 @@ export default function CreatePage() {
                   functionName: "zip",
                   args: [hexImage],
                 });
-                writeContract({
-                  address: EIS_ADDRESS,
-                  abi: eisAbi,
-                  functionName: "create",
-                  args: [title, description, [zippedHexImage]],
-                });
+                if (!referenceTokenId) {
+                  writeContract({
+                    address: EIS_ADDRESS,
+                    abi: eisAbi,
+                    functionName: "create",
+                    args: [title, description, [zippedHexImage]],
+                  });
+                } else {
+                  writeContract({
+                    address: EIS_ADDRESS,
+                    abi: eisAbi,
+                    functionName: "remix",
+                    args: [
+                      title,
+                      description,
+                      [zippedHexImage],
+                      [BigInt(referenceTokenId)],
+                      [BigInt(10000)],
+                    ],
+                  });
+                }
               }}
             >
               <FaCheck className="mr-2" size="18" />
@@ -364,5 +437,13 @@ export default function CreatePage() {
         </div>
       )}
     </>
+  );
+}
+
+export default function CreatePageWrapper() {
+  return (
+    <Suspense>
+      <CreatePage />
+    </Suspense>
   );
 }

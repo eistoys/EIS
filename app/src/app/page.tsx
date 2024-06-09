@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div>
@@ -26,14 +28,16 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="mt-16 text-4xl tracking-wide text-center text-white leading-[58px] max-md:mt-10 max-md:max-w-full max-md:text-2xl max-md:leading-[36px]">
+        <div className="mt-16 text-4xl tracking-wide text-center text-white leading-[58px] max-md:mt-10 max-md:max-w-full max-md:text-2xl max-md:leading-[36px] mb-12">
           Ethereum Image Service is a collaborative hypercanvas
           <br />
           where infinite creativity blooms.
         </div>
-        <div className="justify-center items-center text-center px-16 py-5 mt-16 max-w-full text-2xl font-bold tracking-wide leading-6 bg-[#335228] rounded-xl border-solid border-[3px] border-zinc-500 text-zinc-500 w-[413px] max-md:px-5 max-md:mt-10">
-          LAUNCH APP
-        </div>
+        <Link href="/create">
+          <button className="w-96 text-xl px-4 py-2 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
+            LAUNCH APP
+          </button>
+        </Link>
         <div className="justify-center px-5 mt-20 max-w-full w-[900px] max-md:mt-10">
           <div className="flex gap-12 max-md:flex-col max-md:gap-0">
             <div className="flex flex-col w-[33%] max-md:ml-0 max-md:w-full">
