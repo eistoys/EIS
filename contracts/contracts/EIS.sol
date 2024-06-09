@@ -205,6 +205,31 @@ contract EIS is ERC1155 {
             );
     }
 
+    function uris(
+        uint256 start,
+        uint256 max
+    ) public view returns (string[] memory) {
+        require(start < max, "Invalid range");
+        string[] memory result = new string[](max - start);
+        uint256 index = 0;
+
+        for (uint256 i = start; i < max; i++) {
+            try this.uri(i) returns (string memory uriString) {
+                result[index] = uriString;
+                index++;
+            } catch {
+                break;
+            }
+        }
+
+        string[] memory trimmedResult = new string[](index);
+        for (uint256 j = 0; j < index; j++) {
+            trimmedResult[j] = result[j];
+        }
+
+        return trimmedResult;
+    }
+
     function unzip(bytes memory data) public pure returns (bytes memory) {
         return abi.encodePacked(LibZip.flzDecompress(data));
     }

@@ -948,6 +948,30 @@ export const eisAbi = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "start",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "max",
+        type: "uint256",
+      },
+    ],
+    name: "uris",
+    outputs: [
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes",
         name: "data",
         type: "bytes",
@@ -964,4 +988,4 @@ export const eisAbi = [
     stateMutability: "pure",
     type: "function",
   },
-] as const;
+];

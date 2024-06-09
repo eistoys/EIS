@@ -6,11 +6,17 @@ const cachebust = require("gulp-cache-bust");
 const minify = require("gulp-minify");
 
 gulp.task("css", function () {
-  return gulp.src("src/css/*.css").pipe(concat("all.css")).pipe(gulp.dest("../public/editor"));
+  return gulp
+    .src("src/css/*.css")
+    .pipe(concat("all.css"))
+    .pipe(gulp.dest("../public/editor"));
 });
 
 gulp.task("js", function () {
-  return gulp.src(["src/js/*.js", "src/lib/*.js"]).pipe(concat("all.js")).pipe(gulp.dest("../public/editor"));
+  return gulp
+    .src(["src/js/*.js", "src/lib/*.js"])
+    .pipe(concat("all.js"))
+    .pipe(gulp.dest("../public/editor"));
 });
 
 gulp.task("loading", function () {
@@ -34,23 +40,45 @@ gulp.task("cache", function () {
 });
 
 gulp.task("manifest", function () {
-  return gulp.src(["./src/site.webmanifest"]).pipe(gulp.dest("./../public/editor/"));
+  return gulp
+    .src(["./src/site.webmanifest"])
+    .pipe(gulp.dest("./../public/editor/"));
 });
 
 gulp.task("images", function () {
-  return gulp.src(["src/images/**/*"]).pipe(gulp.dest("../public/editor/images"));
+  return gulp
+    .src(["src/images/**/*"])
+    .pipe(gulp.dest("../public/editor/images"));
 });
 
 gulp.task("extensions", function () {
-  return gulp.src(["src/extensions/**/*"]).pipe(gulp.dest("../public/editor/extensions"));
+  return gulp
+    .src(["src/extensions/**/*"])
+    .pipe(gulp.dest("../public/editor/extensions"));
 });
 
 gulp.task("shapelib", function () {
-  return gulp.src(["src/shapelib/**/*"]).pipe(gulp.dest("../public/editor/shapelib"));
+  return gulp
+    .src(["src/shapelib/**/*"])
+    .pipe(gulp.dest("../public/editor/shapelib"));
 });
 
 gulp.task("canvg", function () {
-  return gulp.src(["src/js/lib/canvg.js", "src/js/lib/rgbcolor.js"]).pipe(gulp.dest("../public/editor/js/lib"));
+  return gulp
+    .src(["src/js/lib/canvg.js", "src/js/lib/rgbcolor.js"])
+    .pipe(gulp.dest("../public/editor/js/lib"));
 });
 
-gulp.task("build", gulp.series("css", "js", "index", "manifest", "images", "extensions", "shapelib", "canvg"));
+gulp.task(
+  "build",
+  gulp.series(
+    "css",
+    "js",
+    "index",
+    "manifest",
+    "images",
+    "extensions",
+    "shapelib",
+    "canvg"
+  )
+);

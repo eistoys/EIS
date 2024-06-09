@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -16,7 +16,9 @@ import { wagmiConfig } from "@/lib/wagmi";
 import { useSearchParams } from "next/navigation";
 
 function CreatePage() {
+  const ref = useRef<HTMLIFrameElement>(null);
   const searchParams = useSearchParams();
+
   const referenceTokenId = searchParams.get("referenceTokenId");
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -27,7 +29,9 @@ function CreatePage() {
   });
 
   const [mode, setMode] = useState<"image" | "info">("image");
-  const [modalMode, setModalMode] = useState<"loading" | "created">("loading");
+  const [modalMode, setModalMode] = useState<"remix" | "loading" | "created">(
+    "remix"
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -117,6 +121,22 @@ function CreatePage() {
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === "remix") {
+        setModalMode("remix");
+        setIsModalOpen(true);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
   return (
     <>
       {mode === "image" && (
@@ -124,6 +144,7 @@ function CreatePage() {
           {imageLoaded && (
             <>
               <iframe
+                ref={ref}
                 id="svg-editor-iframe"
                 src="/editor/index.html"
                 className="flex-grow"
@@ -353,6 +374,27 @@ function CreatePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
           {modalMode == "created" && <Confetti width={width} height={height} />}
           <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-3xl shadow-2xl bg-neutral-800">
+            {modalMode == "remix" && (
+              <>
+                <div className="flex mb-4">
+                  <div className="text-white text-xl font-bold tracking-wider">
+                    Remix
+                  </div>
+                  <button
+                    className="absolute top-6 right-4 text-4xl text-white"
+                    onClick={() => {
+                      ref.current?.contentWindow?.postMessage(
+                        "close",
+                        "http://localhost:3000"
+                      );
+                      setIsModalOpen(false);
+                    }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              </>
+            )}
             {modalMode == "loading" && (
               <>
                 <div className="text-white text-xl font-bold tracking-wider">
