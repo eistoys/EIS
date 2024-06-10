@@ -9,11 +9,14 @@ import { readContract } from "@wagmi/core";
 import { encodeSVGToDataURL } from "@/lib/utils";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
 import { eisAbi } from "@/lib/eis/abi";
-import { toHex } from "viem";
+import { Hex, toHex } from "viem";
 
 import { wagmiConfig } from "@/lib/wagmi";
 
 import { useSearchParams } from "next/navigation";
+
+import solady from "solady";
+import { chunk } from "@/lib/eis/chunk";
 
 function CreatePage() {
   const ref = useRef<HTMLIFrameElement>(null);
@@ -337,18 +340,15 @@ function CreatePage() {
                 setModalMode("loading");
                 setIsModalOpen(true);
                 const hexImage = toHex(image);
-                const zippedHexImage = await readContract(wagmiConfig, {
-                  address: EIS_ADDRESS,
-                  abi: eisAbi,
-                  functionName: "zip",
-                  args: [hexImage],
-                });
+                const zippedHexImage = solady.LibZip.flzCompress(
+                  hexImage
+                ) as Hex;
                 if (!referenceTokenId) {
                   writeContract({
                     address: EIS_ADDRESS,
                     abi: eisAbi,
                     functionName: "create",
-                    args: [title, description, [zippedHexImage]],
+                    args: [title, description, chunk(zippedHexImage)],
                   });
                 } else {
                   writeContract({
@@ -358,7 +358,7 @@ function CreatePage() {
                     args: [
                       title,
                       description,
-                      [zippedHexImage],
+                      chunk(zippedHexImage),
                       [BigInt(referenceTokenId)],
                       [BigInt(10000)],
                     ],
