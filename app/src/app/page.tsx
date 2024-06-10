@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -9,11 +10,13 @@ export default function Home() {
         <div className="flex justify-center items-center px-16 mt-20 w-full max-w-screen-xl max-md:px-5 max-md:mt-10 max-md:max-w-full">
           <div className="max-w-full w-[903px]">
             <div className="flex gap-5 max-md:flex-col max-md:gap-0">
-              <div className="flex flex-col w-6/12 max-md:w-full max-md:items-center">
-                <img
+              <div className="flex flex-col w-6/12 max-md:w-full max-md:items-center relative">
+                <Image
                   loading="lazy"
+                  alt="EIS Logo"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/b621c13f5e3d6a53bc6754f9636f0f80cc184f2f3310336462ddfbcdd1b38a36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                  className="w-full aspect-square max-md:w-3/5 max-md:mt-10"
+                  className="object-contain w-full h-full max-md:w-3/5 max-md:mt-10"
+                  fill
                 />
               </div>
               <div className="flex flex-col ml-24 w-6/12 max-md:w-full max-md:ml-0 max-md:items-center">
@@ -36,16 +39,21 @@ export default function Home() {
             LAUNCH APP
           </button>
         </Link>
+
         <div className="justify-center px-5 mt-20 max-w-full w-[900px] max-md:mt-10">
           <div className="flex gap-12 max-md:flex-col max-md:gap-0">
+
             <div className="flex flex-col w-[33%] max-md:ml-0 max-md:w-full">
               <a href="https://x.com/eistoys" target="_blank">
                 <div className="flex flex-col justify-center text-xl font-semibold tracking-wide leading-5 text-center text-black max-md:mt-10">
                   <div className="flex flex-col py-12 px-4 bg-white rounded-[48px] max-md:px-5 h-64">
-                    <img
+                    <Image
+                      alt="X Link"
                       loading="lazy"
-                      srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                      className="self-center bg-black rounded-full aspect-square h-[120px] w-[120px]"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/ec81fe7f92468270382e1e84ff023099fe3f0068389c45209cf532227934666b?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
+                      className="self-center bg-black rounded-full aspect-square"
+                      width={120}
+                      height={120}
                     />
                     <div className="mt-6">Follow on X</div>
                   </div>
@@ -57,10 +65,13 @@ export default function Home() {
               <a href="https://warpcast.com/eistoys" target="_blank">
                 <div className="flex flex-col justify-center text-xl font-bold tracking-wide leading-5 text-center text-black max-md:mt-10">
                   <div className="flex flex-col py-12 px-4 bg-white rounded-[48px] max-md:px-5 h-64">
-                    <img
+                    <Image
+                      alt="Farcaster Link"
                       loading="lazy"
-                      srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                      className="self-center bg-violet-800 rounded-full aspect-square h-[120px] w-[120px]"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/8c02bc8f04abd1c0707558d903eab0aaddcb184cf9c3db80a4404436d9a99f36?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
+                      className="self-center bg-violet-800 rounded-full aspect-square"
+                      width={120}
+                      height={120}
                     />
                     <div className="mt-6">Follow on Farcaster</div>
                   </div>
@@ -72,18 +83,24 @@ export default function Home() {
               <a href="https://github.com/eistoys/EIS" target="_blank">
                 <div className="flex flex-col justify-center text-xl font-bold tracking-wide leading-5 text-center text-black max-md:mt-10">
                   <div className="flex flex-col py-12 px-4 bg-white rounded-[48px] max-md:px-5 h-64">
-                    <img
+                    <Image
+                      alt="Github Link"
                       loading="lazy"
-                      srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                      className="self-center bg-black rounded-full aspect-square h-[120px] w-[120px]"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/6e682ee4a3f3eb065311cf98b28a9418b30cf73d2e42e1476631f3fbcf2cd2e9?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
+                      className="self-center bg-black rounded-full aspect-square"
+                      width={120}
+                      height={120}
                     />
                     <div className="mt-6">Join our GitHub</div>
                   </div>
                 </div>
               </a>
             </div>
+
           </div>
+
         </div>
+
         <div className="flex flex-col items-center self-stretch px-16 pb-20 mt-20 w-full text-lg leading-5 text-white max-md:px-5 max-md:mt-10 max-md:max-w-full break-all">
           <div className="flex flex-col mb-10 max-w-full w-[960px]">
             <div className="shrink-0 h-2.5 border-t border-solid border-zinc-600 max-md:max-w-full" />
@@ -228,7 +245,7 @@ export default function Home() {
               creativity and collaboration. By enabling artists to store and
               share their works as public goods, EIS unlocks infinite
               possibilities for remixing and revenue generation. The combination
-              of SVG's scalability and editability with the principles of CC0
+              of SVG&lsquo;s scalability and editability with the principles of CC0
               creates a dynamic ecosystem where art and innovation thrive. EIS
               is not just a tool for artists; it’s a movement towards a more
               open, collaborative, and creative future.
