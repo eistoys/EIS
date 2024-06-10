@@ -6,7 +6,7 @@ import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { readContract } from "@wagmi/core";
-import { encodeSVGToDataURL } from "@/lib/utils";
+import { decodeDataURLToSVG, encodeSVGToDataURL } from "@/lib/utils";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
 import { eisAbi } from "@/lib/eis/abi";
 import { Hex, toHex } from "viem";
@@ -17,6 +17,7 @@ import { useSearchParams } from "next/navigation";
 
 import solady from "solady";
 import { chunk } from "@/lib/eis/chunk";
+import { SpinnerLoader } from "@/components/SpinnerLoader";
 
 function CreatePage() {
   const ref = useRef<HTMLIFrameElement>(null);
@@ -43,13 +44,6 @@ function CreatePage() {
   const [supply, setSupply] = useState("∞");
   const [isLicenseChecked, setIsLicenseChecked] = useState(false);
 
-  const [referenceImage, setReferenceImage] = useState("");
-  const referenceImageDataURL = useMemo(() => {
-    if (!referenceImage) {
-      return "";
-    }
-    return encodeSVGToDataURL(referenceImage);
-  }, [referenceImage]);
   const [image, setImage] = useState("");
   const imageDataURL = useMemo(() => {
     if (!image) {
@@ -59,6 +53,57 @@ function CreatePage() {
   }, [image]);
 
   const [createdTokenId, setCreatedTokenId] = useState("");
+  const [references, setReferences] = useState<
+    {
+      tokenId: BigInt;
+      image: string;
+    }[]
+  >([]);
+
+  const [usedReferences, setUsedReferences] = useState<
+    { tokenId: BigInt; image: string }[]
+  >([]);
+
+  const pendingReference = useRef<{ tokenId: BigInt; image: string } | null>(
+    null
+  );
+
+  // Debounce function
+  const debounce = (func: (...args: any[]) => void, delay: number) => {
+    let timer: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  };
+
+  const addUsedReference = (newReference: {
+    tokenId: BigInt;
+    image: string;
+  }) => {
+    pendingReference.current = newReference;
+    debouncedInsert();
+  };
+
+  const insertReference = () => {
+    const newReference = pendingReference.current;
+    if (newReference) {
+      const isDuplicate = usedReferences.some(
+        (ref) => ref.tokenId === newReference.tokenId
+      );
+      if (!isDuplicate) {
+        setUsedReferences((prevReferences) => [
+          ...prevReferences,
+          newReference,
+        ]);
+        pendingReference.current = null; // Reset pending reference after insertion
+      } else {
+        console.log("Duplicate reference found. Not adding to the list.");
+      }
+    }
+  };
+
+  const debouncedInsert = useRef(debounce(insertReference, 300)).current;
 
   useEffect(() => {
     if (!referenceTokenId) {
@@ -74,7 +119,10 @@ function CreatePage() {
       .then((data) => {
         if (data) {
           window.localStorage.setItem("md-canvasContent", data);
-          setReferenceImage(data);
+          addUsedReference({
+            tokenId: BigInt(referenceTokenId),
+            image: encodeSVGToDataURL(data),
+          });
         }
         setImageLoaded(true);
       })
@@ -87,7 +135,7 @@ function CreatePage() {
     if (!error) {
       return;
     }
-    console.error(error);
+    console.error(error.message);
     setIsModalOpen(false);
   }, [error]);
 
@@ -129,6 +177,37 @@ function CreatePage() {
       if (event.data === "remix") {
         setModalMode("remix");
         setIsModalOpen(true);
+        if (references.length > 0) {
+          return;
+        }
+
+        readContract(wagmiConfig, {
+          address: EIS_ADDRESS,
+          abi: eisAbi,
+          functionName: "tokenIdCounter",
+        }).then((totalSupply) => {
+          const start = totalSupply - BigInt(9);
+          readContract(wagmiConfig, {
+            address: EIS_ADDRESS,
+            abi: eisAbi,
+            functionName: "uris",
+            args: [start, totalSupply],
+          }).then((uris) => {
+            const references = uris
+              .map((uri, i) => {
+                try {
+                  return {
+                    tokenId: start + BigInt(i),
+                    ...JSON.parse(uri.split("data:application/json;utf8,")[1]),
+                  };
+                } catch {
+                  return undefined;
+                }
+              })
+              .filter((v) => v);
+            setReferences(references);
+          });
+        });
       }
     };
 
@@ -184,16 +263,19 @@ function CreatePage() {
                 srcSet={imageDataURL}
                 className="bg-white rounded-xl h-96 w-96 mx-auto mb-8"
               />
-              {referenceImageDataURL && (
+              {usedReferences.length > 0 && (
                 <>
                   <div className="text-xl font-bold tracking-wide text-white mb-4">
                     SOURCE
                   </div>
                   <div className="flex gap-4">
-                    <img
-                      src={referenceImageDataURL}
-                      className="bg-white rounded-xl h-40 w-40"
-                    />
+                    {usedReferences.map((reference, i) => (
+                      <img
+                        key={`source_${i}`}
+                        src={reference.image}
+                        className="bg-white rounded-xl h-40 w-40"
+                      />
+                    ))}
                   </div>
                 </>
               )}
@@ -343,7 +425,7 @@ function CreatePage() {
                 const zippedHexImage = solady.LibZip.flzCompress(
                   hexImage
                 ) as Hex;
-                if (!referenceTokenId) {
+                if (usedReferences.length == 0) {
                   writeContract({
                     address: EIS_ADDRESS,
                     abi: eisAbi,
@@ -351,6 +433,10 @@ function CreatePage() {
                     args: [title, description, chunk(zippedHexImage)],
                   });
                 } else {
+                  const referenceTokenIds = usedReferences.map(
+                    (reference) => reference.tokenId as bigint
+                  );
+                  const allocations = usedReferences.map(() => BigInt(10000));
                   writeContract({
                     address: EIS_ADDRESS,
                     abi: eisAbi,
@@ -359,8 +445,8 @@ function CreatePage() {
                       title,
                       description,
                       chunk(zippedHexImage),
-                      [BigInt(referenceTokenId)],
-                      [BigInt(10000)],
+                      referenceTokenIds.sort(),
+                      allocations,
                     ],
                   });
                 }
@@ -386,7 +472,7 @@ function CreatePage() {
                     className="absolute top-6 right-4 text-4xl text-white"
                     onClick={() => {
                       ref.current?.contentWindow?.postMessage(
-                        "close",
+                        { type: "close" },
                         "http://localhost:3000"
                       );
                       setIsModalOpen(false);
@@ -395,8 +481,32 @@ function CreatePage() {
                     &times;
                   </button>
                 </div>
-                <div className="text-white tracking-wider text-sm font-bold">
-                  Coming soon!
+                <div className="text-white tracking-wider text-sm font-bold mb-6">
+                  Only the latest 9 images are displayed. Stay tuned for
+                  updates!
+                </div>
+                {references.length === 0 && <SpinnerLoader />}
+                <div className="grid grid-cols-3 gap-4">
+                  {references.map((reference, i) => {
+                    return (
+                      <img
+                        key={`remix_${i}`}
+                        src={reference.image}
+                        className="bg-white rounded-xl cursor-pointer"
+                        onClick={() => {
+                          ref.current?.contentWindow?.postMessage(
+                            {
+                              type: "remix",
+                              image: decodeDataURLToSVG(reference.image),
+                            },
+                            "http://localhost:3000"
+                          );
+                          addUsedReference(reference);
+                          setIsModalOpen(false);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -405,24 +515,7 @@ function CreatePage() {
                 <div className="text-white text-xl font-bold tracking-wider">
                   CREATING...
                 </div>
-                <div className="flex items-center justify-center h-60">
-                  <svg
-                    aria-hidden="true"
-                    className="w-20 h-20 text-gray-200 animate-spin dark:text-gray-600 fill-[#22CC02]"
-                    viewBox="0 0 100 101"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                      fill="currentFill"
-                    />
-                  </svg>
-                </div>
+                <SpinnerLoader />
                 <div className="text-white tracking-wider text-center text-xl font-bold">
                   Please don't close this modal
                   <br />

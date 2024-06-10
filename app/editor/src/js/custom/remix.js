@@ -16,8 +16,16 @@ document.addEventListener("DOMContentLoaded", (event) => {
 });
 
 window.addEventListener("message", (event) => {
-  if (event.data === "close") {
+  if (event.data.type === "close") {
     $("#menu_bar").toggleClass("active");
     $(".menu").removeClass("open");
+    $(this).parent().addClass("open");
+  }
+  if (event.data.type === "remix") {
+    svgCanvas.importSvgString(event.data.image);
+    state.set("canvasContent", svgCanvas.getSvgString());
+    $("#menu_bar").toggleClass("active");
+    $(".menu").removeClass("open");
+    $(this).parent().addClass("open");
   }
 });
