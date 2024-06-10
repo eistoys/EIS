@@ -6,7 +6,11 @@ import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { readContract } from "@wagmi/core";
-import { decodeDataURLToSVG, encodeSVGToDataURL } from "@/lib/utils";
+import {
+  decodeDataURLToSVG,
+  encodeSVGToDataURL,
+  escapeString,
+} from "@/lib/utils";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
 import { eisAbi } from "@/lib/eis/abi";
 import { Hex, toHex } from "viem";
@@ -421,6 +425,11 @@ function CreatePage() {
                 reset();
                 setModalMode("loading");
                 setIsModalOpen(true);
+                const escapedTitle = escapeString(title);
+                const escapedDescription = escapeString(description);
+                console.log("escapedTitle", escapedTitle);
+                console.log("escapedDescription", escapedDescription);
+
                 const hexImage = toHex(image);
                 const zippedHexImage = solady.LibZip.flzCompress(
                   hexImage
@@ -430,7 +439,11 @@ function CreatePage() {
                     address: EIS_ADDRESS,
                     abi: eisAbi,
                     functionName: "create",
-                    args: [title, description, chunk(zippedHexImage)],
+                    args: [
+                      escapedTitle,
+                      escapedDescription,
+                      chunk(zippedHexImage),
+                    ],
                   });
                 } else {
                   const referenceTokenIds = usedReferences.map(
@@ -442,8 +455,8 @@ function CreatePage() {
                     abi: eisAbi,
                     functionName: "remix",
                     args: [
-                      title,
-                      description,
+                      escapedTitle,
+                      escapedDescription,
                       chunk(zippedHexImage),
                       referenceTokenIds.sort(),
                       allocations,

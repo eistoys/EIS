@@ -16,3 +16,7 @@ export const truncateString = (str: string, maxLength: number) => {
   }
   return str.slice(0, maxLength) + "...";
 };
+
+export const escapeString = (str: string) => {
+  return str.replace(/\n/g, "\\n").replace(/\r/g, "\\r");
+};
