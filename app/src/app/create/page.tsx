@@ -473,7 +473,7 @@ function CreatePage() {
                     onClick={() => {
                       ref.current?.contentWindow?.postMessage(
                         { type: "close" },
-                        "http://localhost:3000"
+                        process.env.NEXT_PUBLIC_APP_URL || ""
                       );
                       setIsModalOpen(false);
                     }}
@@ -499,7 +499,7 @@ function CreatePage() {
                               type: "remix",
                               image: decodeDataURLToSVG(reference.image),
                             },
-                            "http://localhost:3000"
+                            process.env.NEXT_PUBLIC_APP_URL || ""
                           );
                           addUsedReference(reference);
                           setIsModalOpen(false);
