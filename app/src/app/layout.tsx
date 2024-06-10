@@ -7,6 +7,7 @@ import { Roboto } from "next/font/google";
 import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 import { Suspense } from "react";
+import { ToastContainer } from "@/components/ToastContainer";
 
 const roboto = Roboto({
   weight: ["400", "700", "900"],
@@ -47,6 +48,7 @@ export default function RootLayout({
           >
             <Header />
             {children}
+            <ToastContainer />
           </div>
         </Providers>
       </body>
