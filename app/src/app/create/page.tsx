@@ -17,6 +17,7 @@ import { useSearchParams } from "next/navigation";
 
 import solady from "solady";
 import { chunk } from "@/lib/eis/chunk";
+import Image from "next/image";
 
 function CreatePage() {
   const ref = useRef<HTMLIFrameElement>(null);
@@ -179,10 +180,13 @@ function CreatePage() {
         <div>
           <div className="flex border-b border-solid border-zinc-600 px-8">
             <div className="flex flex-col w-2/3 py-12">
-              <img
+              <Image
+                alt="reference image"
                 loading="lazy"
-                srcSet={imageDataURL}
-                className="bg-white rounded-xl h-96 w-96 mx-auto mb-8"
+                src={imageDataURL}
+                className="bg-white rounded-xl mx-auto mb-8"
+                width={288}
+                height={288}
               />
               {referenceImageDataURL && (
                 <>
@@ -190,9 +194,12 @@ function CreatePage() {
                     SOURCE
                   </div>
                   <div className="flex gap-4">
-                    <img
+                    <Image
+                      alt="reference image"
                       src={referenceImageDataURL}
-                      className="bg-white rounded-xl h-40 w-40"
+                      className="bg-white rounded-xl"
+                      width={120}
+                      height={120}
                     />
                   </div>
                 </>
@@ -244,9 +251,9 @@ function CreatePage() {
                   required
                   disabled
                   value={price}
-                  // onChange={(e) =>
-                  //   setPrice(e.target.value.replace(/[^0-9.]/g, ""))
-                  // }
+                // onChange={(e) =>
+                //   setPrice(e.target.value.replace(/[^0-9.]/g, ""))
+                // }
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                   <span className="text-white">ETH</span>
@@ -259,19 +266,19 @@ function CreatePage() {
                 <button
                   type="button"
                   className="absolute left-0 text-white w-12 h-12"
-                  // onClick={() => {
-                  //   setSupply((prev) => {
-                  //     if (prev === "∞") {
-                  //       return "0";
-                  //     } else {
-                  //       const num = parseFloat(prev);
-                  //       if (num === 0) {
-                  //         return "0";
-                  //       }
-                  //       return (num + -1).toString();
-                  //     }
-                  //   });
-                  // }}
+                // onClick={() => {
+                //   setSupply((prev) => {
+                //     if (prev === "∞") {
+                //       return "0";
+                //     } else {
+                //       const num = parseFloat(prev);
+                //       if (num === 0) {
+                //         return "0";
+                //       }
+                //       return (num + -1).toString();
+                //     }
+                //   });
+                // }}
                 >
                   -
                 </button>
@@ -281,23 +288,23 @@ function CreatePage() {
                   required
                   disabled
                   value={supply}
-                  // onChange={(e) =>
-                  //   setSupply(e.target.value.replace(/[^0-9.∞]/g, ""))
-                  // }
+                // onChange={(e) =>
+                //   setSupply(e.target.value.replace(/[^0-9.∞]/g, ""))
+                // }
                 />
                 <button
                   type="button"
                   className="absolute right-0 text-white w-12 h-12"
-                  // onClick={() => {
-                  //   setSupply((prev) => {
-                  //     if (prev === "∞") {
-                  //       return "0";
-                  //     } else {
-                  //       const num = parseFloat(prev);
-                  //       return (num + 1).toString();
-                  //     }
-                  //   });
-                  // }}
+                // onClick={() => {
+                //   setSupply((prev) => {
+                //     if (prev === "∞") {
+                //       return "0";
+                //     } else {
+                //       const num = parseFloat(prev);
+                //       return (num + 1).toString();
+                //     }
+                //   });
+                // }}
                 >
                   +
                 </button>
@@ -443,10 +450,13 @@ function CreatePage() {
                     &times;
                   </button>
                 </div>
-                <img
+                <Image
+                  alt="image data"
                   loading="lazy"
-                  srcSet={imageDataURL}
-                  className="bg-white rounded-xl h-64 w-64 mx-auto mb-8"
+                  src={imageDataURL}
+                  className="bg-white rounded-xl mx-auto mb-8"
+                  width={192}
+                  height={192}
                 />
                 <div className="flex gap-4 px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
                   <button
