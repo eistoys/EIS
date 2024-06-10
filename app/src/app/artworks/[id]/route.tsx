@@ -27,18 +27,17 @@ const handleRequest = frames(async (ctx) => {
     throw new Error("Token ID not defined");
   }
 
-  const uri = await readContract(wagmiConfig, {
+  const image = await readContract(wagmiConfig, {
     address: EIS_ADDRESS,
     abi: eisAbi,
-    functionName: "uri",
+    functionName: "loadImage",
     args: [BigInt(tokenId)],
   });
 
-  const metadata = JSON.parse(uri.split("data:application/json;utf8,")[1]);
   const price = "0.00069";
 
   return {
-    image: <img src={metadata.image} />,
+    image: <img src={image} />,
     buttons: [
       <Button
         action="tx"
