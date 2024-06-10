@@ -24,19 +24,20 @@ import { getContract } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import solady from "solady";
 
-import { largeSVG, middleSVG, smallSVG } from "./data";
-import {
-  CHUNK_SIZE,
-  bufferToHexString,
-  chunkBuffer,
-  chunksToHexChunks,
-  hexToBuffer,
-} from "./utils";
+import { chunk } from "./utils";
+
+import { smallSVG, middleSVG, largeSVG } from "./data";
 
 const name = "name";
 const description = "description";
+
+// use small svg to test zip funcionality and faster test
 const smallSVGHex = toHex(smallSVG);
+
+// use middle for other tests
 const middleSVGHex = toHex(middleSVG);
+
+// use large svg to test unzip capacity
 const largeSVGHex = toHex(largeSVG);
 
 const getFixture = async () => {
@@ -64,25 +65,18 @@ describe("EIP", function () {
   });
 
   describe("View - Zip", function () {
-    it("Should work js zip", async function () {
+    it("Should work zip", async function () {
       const { eis } = await getFixture();
-      const zippedOffchain = solady.LibZip.flzCompress(smallSVGHex);
+      const zippedOffchain = solady.LibZip.flzCompress(smallSVGHex) as Hex;
       const zipped = await eis.read.zip([smallSVGHex]);
       expect(zippedOffchain).to.equal(zipped);
     });
 
-    it("Should work with small svg", async function () {
+    it("Should work unzip", async function () {
       const { eis } = await getFixture();
-      const zipped = await eis.read.zip([smallSVGHex]);
+      const zipped = solady.LibZip.flzCompress(largeSVGHex) as Hex;
       const unzipped = await eis.read.unzip([zipped]);
-      expect(unzipped).to.equal(smallSVGHex);
-    });
-
-    it("Should work with middle svg", async function () {
-      const { eis } = await getFixture();
-      const zipped = await eis.read.zip([middleSVGHex]);
-      const unzipped = await eis.read.unzip([zipped]);
-      expect(unzipped).to.equal(middleSVGHex);
+      expect(unzipped).to.equal(largeSVGHex);
     });
   });
 
@@ -91,49 +85,14 @@ describe("EIP", function () {
       const { eis } = await getFixture();
       const publicClient = await hre.viem.getPublicClient();
 
-      const zipped = await eis.read.zip([smallSVGHex]);
+      const zipped = solady.LibZip.flzCompress(middleSVGHex) as Hex;
 
       const createTxHash = await eis.write.create([
         name,
         description,
-        [zipped],
+        chunk(zipped),
       ]);
 
-      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
-      const createdTokenId = BigInt(0);
-
-      const loadedImage = await eis.read.loadImage([createdTokenId]);
-
-      const decodedLoadedImage = Buffer.from(
-        loadedImage.split("data:image/svg+xml;base64,")[1],
-        "base64"
-      ).toString("utf-8");
-
-      expect(decodedLoadedImage).to.equal(smallSVG);
-
-      const erc4883Data = await eis.read.renderTokenById([createdTokenId]);
-      expect(erc4883Data).to.equal(smallSVG);
-
-      const tokenURI = await eis.read.uri([createdTokenId]);
-      const metadata = JSON.parse(
-        tokenURI.split("data:application/json;utf8,")[1]
-      );
-      expect(metadata.image).to.equal(loadedImage);
-    });
-
-    it("Should work with middle svg", async function () {
-      const { eis } = await getFixture();
-      const publicClient = await hre.viem.getPublicClient();
-
-      const zipped = await eis.read.zip([middleSVGHex]);
-      const imageChunks = chunksToHexChunks(
-        chunkBuffer(hexToBuffer(zipped), CHUNK_SIZE - 1)
-      );
-      const createTxHash = await eis.write.create([
-        name,
-        description,
-        imageChunks,
-      ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
 
@@ -148,42 +107,6 @@ describe("EIP", function () {
 
       const erc4883Data = await eis.read.renderTokenById([createdTokenId]);
       expect(erc4883Data).to.equal(middleSVG);
-
-      const tokenURI = await eis.read.uri([createdTokenId]);
-      const metadata = JSON.parse(
-        tokenURI.split("data:application/json;utf8,")[1]
-      );
-      expect(metadata.image).to.equal(loadedImage);
-    });
-
-    it.only("Should work with large svg", async function () {
-      const { eis } = await getFixture();
-      const publicClient = await hre.viem.getPublicClient();
-
-      const zipped = solady.LibZip.flzCompress(largeSVGHex) as Hex;
-
-      const imageChunks = chunksToHexChunks(
-        chunkBuffer(hexToBuffer(zipped), CHUNK_SIZE - 1)
-      );
-      const createTxHash = await eis.write.create([
-        name,
-        description,
-        imageChunks,
-      ]);
-      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
-      const createdTokenId = BigInt(0);
-
-      const loadedImage = await eis.read.loadImage([createdTokenId]);
-
-      const decodedLoadedImage = Buffer.from(
-        loadedImage.split("data:image/svg+xml;base64,")[1],
-        "base64"
-      ).toString("utf-8");
-
-      expect(decodedLoadedImage).to.equal(largeSVG);
-
-      const erc4883Data = await eis.read.renderTokenById([createdTokenId]);
-      expect(erc4883Data).to.equal(largeSVG);
 
       const tokenURI = await eis.read.uri([createdTokenId]);
       const metadata = JSON.parse(
@@ -222,11 +145,11 @@ describe("EIP", function () {
 
       const publicClient = await hre.viem.getPublicClient();
 
-      const zipped = await eis.read.zip([smallSVGHex]);
+      const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
       const createTxHash = await eis.write.create([
         name,
         description,
-        [zipped],
+        chunk(zipped),
       ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
@@ -247,11 +170,11 @@ describe("EIP", function () {
 
       const publicClient = await hre.viem.getPublicClient();
 
-      const zipped = await eis.read.zip([smallSVGHex]);
+      const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
       const createTxHash = await eis.write.create([
         name,
         description,
-        [zipped],
+        chunk(zipped),
       ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
@@ -279,11 +202,11 @@ describe("EIP", function () {
       const { creator, distributor, eis } = await getFixture();
       const publicClient = await hre.viem.getPublicClient();
 
-      const zipped = await eis.read.zip([smallSVGHex]);
+      const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
       const createTxHash = await eis.write.create([
         name,
         description,
-        [zipped],
+        chunk(zipped),
       ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
@@ -339,12 +262,21 @@ describe("EIP", function () {
     const { creator, distributor, eis } = await getFixture();
     const publicClient = await hre.viem.getPublicClient();
 
-    const zipped = await eis.read.zip([smallSVGHex]);
-    const createTxHash1 = await eis.write.create([name, description, [zipped]]);
+    const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
+    const createTxHash1 = await eis.write.create([
+      name,
+      description,
+      chunk(zipped),
+    ]);
+
     await publicClient.waitForTransactionReceipt({ hash: createTxHash1 });
     const createdTokenId1 = BigInt(0);
 
-    const createTxHash2 = await eis.write.create([name, description, [zipped]]);
+    const createTxHash2 = await eis.write.create([
+      name,
+      description,
+      chunk(zipped),
+    ]);
     await publicClient.waitForTransactionReceipt({ hash: createTxHash2 });
     const createdTokenId2 = BigInt(1);
 
@@ -353,7 +285,7 @@ describe("EIP", function () {
     const remixTxHash = await eis.write.remix([
       name,
       description,
-      [zipped],
+      chunk(zipped),
       [createdTokenId1, createdTokenId2],
       [allocation1, allocation2],
     ]);
