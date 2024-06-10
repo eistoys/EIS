@@ -200,13 +200,11 @@ function CreatePage() {
             const references = uris
               .map((uri, i) => {
                 try {
-                  console.log(uri.split("data:application/json;utf8,")[1]);
                   return {
                     tokenId: start + BigInt(i),
                     ...JSON.parse(uri.split("data:application/json;utf8,")[1]),
                   };
                 } catch {
-                  console.log("Invalid JSON");
                   return undefined;
                 }
               })
