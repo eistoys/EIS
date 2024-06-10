@@ -24660,11 +24660,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 window.addEventListener("message", (event) => {
   if (event.data.type === "close") {
+    console.log("editor: remix");
     $("#menu_bar").toggleClass("active");
     $(".menu").removeClass("open");
     $(this).parent().addClass("open");
   }
   if (event.data.type === "remix") {
+    console.log("editor: remix");
     svgCanvas.importSvgString(event.data.image);
     state.set("canvasContent", svgCanvas.getSvgString());
     $("#menu_bar").toggleClass("active");
