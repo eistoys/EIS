@@ -2,20 +2,17 @@
 pragma solidity ^0.8.0;
 
 import {IZoraCreator1155Factory} from "./interfaces/IZoraCreator1155Factory.sol";
-import {ICreatorRoyaltiesControl, RoyaltyConfiguration} from "./interfaces/ICreatorRoyaltiesControl.sol";
+import {ICreatorRoyaltiesControl} from "./interfaces/ICreatorRoyaltiesControl.sol";
 import {Renderer1155Impl} from "./Renderer1155Impl.sol";
 import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 
 import "solady/src/utils/SSTORE2.sol";
+import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/Base64.sol";
 
 contract EISZ {
-    // Record の構造体をどこで定義するべきか検討
-    event Created(
-        address indexed newContract,
-        address indexed creator,
-        Record record
-    );
+    // イベントにRecordを含めるべきか検討
+    event Created(address indexed newContract, address indexed creator);
 
     struct Record {
         address creator;
@@ -45,12 +42,14 @@ contract EISZ {
         bytes[] calldata setupActions
     ) external returns (address) {
         // ロイヤリティの設定
-        RoyaltyConfiguration memory royaltyConfig = RoyaltyConfiguration({
-            receiver: treasuryAddress,
-            percentage: 500 // 仮で5%を設定
-        });
+        ICreatorRoyaltiesControl.RoyaltyConfiguration
+            memory royaltyConfig = ICreatorRoyaltiesControl
+                .RoyaltyConfiguration(0, 500, treasuryAddress);
 
-        Renderer1155Impl renderer = new Renderer1155Impl();
+        Renderer1155Impl renderer = new Renderer1155Impl(address(this));
+
+        address[] memory emptyAddressArray;
+        uint256[] memory emptyUintArray;
 
         // Renderer1155Implのsetupの引数に対応する値を引数に渡す
         bytes memory rendererSetupData = abi.encode(
@@ -59,11 +58,11 @@ contract EISZ {
             address(0), // Splitのアドレスを指定する
             name,
             "desctiption for the collection",
-            new address, // imageChunks を適切に指定
-            new uint256, // referenceTokenIds を適切に指定
+            emptyAddressArray, // imageChunks を適切に指定
+            emptyUintArray, // referenceTokenIds を適切に指定
             SplitV2Lib.Split({
-                recipients: new address, // 適切に指定
-                allocations: new uint256, // 適切に指定
+                recipients: emptyAddressArray, // 適切に指定
+                allocations: emptyUintArray, // 適切に指定
                 totalAllocation: 10000, // 100% (basis points)
                 distributionIncentive: 0 // 適切に指定
             })
@@ -85,11 +84,11 @@ contract EISZ {
             contractURI,
             name,
             royaltyConfig,
-            defaultAdmin,
+            payable(defaultAdmin),
             actions
         );
 
-        emit ContractCreated(newContract, creator);
+        emit Created(newContract, creator);
         return newContract;
     }
 
@@ -100,5 +99,30 @@ contract EISZ {
             data = abi.encodePacked(data, SSTORE2.read(imageChunks[i]));
         }
         return LibZip.flzDecompress(data);
+    }
+
+    function setRecord(
+        uint256 tokenId,
+        address creator,
+        address split,
+        string memory name,
+        string memory description,
+        address[] memory imageChunks,
+        uint256[] memory referenceTokenIds,
+        SplitV2Lib.Split memory splitParams
+    ) public {
+        records[tokenId] = Record({
+            creator: creator,
+            split: split,
+            name: name,
+            description: description,
+            imageChunks: imageChunks,
+            referenceTokenIds: referenceTokenIds,
+            splitParams: splitParams
+        });
+    }
+
+    function getRecord(uint256 tokenId) public view returns (Record memory) {
+        return records[tokenId];
     }
 }
