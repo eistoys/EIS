@@ -3,17 +3,26 @@ pragma solidity ^0.8.0;
 
 import {EISZ} from "./EISZ.sol";
 import {IRenderer1155} from "./interfaces/IRenderer1155.sol";
+import {IERC165Upgradeable} from "./interfaces/IERC165Upgradeable.sol";
+import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
+
+import "solady/src/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Renderer1155Impl is IRenderer1155 {
     EISZ public eisz;
 
     constructor(EISZ _eisz) {
-        eisz = _eisz;
+        eisz = EISZ(_eisz);
+    }
+
+    // 権限設定を追加
+    function setEISZAddress(address _eisz) external view {
+        eisz = EISZ(_eisz);
     }
 
     function uri(uint256 tokenId) external view returns (string memory) {
-        EISZ.Record memory record = eisz.records[tokenId];
+        EISZ.Record memory record = eisz.getRecord(tokenId);
         require(record.creator != address(0x0), "EIS: image doesn't exist");
         return
             string(
@@ -33,7 +42,7 @@ contract Renderer1155Impl is IRenderer1155 {
     }
 
     function contractURI() external view returns (string memory) {
-        EISZ.Record memory record = eisz.records[0];
+        EISZ.Record memory record = eisz.getRecord(0);
         require(record.creator != address(0x0), "EIS: image doesn't exist");
         return
             string(
@@ -52,7 +61,7 @@ contract Renderer1155Impl is IRenderer1155 {
             );
     }
 
-    function setup(bytes memory initData) external override {
+    function setup(bytes memory initData) external {
         (
             uint256 tokenId,
             address creator,
@@ -75,15 +84,16 @@ contract Renderer1155Impl is IRenderer1155 {
                     SplitV2Lib.Split
                 )
             );
-        eisz.records[tokenId] = eisz.Record({
-            creator: creator,
-            split: split,
-            name: name,
-            description: description,
-            imageChunks: imageChunks,
-            referenceTokenIds: referenceTokenIds,
-            splitParams: splitParams
-        });
+        eisz.setRecord(
+            tokenId,
+            creator,
+            split,
+            name,
+            description,
+            imageChunks,
+            referenceTokenIds,
+            splitParams
+        );
     }
 
     function loadImage(uint256 tokenId) public view returns (string memory) {
@@ -95,5 +105,13 @@ contract Renderer1155Impl is IRenderer1155 {
                     Base64.encode(data)
                 )
             );
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) external view override returns (bool) {
+        return
+            interfaceId == type(IRenderer1155).interfaceId ||
+            interfaceId == type(IERC165Upgradeable).interfaceId;
     }
 }
