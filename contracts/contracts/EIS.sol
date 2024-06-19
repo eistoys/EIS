@@ -23,6 +23,7 @@ contract EIS is ERC1155 {
         address split;
         string name;
         string description;
+        string mimeType;
         address[] imageChunks;
         uint256[] referenceTokenIds;
         SplitV2Lib.Split splitParams;
@@ -64,6 +65,7 @@ contract EIS is ERC1155 {
     function create(
         string memory name,
         string memory description,
+        string memory mimeType,
         bytes[] calldata image
     ) public {
         uint256 tokenId = tokenIdCounter++;
@@ -84,17 +86,16 @@ contract EIS is ERC1155 {
             distributionIncentive: distributionIncentive
         });
 
-        address split = pullSplitFactory.createSplit(
-            splitParams,
-            address(this),
-            creator
-        );
-
         records[tokenId] = Record({
             creator: creator,
-            split: split,
+            split: pullSplitFactory.createSplit(
+                splitParams,
+                address(this),
+                creator
+            ),
             name: name,
             description: description,
+            mimeType: mimeType,
             imageChunks: _setImage(image),
             referenceTokenIds: new uint256[](0),
             splitParams: splitParams
@@ -106,6 +107,7 @@ contract EIS is ERC1155 {
     function remix(
         string memory name,
         string memory description,
+        string memory mimeType,
         bytes[] calldata image,
         uint256[] memory referenceTokenIds,
         uint256[] memory referenceAllocations
@@ -142,17 +144,16 @@ contract EIS is ERC1155 {
             distributionIncentive: distributionIncentive
         });
 
-        address split = pullSplitFactory.createSplit(
-            splitParams,
-            address(this),
-            creator
-        );
-
         records[tokenId] = Record({
             creator: creator,
-            split: split,
+            split: pullSplitFactory.createSplit(
+                splitParams,
+                address(this),
+                creator
+            ),
             name: name,
             description: description,
+            mimeType: mimeType,
             imageChunks: _setImage(image),
             referenceTokenIds: referenceTokenIds,
             splitParams: splitParams
@@ -289,7 +290,9 @@ contract EIS is ERC1155 {
         return
             string(
                 abi.encodePacked(
-                    "data:image/svg+xml;base64,",
+                    "data:",
+                    records[tokenId].mimeType,
+                    ";base64,",
                     Base64.encode(data)
                 )
             );

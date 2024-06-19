@@ -190,6 +190,7 @@ function CreatePage() {
         blobToArrayBuffer(blob).then((arrayBuffer) => {
           const buffer = Buffer.from(arrayBuffer);
           const imageHex = buffer.toString("hex");
+          console.log("imageHex", imageHex);
           setImageHex(imageHex);
           const dataUrl = bufferToDataURL(buffer);
           setImageDataURL(dataUrl);
