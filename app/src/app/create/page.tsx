@@ -225,41 +225,43 @@ function CreatePage() {
           setMode("info");
         });
       }
-
-      // if (event.data === "remix") {
-      //   setModalMode("remix");
-      //   setIsModalOpen(true);
-      //   if (references.length > 0) {
-      //     return;
-      //   }
-      //   readContract(wagmiConfig, {
-      //     address: EIS_ADDRESS,
-      //     abi: eisAbi,
-      //     functionName: "tokenIdCounter",
-      //   }).then((totalSupply) => {
-      //     const start = totalSupply - BigInt(9);
-      //     readContract(wagmiConfig, {
-      //       address: EIS_ADDRESS,
-      //       abi: eisAbi,
-      //       functionName: "uris",
-      //       args: [start, totalSupply],
-      //     }).then((uris) => {
-      //       const references = uris
-      //         .map((uri, i) => {
-      //           try {
-      //             return {
-      //               tokenId: start + BigInt(i),
-      //               ...JSON.parse(uri.split("data:application/json;utf8,")[1]),
-      //             };
-      //           } catch {
-      //             return undefined;
-      //           }
-      //         })
-      //         .filter((v) => v);
-      //       setReferences(references);
-      //     });
-      //   });
-      // }
+      if (event.data.type === "remix") {
+        setModalMode("remix");
+        setIsModalOpen(true);
+        if (references.length > 0) {
+          return;
+        }
+        readContract(wagmiConfig, {
+          address: EIS_ADDRESS,
+          abi: eisAbi,
+          functionName: "tokenIdCounter",
+        }).then((totalSupply) => {
+          let start = totalSupply - BigInt(9);
+          if (start < 0) {
+            start = BigInt(0);
+          }
+          readContract(wagmiConfig, {
+            address: EIS_ADDRESS,
+            abi: eisAbi,
+            functionName: "uris",
+            args: [start, totalSupply],
+          }).then((uris) => {
+            const references = uris
+              .map((uri, i) => {
+                try {
+                  return {
+                    tokenId: start + BigInt(i),
+                    ...JSON.parse(uri.split("data:application/json;utf8,")[1]),
+                  };
+                } catch {
+                  return undefined;
+                }
+              })
+              .filter((v) => v);
+            setReferences(references);
+          });
+        });
+      }
     };
 
     window.addEventListener("message", handleMessage);
@@ -268,7 +270,7 @@ function CreatePage() {
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, []);
+  }, [node]);
 
   return (
     <>
@@ -317,13 +319,18 @@ function CreatePage() {
                     SOURCE
                   </div>
                   <div className="flex gap-4">
-                    {usedReferences.map((reference, i) => (
+                    <img
+                      // key={`source_${i}`}
+                      src={usedReferences[usedReferences.length - 1].image}
+                      className="bg-white rounded-xl h-40 w-40"
+                    />
+                    {/* {usedReferences.map((reference, i) => (
                       <img
                         key={`source_${i}`}
                         src={reference.image}
                         className="bg-white rounded-xl h-40 w-40"
                       />
-                    ))}
+                    ))} */}
                   </div>
                 </>
               )}
@@ -490,10 +497,23 @@ function CreatePage() {
                     ],
                   });
                 } else {
-                  const referenceTokenIds = usedReferences.map(
-                    (reference) => reference.tokenId as bigint
-                  );
-                  const allocations = usedReferences.map(() => BigInt(10000));
+                  // const referenceTokenIds = usedReferences.map(
+                  //   (reference) => reference.tokenId as bigint
+                  // );
+                  // const allocations = usedReferences.map(() => BigInt(10000));
+                  // writeContract({
+                  //   address: EIS_ADDRESS,
+                  //   abi: eisAbi,
+                  //   functionName: "remix",
+                  //   args: [
+                  //     escapedTitle,
+                  //     escapedDescription,
+                  //     "image/png",
+                  //     chunk(zippedHexImage),
+                  //     referenceTokenIds.sort(),
+                  //     allocations,
+                  //   ],
+                  // });
                   writeContract({
                     address: EIS_ADDRESS,
                     abi: eisAbi,
@@ -503,8 +523,11 @@ function CreatePage() {
                       escapedDescription,
                       "image/png",
                       chunk(zippedHexImage),
-                      referenceTokenIds.sort(),
-                      allocations,
+                      [
+                        usedReferences[usedReferences.length - 1]
+                          .tokenId as bigint,
+                      ],
+                      [BigInt(10000)],
                     ],
                   });
                 }
@@ -529,10 +552,6 @@ function CreatePage() {
                   <button
                     className="absolute top-6 right-4 text-4xl text-white"
                     onClick={() => {
-                      node?.contentWindow?.postMessage(
-                        { type: "close" },
-                        process.env.NEXT_PUBLIC_APP_URL || ""
-                      );
                       setIsModalOpen(false);
                     }}
                   >
@@ -555,7 +574,7 @@ function CreatePage() {
                           node?.contentWindow?.postMessage(
                             {
                               type: "remix",
-                              image: decodeDataURLToSVG(reference.image),
+                              value: reference.image,
                             },
                             process.env.NEXT_PUBLIC_APP_URL || ""
                           );
