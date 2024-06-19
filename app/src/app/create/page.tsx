@@ -286,7 +286,7 @@ function CreatePage() {
                 style={{ border: "none" }}
               />
 
-              <div className="flex justify-end py-4 px-8">
+              <div className="flex justify-end py-4 px-4 md:px-8">
                 <button
                   type="button"
                   className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
@@ -305,66 +305,68 @@ function CreatePage() {
         </div>
       )}
       {mode === "info" && (
-        <div>
-          <div className="flex border-b border-solid border-zinc-600 px-8">
-            <div className="flex flex-col w-2/3 py-12">
-              <img
-                loading="lazy"
-                src={imageDataURL}
-                className="bg-white rounded-xl h-96 w-96 mx-auto mb-8"
-              />
-              {usedReferences.length > 0 && (
-                <>
-                  <div className="text-xl font-bold tracking-wide text-white mb-4">
-                    SOURCE
-                  </div>
-                  <div className="flex gap-4">
-                    <img
-                      // key={`source_${i}`}
-                      src={usedReferences[usedReferences.length - 1].image}
-                      className="bg-white rounded-xl h-40 w-40"
-                    />
-                    {/* {usedReferences.map((reference, i) => (
+        <div className="flex flex-col flex-grow">
+          <div className="flex border-b border-solid border-zinc-600 px-4 flex-grow">
+            <div className="flex flex-col md:flex-row w-full">
+              <div className="w-full md:w-2/3 py-12">
+                <img
+                  loading="lazy"
+                  src={imageDataURL}
+                  className="bg-white rounded-xl w-96 aspect-square mx-auto mb-8 object-cover"
+                />
+
+                {usedReferences.length > 0 && (
+                  <>
+                    <div className="text-xl font-bold tracking-wide text-white mb-4">
+                      SOURCE
+                    </div>
+                    <div className="flex gap-4">
+                      <img
+                        // key={`source_${i}`}
+                        src={usedReferences[usedReferences.length - 1].image}
+                        className="bg-white rounded-xl h-40 w-40"
+                      />
+                      {/* {usedReferences.map((reference, i) => (
                       <img
                         key={`source_${i}`}
                         src={reference.image}
                         className="bg-white rounded-xl h-40 w-40"
                       />
                     ))} */}
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="flex flex-col w-1/3 justify-center py-12 pl-12 border-l border-solid border-zinc-600">
-              <div className="text-lg font-bold tracking-wider text-white mb-2">
-                TITLE <span className="text-red-600">*</span>
+                    </div>
+                  </>
+                )}
               </div>
-              <input
-                type="text"
-                className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
-                placeholder="Enter title here"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <div className="text-lg font-bold tracking-wider text-white mb-2">
-                DESCRIPTION{" "}
-                <span className="text-base font-medium">(Optional)</span>
-              </div>
-              <textarea
-                className="bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
-                rows={5}
-                placeholder="Enter description here"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
 
-              <div className="flex justify-between mb-2">
-                <div className="text-lg font-bold tracking-wider text-white">
-                  PRICE
+              <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-zinc-600">
+                <div className="text-lg font-bold tracking-wider text-white mb-2">
+                  TITLE <span className="text-red-600">*</span>
                 </div>
-                {/* <div
+                <input
+                  type="text"
+                  className="w-full bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
+                  placeholder="Enter title here"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+                <div className="text-lg font-bold tracking-wider text-white mb-2">
+                  DESCRIPTION{" "}
+                  <span className="text-base font-medium">(Optional)</span>
+                </div>
+                <textarea
+                  className="w-full bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
+                  rows={5}
+                  placeholder="Enter description here"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+
+                <div className="flex justify-between mb-2">
+                  <div className="text-lg font-bold tracking-wider text-white">
+                    PRICE
+                  </div>
+                  {/* <div
                   className="underline tracking-wider text-white cursor-pointer"
                   onClick={() => {
                     setPrice("0.00069");
@@ -373,94 +375,97 @@ function CreatePage() {
                 >
                   Reset
                 </div> */}
-              </div>
-              <div className="relative mb-6">
-                <input
-                  type="text"
-                  className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
-                  required
-                  disabled
-                  value={price}
-                  // onChange={(e) =>
-                  //   setPrice(e.target.value.replace(/[^0-9.]/g, ""))
-                  // }
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-                  <span className="text-white">ETH</span>
                 </div>
-              </div>
-              <div className="text-lg font-bold tracking-wider text-white mb-2">
-                SUPPLY
-              </div>
-              <div className="relative flex items-center mb-4">
-                <button
-                  type="button"
-                  className="absolute left-0 text-white w-12 h-12"
-                  // onClick={() => {
-                  //   setSupply((prev) => {
-                  //     if (prev === "∞") {
-                  //       return "0";
-                  //     } else {
-                  //       const num = parseFloat(prev);
-                  //       if (num === 0) {
-                  //         return "0";
-                  //       }
-                  //       return (num + -1).toString();
-                  //     }
-                  //   });
-                  // }}
-                >
-                  -
-                </button>
-                <input
-                  type="text"
-                  className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
-                  required
-                  disabled
-                  value={supply}
-                  // onChange={(e) =>
-                  //   setSupply(e.target.value.replace(/[^0-9.∞]/g, ""))
-                  // }
-                />
-                <button
-                  type="button"
-                  className="absolute right-0 text-white w-12 h-12"
-                  // onClick={() => {
-                  //   setSupply((prev) => {
-                  //     if (prev === "∞") {
-                  //       return "0";
-                  //     } else {
-                  //       const num = parseFloat(prev);
-                  //       return (num + 1).toString();
-                  //     }
-                  //   });
-                  // }}
-                >
-                  +
-                </button>
-              </div>
+                <div className="relative mb-6">
+                  <input
+                    type="text"
+                    className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
+                    required
+                    disabled
+                    value={price}
+                    // onChange={(e) =>
+                    //   setPrice(e.target.value.replace(/[^0-9.]/g, ""))
+                    // }
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                    <span className="text-white">ETH</span>
+                  </div>
+                </div>
+                <div className="text-lg font-bold tracking-wider text-white mb-2">
+                  SUPPLY
+                </div>
+                <div className="relative flex items-center mb-4">
+                  <button
+                    type="button"
+                    className="absolute left-0 text-white w-12 h-12"
+                    // onClick={() => {
+                    //   setSupply((prev) => {
+                    //     if (prev === "∞") {
+                    //       return "0";
+                    //     } else {
+                    //       const num = parseFloat(prev);
+                    //       if (num === 0) {
+                    //         return "0";
+                    //       }
+                    //       return (num + -1).toString();
+                    //     }
+                    //   });
+                    // }}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="text"
+                    className="text-xl bg-[#222222] border border-solid border-zinc-500 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
+                    required
+                    disabled
+                    value={supply}
+                    // onChange={(e) =>
+                    //   setSupply(e.target.value.replace(/[^0-9.∞]/g, ""))
+                    // }
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-0 text-white w-12 h-12"
+                    // onClick={() => {
+                    //   setSupply((prev) => {
+                    //     if (prev === "∞") {
+                    //       return "0";
+                    //     } else {
+                    //       const num = parseFloat(prev);
+                    //       return (num + 1).toString();
+                    //     }
+                    //   });
+                    // }}
+                  >
+                    +
+                  </button>
+                </div>
 
-              <div className="flex gap-2.5 px-px mt-5 text-lg font-bold tracking-wide leading-5 text-red-600 mb-2">
-                <div className="text-lg font-bold tracking-wider text-white">
-                  LICENSE <span className="text-red-600">*</span>
+                <div className="flex gap-2.5 px-px mt-5 text-lg font-bold tracking-wide leading-5 text-red-600 mb-2">
+                  <div className="text-lg font-bold tracking-wider text-white">
+                    LICENSE <span className="text-red-600">*</span>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="accent-green-600 mr-4"
-                  checked={isLicenseChecked}
-                  onChange={(e) => setIsLicenseChecked(e.target.checked)}
-                />
-                <div className="text-lg tracking-wide text-white mr-2">CC0</div>
-                {/* <FaRegQuestionCircle
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="accent-green-600 mr-4"
+                    checked={isLicenseChecked}
+                    onChange={(e) => setIsLicenseChecked(e.target.checked)}
+                  />
+                  <div className="text-lg tracking-wide text-white mr-2">
+                    CC0
+                  </div>
+                  {/* <FaRegQuestionCircle
                   className="text-gray-500 cursor-pointer"
                   size="12"
                 /> */}
+                </div>
               </div>
             </div>
           </div>
-          <div className="flex justify-between py-4 px-8">
+          <div className="flex justify-between py-4 px-4 md:px-8">
             <button
               type="button"
               className="px-4 py-1.5 font-bold border border-gray-500 text-gray-500 rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wide"
@@ -542,7 +547,7 @@ function CreatePage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
           {modalMode == "created" && <Confetti width={width} height={height} />}
-          <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-3xl shadow-2xl bg-neutral-800">
+          <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-3xl shadow-2xl bg-neutral-800 m-4">
             {modalMode == "remix" && (
               <>
                 <div className="flex mb-4">
@@ -593,7 +598,7 @@ function CreatePage() {
                   CREATING...
                 </div>
                 <SpinnerLoader />
-                <div className="text-white tracking-wider text-center text-xl font-bold">
+                <div className="text-white tracking-wider text-center text-md md:text-xl font-bold">
                   Please don't close this modal
                   <br />
                   until the transaction is completed.
@@ -602,7 +607,7 @@ function CreatePage() {
             )}
             {modalMode == "created" && (
               <>
-                <div className="flex mb-4">
+                <div className="flex mb-8">
                   <div className="text-white text-xl font-bold tracking-wider">
                     CREATE COMPLETED
                   </div>
@@ -618,7 +623,7 @@ function CreatePage() {
                   srcSet={imageDataURL}
                   className="bg-white rounded-xl h-64 w-64 mx-auto mb-8"
                 />
-                <div className="flex gap-4 px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
+                <div className="flex gap-4 px-0 md:px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
                   <button
                     className="w-1/2 font-bold text-white px-4 py-2 text-lg font-bold border-2 rounded-xl border-white hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                     onClick={() => setIsModalOpen(false)}
@@ -643,10 +648,10 @@ function CreatePage() {
                     <div>SHARE</div>
                   </button>
                 </div>
-                <div className="text-white tracking-wider text-center text-sm font-bold">
+                <div className="text-white tracking-wider text-center text-xs md:text-sm font-bold">
                   The artwork you created has been carved onchain as CC0. 🎉
                   <br />
-                  This is a public good and will benefit everyone ! ✨
+                  This public good benefits everyone! ✨
                 </div>
               </>
             )}
