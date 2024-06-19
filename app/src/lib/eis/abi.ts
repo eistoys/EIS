@@ -226,6 +226,11 @@ export const eisAbi = [
             type: "string",
           },
           {
+            internalType: "string",
+            name: "mimeType",
+            type: "string",
+          },
+          {
             internalType: "address[]",
             name: "imageChunks",
             type: "address[]",
@@ -436,6 +441,11 @@ export const eisAbi = [
       {
         internalType: "string",
         name: "description",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "mimeType",
         type: "string",
       },
       {
@@ -683,6 +693,11 @@ export const eisAbi = [
         type: "string",
       },
       {
+        internalType: "string",
+        name: "mimeType",
+        type: "string",
+      },
+      {
         components: [
           {
             internalType: "address[]",
@@ -723,6 +738,11 @@ export const eisAbi = [
       {
         internalType: "string",
         name: "description",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "mimeType",
         type: "string",
       },
       {

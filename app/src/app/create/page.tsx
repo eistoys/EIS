@@ -1,19 +1,28 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { readContract } from "@wagmi/core";
 import {
+  blobToArrayBuffer,
+  bufferToDataURL,
   decodeDataURLToSVG,
   encodeSVGToDataURL,
   escapeString,
 } from "@/lib/utils";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
 import { eisAbi } from "@/lib/eis/abi";
-import { Hex, toHex } from "viem";
+import { Hex } from "viem";
 
 import { wagmiConfig } from "@/lib/wagmi";
 
@@ -24,10 +33,22 @@ import { chunk } from "@/lib/eis/chunk";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
 
 function CreatePage() {
-  const ref = useRef<HTMLIFrameElement>(null);
+  // const ref = useRef<HTMLIFrameElement>(null);
   const searchParams = useSearchParams();
-
   const referenceTokenId = searchParams.get("referenceTokenId");
+  const ver = searchParams.get("ver");
+  const network = searchParams.get("network");
+
+  // MEMO: Stop and reload if the network and version is not supported
+  useEffect(() => {
+    if (network == "testnet" && ver == "1") {
+      alert(
+        "Remix for old version NFT is not longer supported. Please refresh the page."
+      );
+      window.location.href = "/create";
+    }
+  }, [ver]);
+
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const { width, height } = useWindowSize();
@@ -48,13 +69,8 @@ function CreatePage() {
   const [supply, setSupply] = useState("∞");
   const [isLicenseChecked, setIsLicenseChecked] = useState(false);
 
-  const [image, setImage] = useState("");
-  const imageDataURL = useMemo(() => {
-    if (!image) {
-      return "";
-    }
-    return encodeSVGToDataURL(image);
-  }, [image]);
+  const [imageDataURL, setImageDataURL] = useState("");
+  const [imageHex, setImageHex] = useState("");
 
   const [createdTokenId, setCreatedTokenId] = useState("");
   const [references, setReferences] = useState<
@@ -110,22 +126,41 @@ function CreatePage() {
   const debouncedInsert = useRef(debounce(insertReference, 300)).current;
 
   useEffect(() => {
-    if (!referenceTokenId) {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("pc-canvas-data");
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  const [node, setNode] = useState<HTMLIFrameElement | null>(null);
+  const setRef = useCallback((node: HTMLIFrameElement | null) => {
+    setNode(node);
+  }, []);
+
+  useEffect(() => {
+    if (!referenceTokenId || !node) {
       setImageLoaded(true);
       return;
     }
     readContract(wagmiConfig, {
       address: EIS_ADDRESS,
       abi: eisAbi,
-      functionName: "renderTokenById",
+      functionName: "loadImage",
       args: [BigInt(referenceTokenId)],
     })
       .then((data) => {
         if (data) {
-          window.localStorage.setItem("md-canvasContent", data);
+          node.contentWindow?.postMessage(
+            { type: "remix", value: data },
+            process.env.NEXT_PUBLIC_APP_URL || ""
+          );
+
           addUsedReference({
             tokenId: BigInt(referenceTokenId),
-            image: encodeSVGToDataURL(data),
+            image: data,
           });
         }
         setImageLoaded(true);
@@ -133,7 +168,7 @@ function CreatePage() {
       .catch(() => {
         setImageLoaded(true);
       });
-  }, [referenceTokenId]);
+  }, [referenceTokenId, node]);
 
   useEffect(() => {
     if (!error) {
@@ -178,19 +213,33 @@ function CreatePage() {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data === "remix") {
+      if (event.data.type === "blob") {
+        const blob = event.data.value;
+        blobToArrayBuffer(blob).then((arrayBuffer) => {
+          const buffer = Buffer.from(arrayBuffer);
+          const imageHex = buffer.toString("hex");
+          console.log("imageHex", imageHex);
+          setImageHex(imageHex);
+          const dataUrl = bufferToDataURL(buffer);
+          setImageDataURL(dataUrl);
+          setMode("info");
+        });
+      }
+      if (event.data.type === "remix") {
         setModalMode("remix");
         setIsModalOpen(true);
         if (references.length > 0) {
           return;
         }
-
         readContract(wagmiConfig, {
           address: EIS_ADDRESS,
           abi: eisAbi,
           functionName: "tokenIdCounter",
         }).then((totalSupply) => {
-          const start = totalSupply - BigInt(9);
+          let start = totalSupply - BigInt(9);
+          if (start < 0) {
+            start = BigInt(0);
+          }
           readContract(wagmiConfig, {
             address: EIS_ADDRESS,
             abi: eisAbi,
@@ -221,7 +270,7 @@ function CreatePage() {
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, []);
+  }, [node]);
 
   return (
     <>
@@ -230,7 +279,7 @@ function CreatePage() {
           {imageLoaded && (
             <>
               <iframe
-                ref={ref}
+                ref={setRef}
                 id="svg-editor-iframe"
                 src="/editor/index.html"
                 className="flex-grow"
@@ -242,13 +291,10 @@ function CreatePage() {
                   type="button"
                   className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
                   onClick={() => {
-                    const image =
-                      window.localStorage.getItem("md-canvasContent");
-                    if (!image) {
-                      throw new Error("Image not set");
-                    }
-                    setImage(image);
-                    setMode("info");
+                    node?.contentWindow?.postMessage(
+                      { type: "complete" },
+                      process.env.NEXT_PUBLIC_APP_URL || ""
+                    );
                   }}
                 >
                   COMPLETE
@@ -264,7 +310,7 @@ function CreatePage() {
             <div className="flex flex-col w-2/3 py-12">
               <img
                 loading="lazy"
-                srcSet={imageDataURL}
+                src={imageDataURL}
                 className="bg-white rounded-xl h-96 w-96 mx-auto mb-8"
               />
               {usedReferences.length > 0 && (
@@ -273,13 +319,18 @@ function CreatePage() {
                     SOURCE
                   </div>
                   <div className="flex gap-4">
-                    {usedReferences.map((reference, i) => (
+                    <img
+                      // key={`source_${i}`}
+                      src={usedReferences[usedReferences.length - 1].image}
+                      className="bg-white rounded-xl h-40 w-40"
+                    />
+                    {/* {usedReferences.map((reference, i) => (
                       <img
                         key={`source_${i}`}
                         src={reference.image}
                         className="bg-white rounded-xl h-40 w-40"
                       />
-                    ))}
+                    ))} */}
                   </div>
                 </>
               )}
@@ -430,9 +481,8 @@ function CreatePage() {
                 console.log("escapedTitle", escapedTitle);
                 console.log("escapedDescription", escapedDescription);
 
-                const hexImage = toHex(image);
                 const zippedHexImage = solady.LibZip.flzCompress(
-                  hexImage
+                  imageHex
                 ) as Hex;
                 if (usedReferences.length == 0) {
                   writeContract({
@@ -442,14 +492,28 @@ function CreatePage() {
                     args: [
                       escapedTitle,
                       escapedDescription,
+                      "image/png",
                       chunk(zippedHexImage),
                     ],
                   });
                 } else {
-                  const referenceTokenIds = usedReferences.map(
-                    (reference) => reference.tokenId as bigint
-                  );
-                  const allocations = usedReferences.map(() => BigInt(10000));
+                  // const referenceTokenIds = usedReferences.map(
+                  //   (reference) => reference.tokenId as bigint
+                  // );
+                  // const allocations = usedReferences.map(() => BigInt(10000));
+                  // writeContract({
+                  //   address: EIS_ADDRESS,
+                  //   abi: eisAbi,
+                  //   functionName: "remix",
+                  //   args: [
+                  //     escapedTitle,
+                  //     escapedDescription,
+                  //     "image/png",
+                  //     chunk(zippedHexImage),
+                  //     referenceTokenIds.sort(),
+                  //     allocations,
+                  //   ],
+                  // });
                   writeContract({
                     address: EIS_ADDRESS,
                     abi: eisAbi,
@@ -457,9 +521,13 @@ function CreatePage() {
                     args: [
                       escapedTitle,
                       escapedDescription,
+                      "image/png",
                       chunk(zippedHexImage),
-                      referenceTokenIds.sort(),
-                      allocations,
+                      [
+                        usedReferences[usedReferences.length - 1]
+                          .tokenId as bigint,
+                      ],
+                      [BigInt(10000)],
                     ],
                   });
                 }
@@ -484,10 +552,6 @@ function CreatePage() {
                   <button
                     className="absolute top-6 right-4 text-4xl text-white"
                     onClick={() => {
-                      ref.current?.contentWindow?.postMessage(
-                        { type: "close" },
-                        process.env.NEXT_PUBLIC_APP_URL || ""
-                      );
                       setIsModalOpen(false);
                     }}
                   >
@@ -507,10 +571,10 @@ function CreatePage() {
                         src={reference.image}
                         className="bg-white rounded-xl cursor-pointer"
                         onClick={() => {
-                          ref.current?.contentWindow?.postMessage(
+                          node?.contentWindow?.postMessage(
                             {
                               type: "remix",
-                              image: decodeDataURLToSVG(reference.image),
+                              value: reference.image,
                             },
                             process.env.NEXT_PUBLIC_APP_URL || ""
                           );
@@ -566,7 +630,7 @@ function CreatePage() {
                     className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                     onClick={() => {
                       window.open(
-                        `https://warpcast.com/~/compose?text=Check%20out%20the%20image%20created%20in%20@eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}`,
+                        `https://warpcast.com/~/compose?text=Check%20out%20the%20image%20created%20in%20@eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?network=testnet&ver=2`,
                         "_blank"
                       );
                     }}
