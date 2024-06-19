@@ -1,6 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FaCheck, FaRegQuestionCircle } from "react-icons/fa";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -26,10 +33,22 @@ import { chunk } from "@/lib/eis/chunk";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
 
 function CreatePage() {
-  const ref = useRef<HTMLIFrameElement>(null);
+  // const ref = useRef<HTMLIFrameElement>(null);
   const searchParams = useSearchParams();
-
   const referenceTokenId = searchParams.get("referenceTokenId");
+  const ver = searchParams.get("ver");
+  const network = searchParams.get("network");
+
+  // MEMO: Stop and reload if the network and version is not supported
+  useEffect(() => {
+    if (network == "testnet" && ver == "1") {
+      alert(
+        "Remix for old version NFT is not longer supported. Please refresh the page."
+      );
+      window.location.href = "/create";
+    }
+  }, [ver]);
+
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const { width, height } = useWindowSize();
@@ -116,23 +135,32 @@ function CreatePage() {
     };
   }, []);
 
+  const [node, setNode] = useState<HTMLIFrameElement | null>(null);
+  const setRef = useCallback((node: HTMLIFrameElement | null) => {
+    setNode(node);
+  }, []);
+
   useEffect(() => {
-    if (!referenceTokenId) {
+    if (!referenceTokenId || !node) {
       setImageLoaded(true);
       return;
     }
     readContract(wagmiConfig, {
       address: EIS_ADDRESS,
       abi: eisAbi,
-      functionName: "renderTokenById",
+      functionName: "loadImage",
       args: [BigInt(referenceTokenId)],
     })
       .then((data) => {
         if (data) {
-          window.localStorage.setItem("md-canvasContent", data);
+          node.contentWindow?.postMessage(
+            { type: "remix", value: data },
+            process.env.NEXT_PUBLIC_APP_URL || ""
+          );
+
           addUsedReference({
             tokenId: BigInt(referenceTokenId),
-            image: encodeSVGToDataURL(data),
+            image: data,
           });
         }
         setImageLoaded(true);
@@ -140,7 +168,7 @@ function CreatePage() {
       .catch(() => {
         setImageLoaded(true);
       });
-  }, [referenceTokenId]);
+  }, [referenceTokenId, node]);
 
   useEffect(() => {
     if (!error) {
@@ -249,7 +277,7 @@ function CreatePage() {
           {imageLoaded && (
             <>
               <iframe
-                ref={ref}
+                ref={setRef}
                 id="svg-editor-iframe"
                 src="/editor/index.html"
                 className="flex-grow"
@@ -261,7 +289,7 @@ function CreatePage() {
                   type="button"
                   className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
                   onClick={() => {
-                    ref.current?.contentWindow?.postMessage(
+                    node?.contentWindow?.postMessage(
                       { type: "complete" },
                       process.env.NEXT_PUBLIC_APP_URL || ""
                     );
@@ -457,6 +485,7 @@ function CreatePage() {
                     args: [
                       escapedTitle,
                       escapedDescription,
+                      "image/png",
                       chunk(zippedHexImage),
                     ],
                   });
@@ -472,6 +501,7 @@ function CreatePage() {
                     args: [
                       escapedTitle,
                       escapedDescription,
+                      "image/png",
                       chunk(zippedHexImage),
                       referenceTokenIds.sort(),
                       allocations,
@@ -499,7 +529,7 @@ function CreatePage() {
                   <button
                     className="absolute top-6 right-4 text-4xl text-white"
                     onClick={() => {
-                      ref.current?.contentWindow?.postMessage(
+                      node?.contentWindow?.postMessage(
                         { type: "close" },
                         process.env.NEXT_PUBLIC_APP_URL || ""
                       );
@@ -522,7 +552,7 @@ function CreatePage() {
                         src={reference.image}
                         className="bg-white rounded-xl cursor-pointer"
                         onClick={() => {
-                          ref.current?.contentWindow?.postMessage(
+                          node?.contentWindow?.postMessage(
                             {
                               type: "remix",
                               image: decodeDataURLToSVG(reference.image),
@@ -581,7 +611,7 @@ function CreatePage() {
                     className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                     onClick={() => {
                       window.open(
-                        `https://warpcast.com/~/compose?text=Check%20out%20the%20image%20created%20in%20@eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}`,
+                        `https://warpcast.com/~/compose?text=Check%20out%20the%20image%20created%20in%20@eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?network=testnet&ver=2`,
                         "_blank"
                       );
                     }}

@@ -263,9 +263,7 @@ window.onload = function () {
   document.querySelector("#palette").addEventListener("contextmenu",e=>e.preventDefault());
 }
 
-document.querySelector("#close").onclick = function () {
-  var width = +document.querySelector("#width").value;
-  var height = +document.querySelector("#height").value;
+function setCanvasAfterClose(width, height, skipClose) {
   if(window.board == undefined){
     window.board = new Canvas(width, height);
   }
@@ -287,7 +285,9 @@ document.querySelector("#close").onclick = function () {
   window.board.frames = [];
 
   window.board.setcolor([0, 0, 0, 255]);
-  window.dim.close();
+  if(!skipClose){
+    window.dim.close();
+  }
   window.gif = new GIF({
     workers: 2,
     quality: 10,
@@ -303,6 +303,12 @@ document.querySelector("#close").onclick = function () {
   });
 }
 
+document.querySelector("#close").onclick = function () {
+  var width = +document.querySelector("#width").value;
+  var height = +document.querySelector("#height").value;
+  setCanvasAfterClose(width, height, false);
+}
+
 document.querySelector(".menubtn").onclick = function () {
   document.querySelector(".menu").style.display = document.querySelector(".menu").style.display != "block" ? "block" : "none";
 }
@@ -310,7 +316,7 @@ document.querySelector(".menubtn").onclick = function () {
 function newProject(){
   document.querySelector(".menu").style.display = "none";
   localStorage.removeItem('pc-canvas-data');
-  window.dim = new Popup("#popup");
+  // window.dim = new Popup("#popup");
   window.colors = [
     [0, 0, 0, 255],
     [127, 127, 127, 255],
@@ -333,6 +339,7 @@ function newProject(){
     [112, 146, 190, 255],
     [200, 191, 231, 255]
   ];
+  setCanvasAfterClose(16, 16, true);
 }
 function filler(x, y, cc) {
   if (x >= 0 && x < board.width && y >= 0 && y < board.height) {
@@ -396,9 +403,16 @@ window.onerror = function (errorMsg, url, lineNumber) {
 }
 
 window.addEventListener('message', function(event) {
-  if( event.data.type === "complete"){
+  if(event.data.type === "complete") {
     board.saveInLocal();
     board.complete();
+  }
+  if(event.data.type === "remix") {
+    let img = new Image();
+    img.setAttribute('src', event.data.value);
+    img.addEventListener("load", function () {
+        window.board.ctx.drawImage(img, 0, 0);
+    });
   }
 });
 
