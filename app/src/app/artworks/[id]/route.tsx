@@ -3,7 +3,7 @@ import { frames } from "./frames";
 
 import { readContract } from "@wagmi/core";
 import { wagmiConfig } from "@/lib/wagmi";
-import { eisAbi, eisAbiArchive1 } from "@/lib/eis/abi";
+import { eisAbi } from "@/lib/eis/abi";
 import { EIS_ADDRESS, EIS_ADDRESS_ARCHIVE_1 } from "@/lib/eis/constants";
 
 export const runtime = "edge";
@@ -37,7 +37,7 @@ const handleRequest = frames(async (ctx) => {
     }
     const image = await readContract(wagmiConfig, {
       address: EIS_ADDRESS_ARCHIVE_1,
-      abi: eisAbiArchive1,
+      abi: eisAbi,
       functionName: "loadImage",
       args: [BigInt(tokenId)],
     });
