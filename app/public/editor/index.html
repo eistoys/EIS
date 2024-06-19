@@ -202,6 +202,7 @@ function exportColors() {
 window.onload = function () {
   let canvasData = localStorage.getItem('pc-canvas-data');
   if(canvasData){
+    localStorage.removeItem('pc-canvas-data');
     data = JSON.parse(canvasData);
     // console.log(data);
     window.colors = data.colors;
@@ -393,5 +394,13 @@ function install() {
 window.onerror = function (errorMsg, url, lineNumber) {
   alert('Error: ' + errorMsg + ' Script: ' + url + ' Line: ' + lineNumber);
 }
+
+window.addEventListener('message', function(event) {
+  if( event.data.type === "complete"){
+    board.saveInLocal();
+    board.complete();
+  }
+});
+
 </script>
 </html>

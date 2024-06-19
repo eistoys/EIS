@@ -7,13 +7,15 @@ import Confetti from "react-confetti";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { readContract } from "@wagmi/core";
 import {
+  blobToArrayBuffer,
+  bufferToDataURL,
   decodeDataURLToSVG,
   encodeSVGToDataURL,
   escapeString,
 } from "@/lib/utils";
 import { EIS_ADDRESS } from "@/lib/eis/constants";
 import { eisAbi } from "@/lib/eis/abi";
-import { Hex, toHex } from "viem";
+import { Hex } from "viem";
 
 import { wagmiConfig } from "@/lib/wagmi";
 
@@ -48,13 +50,8 @@ function CreatePage() {
   const [supply, setSupply] = useState("∞");
   const [isLicenseChecked, setIsLicenseChecked] = useState(false);
 
-  const [image, setImage] = useState("");
-  const imageDataURL = useMemo(() => {
-    if (!image) {
-      return "";
-    }
-    return encodeSVGToDataURL(image);
-  }, [image]);
+  const [imageDataURL, setImageDataURL] = useState("");
+  const [imageHex, setImageHex] = useState("");
 
   const [createdTokenId, setCreatedTokenId] = useState("");
   const [references, setReferences] = useState<
@@ -108,6 +105,16 @@ function CreatePage() {
   };
 
   const debouncedInsert = useRef(debounce(insertReference, 300)).current;
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("pc-canvas-data");
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   useEffect(() => {
     if (!referenceTokenId) {
@@ -178,41 +185,52 @@ function CreatePage() {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data === "remix") {
-        setModalMode("remix");
-        setIsModalOpen(true);
-        if (references.length > 0) {
-          return;
-        }
-
-        readContract(wagmiConfig, {
-          address: EIS_ADDRESS,
-          abi: eisAbi,
-          functionName: "tokenIdCounter",
-        }).then((totalSupply) => {
-          const start = totalSupply - BigInt(9);
-          readContract(wagmiConfig, {
-            address: EIS_ADDRESS,
-            abi: eisAbi,
-            functionName: "uris",
-            args: [start, totalSupply],
-          }).then((uris) => {
-            const references = uris
-              .map((uri, i) => {
-                try {
-                  return {
-                    tokenId: start + BigInt(i),
-                    ...JSON.parse(uri.split("data:application/json;utf8,")[1]),
-                  };
-                } catch {
-                  return undefined;
-                }
-              })
-              .filter((v) => v);
-            setReferences(references);
-          });
+      if (event.data.type === "blob") {
+        const blob = event.data.value;
+        blobToArrayBuffer(blob).then((arrayBuffer) => {
+          const buffer = Buffer.from(arrayBuffer);
+          const imageHex = buffer.toString("hex");
+          setImageHex(imageHex);
+          const dataUrl = bufferToDataURL(buffer);
+          setImageDataURL(dataUrl);
+          setMode("info");
         });
       }
+
+      // if (event.data === "remix") {
+      //   setModalMode("remix");
+      //   setIsModalOpen(true);
+      //   if (references.length > 0) {
+      //     return;
+      //   }
+      //   readContract(wagmiConfig, {
+      //     address: EIS_ADDRESS,
+      //     abi: eisAbi,
+      //     functionName: "tokenIdCounter",
+      //   }).then((totalSupply) => {
+      //     const start = totalSupply - BigInt(9);
+      //     readContract(wagmiConfig, {
+      //       address: EIS_ADDRESS,
+      //       abi: eisAbi,
+      //       functionName: "uris",
+      //       args: [start, totalSupply],
+      //     }).then((uris) => {
+      //       const references = uris
+      //         .map((uri, i) => {
+      //           try {
+      //             return {
+      //               tokenId: start + BigInt(i),
+      //               ...JSON.parse(uri.split("data:application/json;utf8,")[1]),
+      //             };
+      //           } catch {
+      //             return undefined;
+      //           }
+      //         })
+      //         .filter((v) => v);
+      //       setReferences(references);
+      //     });
+      //   });
+      // }
     };
 
     window.addEventListener("message", handleMessage);
@@ -242,13 +260,10 @@ function CreatePage() {
                   type="button"
                   className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center"
                   onClick={() => {
-                    const image =
-                      window.localStorage.getItem("md-canvasContent");
-                    if (!image) {
-                      throw new Error("Image not set");
-                    }
-                    setImage(image);
-                    setMode("info");
+                    ref.current?.contentWindow?.postMessage(
+                      { type: "complete" },
+                      process.env.NEXT_PUBLIC_APP_URL || ""
+                    );
                   }}
                 >
                   COMPLETE
@@ -264,7 +279,7 @@ function CreatePage() {
             <div className="flex flex-col w-2/3 py-12">
               <img
                 loading="lazy"
-                srcSet={imageDataURL}
+                src={imageDataURL}
                 className="bg-white rounded-xl h-96 w-96 mx-auto mb-8"
               />
               {usedReferences.length > 0 && (
@@ -430,9 +445,8 @@ function CreatePage() {
                 console.log("escapedTitle", escapedTitle);
                 console.log("escapedDescription", escapedDescription);
 
-                const hexImage = toHex(image);
                 const zippedHexImage = solady.LibZip.flzCompress(
-                  hexImage
+                  imageHex
                 ) as Hex;
                 if (usedReferences.length == 0) {
                   writeContract({

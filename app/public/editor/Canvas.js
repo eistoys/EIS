@@ -179,6 +179,12 @@ class Canvas {
     });
   }
 
+  complete() {
+    this.canvas.toBlob(function (blob) {
+      window.parent.postMessage({ type: "blob", value: blob }, "*");
+    });
+  }
+
   clear() {
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.w, this.h);
@@ -244,7 +250,7 @@ class Canvas {
       this.draw(step[0], step[1], true);
     });
   }
-  
+
   redo() {
     const lastRemovedItem = this.redo_arr.pop();
 
