@@ -8,18 +8,18 @@ import { EIS_ADDRESS, EIS_ADDRESS_ARCHIVE_1 } from "@/lib/eis/constants";
 
 export const runtime = "edge";
 
-const robotoRegularFont = fetch(
-  new URL("/public/fonts/Roboto-Regular.ttf", import.meta.url)
-).then((res) => res.arrayBuffer());
-const robotoBoldFont = fetch(
-  new URL("/public/fonts/Roboto-Bold.ttf", import.meta.url)
-).then((res) => res.arrayBuffer());
+// const robotoRegularFont = fetch(
+//   new URL("/public/fonts/Roboto-Regular.ttf", import.meta.url)
+// ).then((res) => res.arrayBuffer());
+// const robotoBoldFont = fetch(
+//   new URL("/public/fonts/Roboto-Bold.ttf", import.meta.url)
+// ).then((res) => res.arrayBuffer());
 
 const handleRequest = frames(async (ctx) => {
-  const [robotoRegularFontData, robotoBoldFontData] = await Promise.all([
-    robotoRegularFont,
-    robotoBoldFont,
-  ]);
+  // const [robotoRegularFontData, robotoBoldFontData] = await Promise.all([
+  //   robotoRegularFont,
+  //   robotoBoldFont,
+  // ]);
 
   let ver = ctx.url.searchParams.get("ver");
   if (!ver) {
@@ -62,18 +62,18 @@ const handleRequest = frames(async (ctx) => {
         </Button>,
       ],
       imageOptions: {
-        fonts: [
-          {
-            name: "Robot",
-            data: robotoRegularFontData,
-            weight: 400,
-          },
-          {
-            name: "Robot",
-            data: robotoBoldFontData,
-            weight: 700,
-          },
-        ],
+        // fonts: [
+        //   {
+        //     name: "Robot",
+        //     data: robotoRegularFontData,
+        //     weight: 400,
+        //   },
+        //   {
+        //     name: "Robot",
+        //     data: robotoBoldFontData,
+        //     weight: 700,
+        //   },
+        // ],
         aspectRatio: "1:1",
       },
     };
@@ -109,18 +109,18 @@ const handleRequest = frames(async (ctx) => {
         </Button>,
       ],
       imageOptions: {
-        fonts: [
-          {
-            name: "Robot",
-            data: robotoRegularFontData,
-            weight: 400,
-          },
-          {
-            name: "Robot",
-            data: robotoBoldFontData,
-            weight: 700,
-          },
-        ],
+        // fonts: [
+        //   {
+        //     name: "Robot",
+        //     data: robotoRegularFontData,
+        //     weight: 400,
+        //   },
+        //   {
+        //     name: "Robot",
+        //     data: robotoBoldFontData,
+        //     weight: 700,
+        //   },
+        // ],
         aspectRatio: "1:1",
       },
     };
