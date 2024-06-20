@@ -8,6 +8,8 @@ export const SPLIT_PULL_SPLIT_FACTORY_ADDRESS =
   "0x80f1B766817D04870f115fEBbcCADF8DBF75E017" as Address;
 export const SPLIT_NATIVE_TOKEN_ADDRESS =
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" as Address;
+export const ZORA_BASE_FACTORY_ADDRESS =
+  "0x777777C338d93e2C7adf08D102d45CA7CC4Ed021" as Address;
 
 export const FIXED_MINT_FEE = BigInt("690000000000000");
 export const BASIS_POINTS_BASE = BigInt("10000");
