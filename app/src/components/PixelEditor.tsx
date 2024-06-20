@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import { FaRedo, FaUndo } from "react-icons/fa";
 
 interface Pixel {
   x: number;
@@ -222,30 +223,6 @@ const PixelEditor: React.FC = () => {
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-2 py-4">
-        <input
-          type="color"
-          value={currentColor}
-          onChange={(e) => setCurrentColor(e.target.value)}
-          className="border-none"
-        />
-        <button
-          onClick={handleUndo}
-          className="px-2 py-1 bg-gray-200 rounded-md"
-        >
-          Undo
-        </button>
-        <button
-          onClick={handleRedo}
-          className="px-2 py-1 bg-gray-200 rounded-md"
-        >
-          Redo
-        </button>
-        <input
-          type="file"
-          accept=".svg"
-          onChange={handleImportSVG}
-          className="px-2 py-1 bg-gray-200 rounded-md"
-        />
         <select
           value={penSize}
           onChange={(e) => setPenSize(parseInt(e.target.value))}
@@ -254,6 +231,30 @@ const PixelEditor: React.FC = () => {
           <option value={16}>16x16</option>
           <option value={32}>32x32</option>
         </select>
+        <input
+          type="color"
+          value={currentColor}
+          onChange={(e) => setCurrentColor(e.target.value)}
+          className="border-none"
+        />
+        <button
+          onClick={handleUndo}
+          className="p-2 border border-gray-200 rounded-md"
+        >
+          <FaUndo className="text-white" />
+        </button>
+        <button
+          onClick={handleRedo}
+          className="p-2 border border-gray-200 rounded-md"
+        >
+          <FaRedo className="text-white" />
+        </button>
+        <input
+          type="file"
+          accept=".svg"
+          onChange={handleImportSVG}
+          className="px-2 py-1 bg-gray-200 rounded-md"
+        />
       </div>
       <canvas
         ref={canvasRef}
