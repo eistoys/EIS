@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+import "solady/src/utils/Base64.sol";
+import "solady/src/utils/LibString.sol";
+
 import {EISZ} from "./EISZ.sol";
 import {IRenderer1155} from "./interfaces/IRenderer1155.sol";
 import {IERC165Upgradeable} from "./interfaces/IERC165Upgradeable.sol";
 import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 
-import "solady/src/utils/Base64.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-
 contract Renderer1155Impl is IRenderer1155 {
     EISZ public eisz;
 
-    constructor(EISZ _eisz) {
+    constructor(address _eisz) {
         eisz = EISZ(_eisz);
     }
 
     // 権限設定を追加
-    function setEISZAddress(address _eisz) external view {
+    function setEISZAddress(address _eisz) external {
         eisz = EISZ(_eisz);
     }
 
@@ -33,7 +33,7 @@ contract Renderer1155Impl is IRenderer1155 {
                     '", "description": "',
                     record.description,
                     '", "creator": "',
-                    Strings.toHexString(record.creator),
+                    LibString.toHexString(record.creator),
                     '", "image": "',
                     loadImage(tokenId),
                     '"}'
@@ -53,7 +53,7 @@ contract Renderer1155Impl is IRenderer1155 {
                     '", "description": "',
                     record.description,
                     '", "creator": "',
-                    Strings.toHexString(record.creator),
+                    LibString.toHexString(record.creator),
                     '", "image": "',
                     loadImage(0),
                     '"}'
@@ -68,6 +68,7 @@ contract Renderer1155Impl is IRenderer1155 {
             address split,
             string memory name,
             string memory description,
+            string memory mimeType,
             address[] memory imageChunks,
             uint256[] memory referenceTokenIds,
             SplitV2Lib.Split memory splitParams
@@ -77,6 +78,7 @@ contract Renderer1155Impl is IRenderer1155 {
                     uint256,
                     address,
                     address,
+                    string,
                     string,
                     string,
                     address[],
@@ -90,6 +92,7 @@ contract Renderer1155Impl is IRenderer1155 {
             split,
             name,
             description,
+            mimeType,
             imageChunks,
             referenceTokenIds,
             splitParams
@@ -101,7 +104,9 @@ contract Renderer1155Impl is IRenderer1155 {
         return
             string(
                 abi.encodePacked(
-                    "data:image/svg+xml;base64,",
+                    "data:",
+                    eisz.getRecord(tokenId).mimeType,
+                    ";base64,",
                     Base64.encode(data)
                 )
             );
@@ -109,7 +114,7 @@ contract Renderer1155Impl is IRenderer1155 {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) external view override returns (bool) {
+    ) external pure override returns (bool) {
         return
             interfaceId == type(IRenderer1155).interfaceId ||
             interfaceId == type(IERC165Upgradeable).interfaceId;
