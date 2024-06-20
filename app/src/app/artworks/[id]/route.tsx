@@ -23,14 +23,10 @@ const handleRequest = frames(async (ctx) => {
 
   let ver = ctx.url.searchParams.get("ver");
   if (!ver) {
-    ver = "1";
-  }
-  let network = ctx.url.searchParams.get("network");
-  if (!network) {
-    network = "testnet";
+    ver = "testnet-1";
   }
 
-  if (network === "testnet" && ver === "1") {
+  if (ver == "testnet-1") {
     const tokenId = ctx.url.pathname.split("/").pop();
     if (!tokenId) {
       throw new Error("Token ID not defined");
@@ -56,7 +52,7 @@ const handleRequest = frames(async (ctx) => {
         </Button>,
         <Button
           action="link"
-          target={`https://eis.toys/create?referenceTokenId=${tokenId}&network=${network}&ver=${ver}`}
+          target={`https://eis.toys/create?referenceTokenId=${tokenId}&ver=${ver}`}
         >
           REMIX
         </Button>,
@@ -77,7 +73,7 @@ const handleRequest = frames(async (ctx) => {
         aspectRatio: "1:1",
       },
     };
-  } else if (network === "testnet" && ver === "2") {
+  } else if (ver === "testnet-2") {
     const tokenId = ctx.url.pathname.split("/").pop();
     if (!tokenId) {
       throw new Error("Token ID not defined");
@@ -103,7 +99,7 @@ const handleRequest = frames(async (ctx) => {
         </Button>,
         <Button
           action="link"
-          target={`https://eis.toys/create?referenceTokenId=${tokenId}&network=${network}&ver=${ver}`}
+          target={`https://eis.toys/create?referenceTokenId=${tokenId}&ver=${ver}`}
         >
           REMIX
         </Button>,

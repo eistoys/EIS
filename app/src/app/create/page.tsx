@@ -41,7 +41,7 @@ function CreatePage() {
 
   // MEMO: Stop and reload if the network and version is not supported
   useEffect(() => {
-    if (network == "testnet" && ver == "1") {
+    if (ver == "testnet-1") {
       alert(
         "Remix for old version NFT is not longer supported. Please refresh the page."
       );
@@ -635,7 +635,7 @@ function CreatePage() {
                     className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                     onClick={() => {
                       window.open(
-                        `https://warpcast.com/~/compose?text=Check%20out%20the%20image%20created%20in%20@eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?network=testnet&ver=2`,
+                        `https://warpcast.com/~/compose?text=Check%20out%20the%20image%20created%20in%20@eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?ver=testnet-2`,
                         "_blank"
                       );
                     }}
