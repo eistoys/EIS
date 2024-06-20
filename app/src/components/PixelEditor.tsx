@@ -6,8 +6,8 @@ interface Pixel {
   color: string;
 }
 
-const gridSize = 16;
-const pixelSize = 24;
+const gridSize = 512;
+const pixelSize = 1;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,6 +16,7 @@ const PixelEditor: React.FC = () => {
   const [history, setHistory] = useState<Pixel[][]>([]);
   const [redoStack, setRedoStack] = useState<Pixel[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [penSize, setPenSize] = useState<number>(16);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -84,6 +85,31 @@ const PixelEditor: React.FC = () => {
     } else {
       newPixels = [...pixels, newPixel];
     }
+
+    // Draw pixels for the pen size
+    const cellSize = gridSize / penSize;
+    const cellX = Math.floor(x / cellSize) * cellSize;
+    const cellY = Math.floor(y / cellSize) * cellSize;
+
+    for (let i = 0; i < cellSize; i++) {
+      for (let j = 0; j < cellSize; j++) {
+        const penX = cellX + i;
+        const penY = cellY + j;
+        const existingPenPixelIndex = newPixels.findIndex(
+          (p) => p.x === penX && p.y === penY
+        );
+        if (existingPenPixelIndex !== -1) {
+          newPixels[existingPenPixelIndex] = {
+            x: penX,
+            y: penY,
+            color: currentColor,
+          };
+        } else {
+          newPixels.push({ x: penX, y: penY, color: currentColor });
+        }
+      }
+    }
+
     setPixels(newPixels);
     addToHistory(newPixels);
   };
@@ -134,6 +160,65 @@ const PixelEditor: React.FC = () => {
     }
   };
 
+  const handleImportSVG = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const svgData = e.target?.result as string;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const img = new Image();
+        const svgBlob = new Blob([svgData], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+
+            const imageData = ctx.getImageData(
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            const newPixels = pixels;
+
+            for (let y = 0; y < gridSize; y++) {
+              for (let x = 0; x < gridSize; x++) {
+                const pixelX = Math.floor((x / gridSize) * img.width);
+                const pixelY = Math.floor((y / gridSize) * img.height);
+                const index = (pixelY * img.width + pixelX) * 4;
+                const r = imageData.data[index];
+                const g = imageData.data[index + 1];
+                const b = imageData.data[index + 2];
+                const a = imageData.data[index + 3];
+
+                if (a > 0) {
+                  // Only include non-transparent pixels
+                  const color = `rgba(${r},${g},${b},${a / 255})`;
+                  newPixels.push({ x, y, color });
+                }
+              }
+            }
+
+            setPixels(newPixels);
+            addToHistory(newPixels);
+            URL.revokeObjectURL(url); // Clean up after yourself.
+          }
+        };
+
+        img.src = url;
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-2 py-4">
@@ -155,6 +240,20 @@ const PixelEditor: React.FC = () => {
         >
           Redo
         </button>
+        <input
+          type="file"
+          accept=".svg"
+          onChange={handleImportSVG}
+          className="px-2 py-1 bg-gray-200 rounded-md"
+        />
+        <select
+          value={penSize}
+          onChange={(e) => setPenSize(parseInt(e.target.value))}
+          className="px-2 py-1 bg-gray-200 rounded-md"
+        >
+          <option value={16}>16x16</option>
+          <option value={32}>32x32</option>
+        </select>
       </div>
       <canvas
         ref={canvasRef}
