@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface Pixel {
   x: number;
@@ -7,13 +7,36 @@ interface Pixel {
 }
 
 const gridSize = 16;
+const pixelSize = 24;
 
 const PixelEditor: React.FC = () => {
-  const [pixels, setPixels] = useState<Pixel[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentColor, setCurrentColor] = useState<string>("#000000");
+  const [pixels, setPixels] = useState<Pixel[]>([]);
   const [history, setHistory] = useState<Pixel[][]>([]);
   const [redoStack, setRedoStack] = useState<Pixel[][]>([]);
-  const isDrawing = useRef(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        drawGrid(ctx);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        clearCanvas(ctx);
+        drawPixels(ctx);
+      }
+    }
+  }, [pixels]);
 
   const addToHistory = (newPixels: Pixel[]) => {
     if (
@@ -24,6 +47,31 @@ const PixelEditor: React.FC = () => {
     }
     setHistory([...history, newPixels]);
     setRedoStack([]);
+  };
+
+  const clearCanvas = (ctx: CanvasRenderingContext2D) => {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  };
+
+  const drawGrid = (ctx: CanvasRenderingContext2D) => {
+    ctx.beginPath();
+    for (let x = 0; x <= gridSize; x++) {
+      ctx.moveTo(x * pixelSize, 0);
+      ctx.lineTo(x * pixelSize, gridSize * pixelSize);
+    }
+    for (let y = 0; y <= gridSize; y++) {
+      ctx.moveTo(0, y * pixelSize);
+      ctx.lineTo(gridSize * pixelSize, y * pixelSize);
+    }
+    ctx.strokeStyle = "#ddd";
+    ctx.stroke();
+  };
+
+  const drawPixels = (ctx: CanvasRenderingContext2D) => {
+    pixels.forEach(({ x, y, color }) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+    });
   };
 
   const handleClick = (x: number, y: number) => {
@@ -40,44 +88,28 @@ const PixelEditor: React.FC = () => {
     addToHistory(newPixels);
   };
 
-  const handleMouseDown = () => {
-    isDrawing.current = true;
-  };
-
-  const handleMouseUp = () => {
-    isDrawing.current = false;
-  };
-
-  const handleMouseOver = (x: number, y: number) => {
-    if (isDrawing.current) {
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((event.clientX - rect.left) / pixelSize);
+      const y = Math.floor((event.clientY - rect.top) / pixelSize);
+      setIsDrawing(true);
       handleClick(x, y);
     }
   };
 
-  const handleTouchStart = (x: number, y: number) => {
-    isDrawing.current = true;
-    handleClick(x, y);
+  const handleMouseUp = () => {
+    setIsDrawing(false);
   };
 
-  const handleTouchEnd = () => {
-    isDrawing.current = false;
-  };
-
-  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (isDrawing.current) {
-      const touch = event.touches[0];
-      const element = document.elementFromPoint(
-        touch.clientX,
-        touch.clientY
-      ) as HTMLElement;
-      if (
-        element &&
-        element.dataset &&
-        element.dataset.x &&
-        element.dataset.y
-      ) {
-        const x = parseInt(element.dataset.x, 10);
-        const y = parseInt(element.dataset.y, 10);
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isDrawing) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((event.clientX - rect.left) / pixelSize);
+        const y = Math.floor((event.clientY - rect.top) / pixelSize);
         handleClick(x, y);
       }
     }
@@ -102,41 +134,8 @@ const PixelEditor: React.FC = () => {
     }
   };
 
-  const renderPixels = () => {
-    const pixelElements = [];
-    for (let y = 0; y < gridSize; y++) {
-      for (let x = 0; x < gridSize; x++) {
-        const pixelColor =
-          pixels.find((p) => p.x === x && p.y === y)?.color || "#ffffff";
-        pixelElements.push(
-          <div
-            key={`${x}-${y}`}
-            data-x={x}
-            data-y={y}
-            onMouseDown={() => handleClick(x, y)}
-            onMouseOver={() => handleMouseOver(x, y)}
-            onTouchStart={() => handleTouchStart(x, y)}
-            onTouchMove={handleTouchMove}
-            style={{
-              backgroundColor: pixelColor,
-              margin: "-0.25px",
-              width: "24px",
-              height: "24px",
-            }}
-          ></div>
-        );
-      }
-    }
-    return pixelElements;
-  };
-
   return (
-    <div
-      className="flex flex-col items-center"
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="flex flex-col items-center">
       <div className="flex items-center gap-2 py-4">
         <input
           type="color"
@@ -144,21 +143,28 @@ const PixelEditor: React.FC = () => {
           onChange={(e) => setCurrentColor(e.target.value)}
           className="border-none"
         />
-        <button onClick={handleUndo} className="p-2 bg-gray-200">
+        <button
+          onClick={handleUndo}
+          className="px-2 py-1 bg-gray-200 rounded-md"
+        >
           Undo
         </button>
-        <button onClick={handleRedo} className="p-2 bg-gray-200">
+        <button
+          onClick={handleRedo}
+          className="px-2 py-1 bg-gray-200 rounded-md"
+        >
           Redo
         </button>
       </div>
-      <div
-        className="grid"
-        style={{
-          gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
-        }}
-      >
-        {renderPixels()}
-      </div>
+      <canvas
+        ref={canvasRef}
+        width={gridSize * pixelSize}
+        height={gridSize * pixelSize}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        className="bg-white"
+      />
     </div>
   );
 };
