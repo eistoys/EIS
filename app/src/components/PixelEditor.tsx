@@ -7,8 +7,8 @@ interface Pixel {
   color: string;
 }
 
-const gridSize = 512;
-const pixelSize = 1;
+const gridSize = 64;
+const pixelSize = 8;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -161,21 +161,16 @@ const PixelEditor: React.FC = () => {
     }
   };
 
-  const handleImportSVG = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportImage = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const svgData = e.target?.result as string;
+        const imageData = e.target?.result as string;
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
         const img = new Image();
-        const svgBlob = new Blob([svgData], {
-          type: "image/svg+xml;charset=utf-8",
-        });
-        const url = URL.createObjectURL(svgBlob);
-
         img.onload = () => {
           canvas.width = img.width;
           canvas.height = img.height;
@@ -188,7 +183,7 @@ const PixelEditor: React.FC = () => {
               canvas.width,
               canvas.height
             );
-            const newPixels = pixels;
+            const newPixels: Pixel[] = [];
 
             for (let y = 0; y < gridSize; y++) {
               for (let x = 0; x < gridSize; x++) {
@@ -210,13 +205,32 @@ const PixelEditor: React.FC = () => {
 
             setPixels(newPixels);
             addToHistory(newPixels);
-            URL.revokeObjectURL(url); // Clean up after yourself.
           }
         };
 
-        img.src = url;
+        img.src = imageData;
       };
-      reader.readAsText(file);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const convertCanvasToImage = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      return canvas.toDataURL("image/png");
+    }
+    return null;
+  };
+
+  const handleDownload = () => {
+    const imageDataURL = convertCanvasToImage();
+    if (imageDataURL) {
+      const link = document.createElement("a");
+      link.download = "pixel-art.png";
+      link.href = imageDataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -228,8 +242,10 @@ const PixelEditor: React.FC = () => {
           onChange={(e) => setPenSize(parseInt(e.target.value))}
           className="px-2 py-1 bg-gray-200 rounded-md"
         >
+          <option value={8}>8x8</option>
           <option value={16}>16x16</option>
           <option value={32}>32x32</option>
+          <option value={64}>64x64</option>
         </select>
         <input
           type="color"
@@ -251,10 +267,16 @@ const PixelEditor: React.FC = () => {
         </button>
         <input
           type="file"
-          accept=".svg"
-          onChange={handleImportSVG}
+          accept="image/*"
+          onChange={handleImportImage}
           className="px-2 py-1 bg-gray-200 rounded-md"
         />
+        <button
+          onClick={handleDownload}
+          className="px-2 py-1 bg-gray-200 rounded-md"
+        >
+          Download PNG
+        </button>
       </div>
       <canvas
         ref={canvasRef}
