@@ -13,7 +13,8 @@ interface Pixel {
   color: string;
 }
 
-const gridSize = 256;
+const gridSize = 128;
+const downloadSize = 256;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,7 +32,6 @@ const PixelEditor: React.FC = () => {
       let width = Math.min(window.innerWidth, window.innerHeight - 200); // Limit the width to 512 pixels
       // width -= 32; // Subtract the padding
       const newPixelSize = Math.max(1, Math.floor(width / gridSize));
-      console.log(newPixelSize);
       setPixelSize(newPixelSize);
     };
 
@@ -48,7 +48,11 @@ const PixelEditor: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
 
-    const preventDefault = (e: Event) => e.preventDefault();
+    const preventDefault = (e: Event) => {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
 
     if (canvas) {
       // Adding event listeners to prevent default behavior
@@ -88,7 +92,7 @@ const PixelEditor: React.FC = () => {
         drawPixels(ctx);
       }
     }
-  }, [pixels]);
+  }, [pixels, pixelSize]);
 
   const addToHistory = (newPixels: Pixel[]) => {
     if (
@@ -300,13 +304,16 @@ const PixelEditor: React.FC = () => {
   const convertCanvasToImage = () => {
     const canvas = canvasRef.current;
     if (canvas) {
+      const sellSize = downloadSize / gridSize;
       const offScreenCanvas = document.createElement("canvas");
-      offScreenCanvas.width = gridSize;
-      offScreenCanvas.height = gridSize;
+      offScreenCanvas.width = downloadSize;
+      offScreenCanvas.height = downloadSize;
       const ctx = offScreenCanvas.getContext("2d");
       if (ctx) {
-        // Draw the current canvas onto the off-screen canvas with the desired size
-        ctx.drawImage(canvas, 0, 0, gridSize, gridSize);
+        pixels.forEach(({ x, y, color }) => {
+          ctx.fillStyle = color;
+          ctx.fillRect(x * sellSize, y * sellSize, sellSize, sellSize);
+        });
         return offScreenCanvas.toDataURL("image/png");
       }
     }
