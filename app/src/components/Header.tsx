@@ -47,7 +47,7 @@ export const Header = () => {
         </a>
       </div>
       <div className="flex">
-        {isConnected && pathname !== "/create" && (
+        {pathname === "/" && (
           <Link href="/create">
             <button className="px-4 py-1.5 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider flex items-center mr-2">
               <FaPlus className="mr-2" size="18" /> CREATE
