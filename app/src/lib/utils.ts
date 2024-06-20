@@ -1,3 +1,17 @@
+export const blobToArrayBuffer = (blob: Blob): Promise<ArrayBuffer> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(blob);
+  });
+};
+
+export const bufferToDataURL = (buffer: Buffer): string => {
+  const base64String = buffer.toString("base64");
+  return `data:image/png;base64,${base64String}`;
+};
+
 export const encodeSVGToDataURL = (svg: string) => {
   const svg64 = btoa(svg);
   const image64 = `data:image/svg+xml;base64,${svg64}`;

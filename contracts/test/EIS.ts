@@ -26,10 +26,19 @@ import solady from "solady";
 
 import { chunk } from "./utils";
 
-import { smallSVG, middleSVG, largeSVG } from "./data";
+import {
+  smallSVG,
+  middleSVG,
+  largeSVG,
+  pngImageHex,
+  expectedLoadedImageForPngImage,
+} from "./data";
 
 const name = "name";
 const description = "description";
+
+const pngMimeType = "image/png";
+const svgMimeType = "image/svg+xml";
 
 // use small svg to test zip funcionality and faster test
 const smallSVGHex = toHex(smallSVG);
@@ -81,7 +90,27 @@ describe("EIP", function () {
   });
 
   describe("View - Image", function () {
-    it("Should work with small svg", async function () {
+    it("Should work with png", async function () {
+      const { eis } = await getFixture();
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = solady.LibZip.flzCompress(pngImageHex) as Hex;
+
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        pngMimeType,
+        chunk(zipped),
+      ]);
+
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
+
+      const loadedImage = await eis.read.loadImage([createdTokenId]);
+      expect(loadedImage).to.equal(expectedLoadedImageForPngImage);
+    });
+
+    it("Should work with middle svg", async function () {
       const { eis } = await getFixture();
       const publicClient = await hre.viem.getPublicClient();
 
@@ -90,6 +119,7 @@ describe("EIP", function () {
       const createTxHash = await eis.write.create([
         name,
         description,
+        svgMimeType,
         chunk(zipped),
       ]);
 
@@ -149,6 +179,7 @@ describe("EIP", function () {
       const createTxHash = await eis.write.create([
         name,
         description,
+        svgMimeType,
         chunk(zipped),
       ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
@@ -174,6 +205,7 @@ describe("EIP", function () {
       const createTxHash = await eis.write.create([
         name,
         description,
+        svgMimeType,
         chunk(zipped),
       ]);
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
@@ -206,8 +238,10 @@ describe("EIP", function () {
       const createTxHash = await eis.write.create([
         name,
         description,
+        svgMimeType,
         chunk(zipped),
       ]);
+
       await publicClient.waitForTransactionReceipt({ hash: createTxHash });
       const createdTokenId = BigInt(0);
 
@@ -221,7 +255,7 @@ describe("EIP", function () {
       );
       await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
 
-      const [, splitAddress, , , splitParams] = await eis.read.records([
+      const [, splitAddress, , , , splitParams] = await eis.read.records([
         createdTokenId,
       ]);
 
@@ -266,6 +300,7 @@ describe("EIP", function () {
     const createTxHash1 = await eis.write.create([
       name,
       description,
+      svgMimeType,
       chunk(zipped),
     ]);
 
@@ -275,6 +310,7 @@ describe("EIP", function () {
     const createTxHash2 = await eis.write.create([
       name,
       description,
+      svgMimeType,
       chunk(zipped),
     ]);
     await publicClient.waitForTransactionReceipt({ hash: createTxHash2 });
@@ -285,6 +321,7 @@ describe("EIP", function () {
     const remixTxHash = await eis.write.remix([
       name,
       description,
+      svgMimeType,
       chunk(zipped),
       [createdTokenId1, createdTokenId2],
       [allocation1, allocation2],
@@ -304,13 +341,13 @@ describe("EIP", function () {
 
     // TODO: implment the rest of the test
 
-    const [, splitAddressForCreatedToken1, splitParamsForCreatedToken1] =
+    const [, splitAddressForCreatedToken1, , , , splitParamsForCreatedToken1] =
       await eis.read.records([createdTokenId1]);
 
-    const [, splitAddressForCreatedToken2, splitParamsForCreatedToken2] =
+    const [, splitAddressForCreatedToken2, , , , splitParamsForCreatedToken2] =
       await eis.read.records([createdTokenId2]);
 
-    const [, splitAddressForRemixedToken, splitParamsForRemixedToken] =
+    const [, splitAddressForRemixedToken, , , , splitParamsForRemixedToken] =
       await eis.read.records([remixedTokenId]);
 
     const pullSplitForCreatedToken1 = getContract({

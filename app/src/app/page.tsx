@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div>
       <div className="flex flex-col justify-center items-center">
-        <div className="flex justify-center items-center px-16 mt-20 w-full max-w-screen-xl max-md:px-5 max-md:mt-10 max-md:max-w-full">
+        <div className="flex justify-center items-center px-16 mt-20 w-full max-md:px-5 max-md:mt-10 max-md:max-w-full">
           <div className="max-w-full w-[903px]">
             <div className="flex gap-5 max-md:flex-col max-md:gap-0">
               <div className="flex flex-col w-6/12 max-md:w-full max-md:items-center">
@@ -31,8 +31,8 @@ export default function Home() {
         <div className="mt-16 text-4xl tracking-wide text-center text-white leading-[58px] max-md:mt-10 max-md:max-w-full max-md:text-2xl max-md:leading-[36px] mb-12">
           Ethereum Image Service is an Infinite Remixable CC0 Garden.
         </div>
-        <Link href="/create">
-          <button className="w-96 text-xl p-4 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
+        <Link href="/create" className="w-full flex justify-center px-4">
+          <button className="w-full max-w-xl text-xl p-4 font-bold text-[#22CC02] rounded-2xl bg-[#1A331A] border-2 border-[#00FF00] hover:opacity-75 transition-opacity duration-300 tracking-wider text-center">
             LAUNCH APP
           </button>
         </Link>
