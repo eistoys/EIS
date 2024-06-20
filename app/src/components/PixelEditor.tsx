@@ -4,7 +4,6 @@ import {
   FaUndo,
   FaUpload,
   FaDownload,
-  FaTrash,
   FaEraser,
   FaPen,
 } from "react-icons/fa";
@@ -14,8 +13,7 @@ interface Pixel {
   color: string;
 }
 
-const gridSize = 128;
-const pixelSize = 4;
+const gridSize = 256;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,6 +24,50 @@ const PixelEditor: React.FC = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [penSize, setPenSize] = useState<number>(16);
   const [isEraser, setIsEraser] = useState(false);
+  const [pixelSize, setPixelSize] = useState<number>(4); // Add state for pixel size
+
+  useEffect(() => {
+    const handleResize = () => {
+      let width = Math.min(window.innerWidth, window.innerHeight - 200); // Limit the width to 512 pixels
+      // width -= 32; // Subtract the padding
+      const newPixelSize = Math.max(1, Math.floor(width / gridSize));
+      console.log(newPixelSize);
+      setPixelSize(newPixelSize);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Initial call to set pixel size based on window size
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    const preventDefault = (e: Event) => e.preventDefault();
+
+    if (canvas) {
+      // Adding event listeners to prevent default behavior
+      canvas.addEventListener("touchstart", preventDefault, { passive: false });
+      canvas.addEventListener("touchmove", preventDefault, { passive: false });
+      canvas.addEventListener("mousedown", preventDefault);
+      canvas.addEventListener("mousemove", preventDefault);
+    }
+
+    // Cleanup event listeners on component unmount
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener("touchstart", preventDefault);
+        canvas.removeEventListener("touchmove", preventDefault);
+        canvas.removeEventListener("mousedown", preventDefault);
+        canvas.removeEventListener("mousemove", preventDefault);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -154,6 +196,35 @@ const PixelEditor: React.FC = () => {
     }
   };
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = event.touches[0];
+      const x = Math.floor((touch.clientX - rect.left) / pixelSize);
+      const y = Math.floor((touch.clientY - rect.top) / pixelSize);
+      setIsDrawing(true);
+      handleClick(x, y);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDrawing(false);
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    if (isDrawing) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const touch = event.touches[0];
+        const x = Math.floor((touch.clientX - rect.left) / pixelSize);
+        const y = Math.floor((touch.clientY - rect.top) / pixelSize);
+        handleClick(x, y);
+      }
+    }
+  };
+
   const handleUndo = () => {
     const newHistory = [...history];
     const previousState = newHistory[newHistory.length - 2];
@@ -229,7 +300,15 @@ const PixelEditor: React.FC = () => {
   const convertCanvasToImage = () => {
     const canvas = canvasRef.current;
     if (canvas) {
-      return canvas.toDataURL("image/png");
+      const offScreenCanvas = document.createElement("canvas");
+      offScreenCanvas.width = gridSize;
+      offScreenCanvas.height = gridSize;
+      const ctx = offScreenCanvas.getContext("2d");
+      if (ctx) {
+        // Draw the current canvas onto the off-screen canvas with the desired size
+        ctx.drawImage(canvas, 0, 0, gridSize, gridSize);
+        return offScreenCanvas.toDataURL("image/png");
+      }
     }
     return null;
   };
@@ -246,11 +325,6 @@ const PixelEditor: React.FC = () => {
     }
   };
 
-  const handleClear = () => {
-    setPixels([]);
-    addToHistory([]);
-  };
-
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-2 py-4">
@@ -264,6 +338,7 @@ const PixelEditor: React.FC = () => {
           <option value={32}>32x32</option>
           <option value={64}>64x64</option>
           <option value={128}>128x128</option>
+          <option value={256}>256x256</option>
         </select>
         <input
           type="color"
@@ -273,22 +348,30 @@ const PixelEditor: React.FC = () => {
         />
         <button
           onClick={() => setIsEraser(false)}
-          className={`p-2 border border-gray-200 rounded-md ${
-            !isEraser && "bg-gray-400"
-          }`}
+          className={`p-2 border border-gray-200 rounded-md ${!isEraser && ""}`}
         >
-          <FaPen className={`${isEraser ? "text-gray-600" : "text-white"}`} />
+          <FaPen className={`text-white ${isEraser ? "opacity-20" : ""}`} />
         </button>
         <button
           onClick={() => setIsEraser(true)}
-          className={`p-2 border border-gray-200 rounded-md ${
-            isEraser && "bg-gray-400"
-          }`}
+          className={`p-2 border border-gray-200 rounded-md ${isEraser && ""}`}
         >
-          <FaEraser
-            className={`${isEraser ? "text-white" : "text-gray-600"}`}
-          />
+          <FaEraser className={`text-white ${!isEraser ? "opacity-20" : ""}`} />
         </button>
+      </div>
+      <canvas
+        ref={canvasRef}
+        width={gridSize * pixelSize}
+        height={gridSize * pixelSize}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+        className="bg-white"
+      />
+      <div className="flex items-center gap-2 py-4">
         <button
           onClick={handleUndo}
           className="p-2 border border-gray-200 rounded-md"
@@ -320,22 +403,7 @@ const PixelEditor: React.FC = () => {
         >
           <FaDownload className="text-white" />
         </button>
-        <button
-          onClick={handleClear}
-          className="p-2 border border-gray-200 rounded-md"
-        >
-          <FaTrash className="text-white" />
-        </button>
       </div>
-      <canvas
-        ref={canvasRef}
-        width={gridSize * pixelSize}
-        height={gridSize * pixelSize}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        className="bg-white"
-      />
     </div>
   );
 };
