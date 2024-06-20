@@ -16,13 +16,26 @@ const PixelEditor: React.FC = () => {
   const isDrawing = useRef(false);
 
   const addToHistory = (newPixels: Pixel[]) => {
+    if (
+      history.length > 0 &&
+      JSON.stringify(history[history.length - 1]) === JSON.stringify(newPixels)
+    ) {
+      return;
+    }
     setHistory([...history, newPixels]);
-    setRedoStack([]); // Clear redo stack when a new action is taken
+    setRedoStack([]);
   };
 
   const handleClick = (x: number, y: number) => {
     const newPixel = { x, y, color: currentColor };
-    const newPixels = [...pixels, newPixel];
+    const existingPixelIndex = pixels.findIndex((p) => p.x === x && p.y === y);
+    let newPixels;
+    if (existingPixelIndex !== -1) {
+      newPixels = [...pixels];
+      newPixels[existingPixelIndex] = newPixel;
+    } else {
+      newPixels = [...pixels, newPixel];
+    }
     setPixels(newPixels);
     addToHistory(newPixels);
   };
@@ -41,14 +54,42 @@ const PixelEditor: React.FC = () => {
     }
   };
 
-  const handleUndo = () => {
-    if (history.length > 0) {
-      const newHistory = [...history];
-      const previousState = newHistory.pop();
-      setRedoStack([pixels, ...redoStack]);
-      setPixels(previousState || []);
-      setHistory(newHistory);
+  const handleTouchStart = (x: number, y: number) => {
+    isDrawing.current = true;
+    handleClick(x, y);
+  };
+
+  const handleTouchEnd = () => {
+    isDrawing.current = false;
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (isDrawing.current) {
+      const touch = event.touches[0];
+      const element = document.elementFromPoint(
+        touch.clientX,
+        touch.clientY
+      ) as HTMLElement;
+      if (
+        element &&
+        element.dataset &&
+        element.dataset.x &&
+        element.dataset.y
+      ) {
+        const x = parseInt(element.dataset.x, 10);
+        const y = parseInt(element.dataset.y, 10);
+        handleClick(x, y);
+      }
     }
+  };
+
+  const handleUndo = () => {
+    const newHistory = [...history];
+    const previousState = newHistory[newHistory.length - 2];
+    newHistory.pop();
+    setRedoStack([pixels, ...redoStack]);
+    setPixels(previousState || []);
+    setHistory(newHistory);
   };
 
   const handleRedo = () => {
@@ -70,11 +111,18 @@ const PixelEditor: React.FC = () => {
         pixelElements.push(
           <div
             key={`${x}-${y}`}
-            onClick={() => handleClick(x, y)}
+            data-x={x}
+            data-y={y}
             onMouseDown={() => handleClick(x, y)}
             onMouseOver={() => handleMouseOver(x, y)}
-            className="w-6 h-6 border-gray-200"
-            style={{ backgroundColor: pixelColor }}
+            onTouchStart={() => handleTouchStart(x, y)}
+            onTouchMove={handleTouchMove}
+            className="w-6 h-6 m-0 p-0 box-border"
+            style={{
+              backgroundColor: pixelColor,
+              width: "24px",
+              height: "24px",
+            }}
           ></div>
         );
       }
@@ -87,26 +135,26 @@ const PixelEditor: React.FC = () => {
       className="flex flex-col items-center"
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onTouchEnd={handleTouchEnd}
     >
-      <div className="flex mb-4">
+      <div className="flex items-center gap-2 py-4">
         <input
           type="color"
           value={currentColor}
           onChange={(e) => setCurrentColor(e.target.value)}
-          className="m-2 border-none"
+          className="border-none"
         />
-        <button onClick={handleUndo} className="m-2 p-2 bg-gray-200">
+        <button onClick={handleUndo} className="p-2 bg-gray-200">
           Undo
         </button>
-        <button onClick={handleRedo} className="m-2 p-2 bg-gray-200">
+        <button onClick={handleRedo} className="p-2 bg-gray-200">
           Redo
         </button>
       </div>
       <div
-        className="grid"
+        className="grid gap-0 m-0 p-0"
         style={{
           gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
-          gap: "0px",
         }}
       >
         {renderPixels()}
