@@ -6,7 +6,7 @@ interface Pixel {
   color: string;
 }
 
-const gridSize = 16; // Define your grid size here
+const gridSize = 16;
 
 const PixelEditor: React.FC = () => {
   const [pixels, setPixels] = useState<Pixel[]>([]);
@@ -117,9 +117,9 @@ const PixelEditor: React.FC = () => {
             onMouseOver={() => handleMouseOver(x, y)}
             onTouchStart={() => handleTouchStart(x, y)}
             onTouchMove={handleTouchMove}
-            className="w-6 h-6 m-0 p-0 box-border"
             style={{
               backgroundColor: pixelColor,
+              margin: "-0.25px",
               width: "24px",
               height: "24px",
             }}
@@ -152,7 +152,7 @@ const PixelEditor: React.FC = () => {
         </button>
       </div>
       <div
-        className="grid gap-0 m-0 p-0"
+        className="grid"
         style={{
           gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
         }}
