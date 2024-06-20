@@ -13,7 +13,7 @@ interface Pixel {
   color: string;
 }
 
-const gridSize = 128;
+const gridSize = 64;
 const downloadSize = 256;
 
 const PixelEditor: React.FC = () => {
@@ -134,13 +134,14 @@ const PixelEditor: React.FC = () => {
     const newPixel = { x, y, color: isEraser ? "#ffffff" : currentColor };
     const existingPixelIndex = pixels.findIndex((p) => p.x === x && p.y === y);
     let newPixels;
+
     if (existingPixelIndex !== -1) {
       newPixels = [...pixels];
       newPixels[existingPixelIndex] = newPixel;
     } else {
       newPixels = [...pixels, newPixel];
     }
-
+    console.log(newPixels.length);
     // Draw pixels for the pen size
     const cellSize = gridSize / penSize;
     const cellX = Math.floor(x / cellSize) * cellSize;
@@ -270,7 +271,7 @@ const PixelEditor: React.FC = () => {
               canvas.width,
               canvas.height
             );
-            const newPixels = [...pixels];
+            const newPixels = [];
 
             for (let y = 0; y < gridSize; y++) {
               for (let x = 0; x < gridSize; x++) {
@@ -290,8 +291,22 @@ const PixelEditor: React.FC = () => {
               }
             }
 
-            setPixels(newPixels);
-            addToHistory(newPixels);
+            // Get the existing pixels from state
+            let updatedPixels = [...pixels];
+
+            newPixels.forEach((newPixel) => {
+              const existingPixelIndex = updatedPixels.findIndex(
+                (p) => p.x === newPixel.x && p.y === newPixel.y
+              );
+              if (existingPixelIndex !== -1) {
+                updatedPixels[existingPixelIndex] = newPixel; // Replace existing pixel
+              } else {
+                updatedPixels.push(newPixel); // Add new pixel
+              }
+            });
+
+            setPixels(updatedPixels);
+            addToHistory(updatedPixels);
           }
         };
 
@@ -344,8 +359,6 @@ const PixelEditor: React.FC = () => {
           <option value={16}>16x16</option>
           <option value={32}>32x32</option>
           <option value={64}>64x64</option>
-          <option value={128}>128x128</option>
-          <option value={256}>256x256</option>
         </select>
         <input
           type="color"
