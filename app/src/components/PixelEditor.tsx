@@ -1,14 +1,21 @@
 import React, { useRef, useState, useEffect } from "react";
-import { FaRedo, FaUndo } from "react-icons/fa";
-
+import {
+  FaRedo,
+  FaUndo,
+  FaUpload,
+  FaDownload,
+  FaTrash,
+  FaEraser,
+  FaPen,
+} from "react-icons/fa";
 interface Pixel {
   x: number;
   y: number;
   color: string;
 }
 
-const gridSize = 64;
-const pixelSize = 8;
+const gridSize = 128;
+const pixelSize = 4;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,6 +25,7 @@ const PixelEditor: React.FC = () => {
   const [redoStack, setRedoStack] = useState<Pixel[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [penSize, setPenSize] = useState<number>(16);
+  const [isEraser, setIsEraser] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -77,7 +85,7 @@ const PixelEditor: React.FC = () => {
   };
 
   const handleClick = (x: number, y: number) => {
-    const newPixel = { x, y, color: currentColor };
+    const newPixel = { x, y, color: isEraser ? "#ffffff" : currentColor };
     const existingPixelIndex = pixels.findIndex((p) => p.x === x && p.y === y);
     let newPixels;
     if (existingPixelIndex !== -1) {
@@ -103,10 +111,14 @@ const PixelEditor: React.FC = () => {
           newPixels[existingPenPixelIndex] = {
             x: penX,
             y: penY,
-            color: currentColor,
+            color: isEraser ? "#ffffff" : currentColor,
           };
         } else {
-          newPixels.push({ x: penX, y: penY, color: currentColor });
+          newPixels.push({
+            x: penX,
+            y: penY,
+            color: isEraser ? "#ffffff" : currentColor,
+          });
         }
       }
     }
@@ -183,7 +195,7 @@ const PixelEditor: React.FC = () => {
               canvas.width,
               canvas.height
             );
-            const newPixels: Pixel[] = [];
+            const newPixels = [...pixels];
 
             for (let y = 0; y < gridSize; y++) {
               for (let x = 0; x < gridSize; x++) {
@@ -234,6 +246,11 @@ const PixelEditor: React.FC = () => {
     }
   };
 
+  const handleClear = () => {
+    setPixels([]);
+    addToHistory([]);
+  };
+
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-2 py-4">
@@ -246,6 +263,7 @@ const PixelEditor: React.FC = () => {
           <option value={16}>16x16</option>
           <option value={32}>32x32</option>
           <option value={64}>64x64</option>
+          <option value={128}>128x128</option>
         </select>
         <input
           type="color"
@@ -253,6 +271,24 @@ const PixelEditor: React.FC = () => {
           onChange={(e) => setCurrentColor(e.target.value)}
           className="border-none"
         />
+        <button
+          onClick={() => setIsEraser(false)}
+          className={`p-2 border border-gray-200 rounded-md ${
+            !isEraser && "bg-gray-400"
+          }`}
+        >
+          <FaPen className={`${isEraser ? "text-gray-600" : "text-white"}`} />
+        </button>
+        <button
+          onClick={() => setIsEraser(true)}
+          className={`p-2 border border-gray-200 rounded-md ${
+            isEraser && "bg-gray-400"
+          }`}
+        >
+          <FaEraser
+            className={`${isEraser ? "text-white" : "text-gray-600"}`}
+          />
+        </button>
         <button
           onClick={handleUndo}
           className="p-2 border border-gray-200 rounded-md"
@@ -265,17 +301,30 @@ const PixelEditor: React.FC = () => {
         >
           <FaRedo className="text-white" />
         </button>
+        <label
+          htmlFor="file-upload"
+          className="p-2 border border-gray-200 rounded-md cursor-pointer"
+        >
+          <FaUpload className="text-white" />
+        </label>
         <input
+          id="file-upload"
           type="file"
           accept="image/*"
           onChange={handleImportImage}
-          className="px-2 py-1 bg-gray-200 rounded-md"
+          className="hidden"
         />
         <button
           onClick={handleDownload}
-          className="px-2 py-1 bg-gray-200 rounded-md"
+          className="p-2 border border-gray-200 rounded-md"
         >
-          Download PNG
+          <FaDownload className="text-white" />
+        </button>
+        <button
+          onClick={handleClear}
+          className="p-2 border border-gray-200 rounded-md"
+        >
+          <FaTrash className="text-white" />
         </button>
       </div>
       <canvas
