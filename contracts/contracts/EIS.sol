@@ -52,6 +52,7 @@ contract EIS is IRenderer1155 {
     IZoraCreator1155Factory public zoraCreator1155Factory;
     IZoraCreator1155 public zoraCreator1155;
 
+    uint256 public constant PERMISSION_BIT_MINTER = 2 ** 2;
     uint256 public constant CONTRACT_BASE_ID = 0;
 
     address public treasuryAddress;
@@ -167,21 +168,29 @@ contract EIS is IRenderer1155 {
             IRenderer1155(address(this))
         );
 
-        // zoraCreator1155.callSale({
-        //     tokenId: tokenId,
-        //     salesConfig: IMinter1155(zoraCreator1155Factory.fixedPriceMinter()),
-        //     data: abi.encodeWithSelector(
-        //         IZoraCreatorFixedPriceSaleStrategy.setSale.selector,
-        //         tokenId,
-        //         IZoraCreatorFixedPriceSaleStrategy.SalesConfig({
-        //             pricePerToken: fixedPrice,
-        //             saleStart: 0,
-        //             saleEnd: type(uint64).max,
-        //             maxTokensPerAddress: 0,
-        //             fundsRecipient: address(0)
-        //         })
-        //     )
-        // });
+        address fixedPriceMinter = zoraCreator1155Factory.fixedPriceMinter();
+
+        zoraCreator1155.addPermission(
+            tokenId,
+            fixedPriceMinter,
+            PERMISSION_BIT_MINTER
+        );
+
+        zoraCreator1155.callSale({
+            tokenId: tokenId,
+            salesConfig: IMinter1155(zoraCreator1155Factory.fixedPriceMinter()),
+            data: abi.encodeWithSelector(
+                IZoraCreatorFixedPriceSaleStrategy.setSale.selector,
+                tokenId,
+                IZoraCreatorFixedPriceSaleStrategy.SalesConfig({
+                    pricePerToken: fixedPrice,
+                    saleStart: 0,
+                    saleEnd: type(uint64).max,
+                    maxTokensPerAddress: 0,
+                    fundsRecipient: address(0)
+                })
+            )
+        });
 
         emit Created(tokenId, msg.sender, records[tokenId]);
     }

@@ -5,6 +5,12 @@ import {IRenderer1155} from "./IRenderer1155.sol";
 import {IMinter1155} from "./IMinter1155.sol";
 
 interface IZoraCreator1155 {
+    function addPermission(
+        uint256 tokenId,
+        address user,
+        uint256 permissionBits
+    ) external;
+
     function setTokenMetadataRenderer(
         uint256 tokenId,
         IRenderer1155 renderer
