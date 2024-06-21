@@ -16,8 +16,6 @@ import {ICreatorRoyaltiesControl} from "./interfaces/ICreatorRoyaltiesControl.so
 import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
 import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 
-import "hardhat/console.sol";
-
 contract EIS is IRenderer1155 {
     event Created(
         uint256 indexed tokenId,
@@ -226,8 +224,6 @@ contract EIS is IRenderer1155 {
     function supportsInterface(
         bytes4 interfaceId
     ) external pure override returns (bool) {
-        console.log("supportsInterface called");
-
         return
             interfaceId == type(IERC165).interfaceId ||
             interfaceId == type(IRenderer1155).interfaceId;

@@ -13,6 +13,8 @@ export const SPLIT_NATIVE_TOKEN_ADDRESS =
 export const ZORA_1155_FACTORY_ADDRESS =
   "0x777777C338d93e2C7adf08D102d45CA7CC4Ed021" as Address;
 
+export const ZORA_CONTRACT_BASE_ID = BigInt("0");
+
 export const BASIS_POINTS_BASE = BigInt("10000");
 export const PROTOCOL_FEE_BASIS_POINTS = BigInt("1000");
 export const DISTRIBUTION_INCENTIVE = 100;
@@ -20,3 +22,7 @@ export const DISTRIBUTION_INCENTIVE = 100;
 export const EIS_NAME = "EIS";
 export const EIS_DESCRIPTION =
   "Ethereum Image Service is an Infinite Remixable CC0 Garden.";
+
+export const MAX_UINT_256 = BigInt(
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+);

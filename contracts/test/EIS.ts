@@ -13,6 +13,8 @@ import {
   ZORA_1155_FACTORY_ADDRESS,
   EIS_NAME,
   EIS_DESCRIPTION,
+  ZORA_CONTRACT_BASE_ID,
+  MAX_UINT_256,
 } from "../config";
 
 import { pullSplitAbi } from "./abis/PullSplit";
@@ -36,6 +38,11 @@ import { zoraCreator1155ImplAbi } from "./abis/ZoraCreator1155Impl";
 
 const name = "name";
 const description = "description";
+
+const compression = {
+  none: 0,
+  zip: 1,
+};
 
 const pngMimeType = "image/png";
 const svgMimeType = "image/svg+xml";
@@ -62,14 +69,14 @@ const getFixture = async () => {
     DISTRIBUTION_INCENTIVE,
   ]);
 
-  const zipped = solady.LibZip.flzCompress(pngImageHex) as Hex;
+  const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
 
   await eis.write.createZoraCreator1155Contract([
     EIS_NAME,
     EIS_DESCRIPTION,
-    1,
+    compression.zip,
     pngMimeType,
-    chunk(zipped),
+    chunk(zippedImageHex),
   ]);
 
   const zoraCreator1155Address = await eis.read.zoraCreator1155();
@@ -96,11 +103,52 @@ describe("EIP", function () {
     });
   });
 
+  describe("View Image", function () {
+    it("Should work: loadImage", async function () {
+      const { eis } = await getFixture();
+      const createdTokenId = BigInt("1");
+      const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
+
+      await eis.write.create([
+        name,
+        description,
+        compression.zip,
+        pngMimeType,
+        chunk(zippedImageHex),
+        MAX_UINT_256,
+      ]);
+
+      const loadedImage = await eis.read.loadImage([createdTokenId]);
+      expect(loadedImage).to.equal(expectedLoadedImageForPngImage);
+    });
+  });
+
   describe("Zora Integration", function () {
-    it("Should work", async function () {
+    it("Should work: contractURI", async function () {
       const { eis, zoraCreator1155 } = await getFixture();
-      const uriFromEIS = await eis.read.uri([BigInt(0)]);
-      const uriFromZora = await zoraCreator1155.read.uri([BigInt(0)]);
+      const uriFromEIS = await eis.read.uri([ZORA_CONTRACT_BASE_ID]);
+      const contractURIFromZora = await zoraCreator1155.read.contractURI();
+      expect(uriFromEIS).to.equal(contractURIFromZora);
+    });
+
+    it("Should work: uri", async function () {
+      const { eis, zoraCreator1155 } = await getFixture();
+      const createdTokenId = BigInt("1");
+      const name = "name";
+      const description = "description";
+
+      const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
+      await eis.write.create([
+        name,
+        description,
+        compression.zip,
+        pngMimeType,
+        chunk(zippedImageHex),
+        MAX_UINT_256,
+      ]);
+
+      const uriFromEIS = await eis.read.uri([createdTokenId]);
+      const uriFromZora = await zoraCreator1155.read.uri([createdTokenId]);
       expect(uriFromEIS).to.equal(uriFromZora);
     });
   });
