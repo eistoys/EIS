@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+import {IRenderer1155} from "./IRenderer1155.sol";
+
 interface IZoraCreator1155 {
-    function mint(
+    function setTokenMetadataRenderer(
         uint256 tokenId,
-        uint256 amount,
-        address frontendFeeRecipient
-    ) external payable;
+        IRenderer1155 renderer
+    ) external;
 
     function setupNewToken(
         string calldata newURI,

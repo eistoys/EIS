@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "solady/src/auth/Ownable.sol";
+// import "solady/src/auth/Ownable.sol";
 import "solady/src/utils/Base64.sol";
 import "solady/src/utils/LibString.sol";
 import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/SSTORE2.sol";
 
+import {IERC165} from "./interfaces/IERC165.sol";
+import {IRenderer1155} from "./interfaces/IRenderer1155.sol";
 import {IZoraCreator1155} from "./interfaces/IZoraCreator1155.sol";
 import {IZoraCreator1155Factory} from "./interfaces/IZoraCreator1155Factory.sol";
 import {ICreatorRoyaltiesControl} from "./interfaces/ICreatorRoyaltiesControl.sol";
@@ -14,7 +16,9 @@ import {ICreatorRoyaltiesControl} from "./interfaces/ICreatorRoyaltiesControl.so
 import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
 import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 
-contract EIS is Ownable {
+import "hardhat/console.sol";
+
+contract EIS is IRenderer1155 {
     event Created(
         uint256 indexed tokenId,
         address indexed creator,
@@ -28,20 +32,24 @@ contract EIS is Ownable {
 
     struct Record {
         address creator;
-        address split;
         string name;
         string description;
         Compression imageCompression;
         string imageMimeType;
         address[] imageStorages;
         uint256[] referenceTokenIds;
-        SplitV2Lib.Split splitParams;
+    }
+
+    struct Split {
+        address address_;
+        SplitV2Lib.Split params;
     }
 
     mapping(uint256 => Record) public records;
+    mapping(uint256 => Split) public splits;
 
     ISplitFactoryV2 public pullSplitFactory;
-    IZoraCreator1155Factory public zoraCreatorFactory;
+    IZoraCreator1155Factory public zoraCreator1155Factory;
     IZoraCreator1155 public zoraCreator1155;
 
     uint256 public constant CONTRACT_BASE_ID = 0;
@@ -52,54 +60,57 @@ contract EIS is Ownable {
     uint16 public distributionIncentive;
 
     constructor(
-        IZoraCreator1155Factory zoraCreatorFactory_,
+        IZoraCreator1155Factory zoraCreator1155Factory_,
         ISplitFactoryV2 pullSplitFactory_,
         address treasuryAddress_,
         uint256 basisPointsBase_,
         uint256 protocolFeeBasisPoints_,
-        uint16 distributionIncentive_,
-        string memory name,
-        string memory description,
-        Compression imageCompression,
-        string memory imageMimeType,
-        bytes[] memory imageChunks
+        uint16 distributionIncentive_
     ) {
-        zoraCreatorFactory = zoraCreatorFactory_;
+        zoraCreator1155Factory = zoraCreator1155Factory_;
         pullSplitFactory = pullSplitFactory_;
         treasuryAddress = treasuryAddress_;
         basisPointsBase = basisPointsBase_;
         protocolFeeBasisPoints = protocolFeeBasisPoints_;
         distributionIncentive = distributionIncentive_;
-        _createZoraCreator1155Contract({
-            name: name,
-            description: description,
-            imageCompression: imageCompression,
-            imageMimeType: imageMimeType,
-            imageChunks: imageChunks
-        });
     }
 
-    function _createZoraCreator1155Contract(
+    function createZoraCreator1155Contract(
         string memory name,
         string memory description,
         Compression imageCompression,
         string memory imageMimeType,
         bytes[] memory imageChunks
-    ) internal {
-        bytes[] memory actions = new bytes[](1);
-        actions[0] = abi.encodeWithSignature(
-            "setTokenMetadataRenderer(uint256,IRenderer1155)",
+    ) public {
+        require(
+            zoraCreator1155 == IZoraCreator1155(address(0x0)),
+            "EIS: ZoraCreator1155 contract already created"
+        );
+        records[CONTRACT_BASE_ID] = Record({
+            creator: address(this),
+            name: name,
+            description: description,
+            imageCompression: imageCompression,
+            imageMimeType: imageMimeType,
+            imageStorages: _setImage(imageChunks),
+            referenceTokenIds: new uint256[](0)
+        });
+
+        bytes[] memory setupActions = new bytes[](1);
+        setupActions[0] = abi.encodeWithSelector(
+            IZoraCreator1155.setTokenMetadataRenderer.selector,
             CONTRACT_BASE_ID,
             address(this)
         );
+
         zoraCreator1155 = IZoraCreator1155(
-            zoraCreatorFactory.createContract({
+            zoraCreator1155Factory.createContract({
                 contractURI: "",
                 name: "EIS",
                 defaultRoyaltyConfiguration: ICreatorRoyaltiesControl
                     .RoyaltyConfiguration(0, 500, treasuryAddress),
                 defaultAdmin: payable(address(this)),
-                setupActions: actions
+                setupActions: setupActions
             })
         );
     }
@@ -109,7 +120,7 @@ contract EIS is Ownable {
         string memory description,
         Compression imageCompression,
         string memory imageMimeType,
-        bytes[] calldata imageChunks,
+        bytes[] memory imageChunks,
         uint256 maxSupply
     ) public {
         uint256 tokenId = zoraCreator1155.setupNewToken({
@@ -133,18 +144,21 @@ contract EIS is Ownable {
 
         records[tokenId] = Record({
             creator: msg.sender,
-            split: pullSplitFactory.createSplit(
-                splitParams,
-                address(this),
-                msg.sender
-            ),
             name: name,
             description: description,
             imageCompression: imageCompression,
             imageMimeType: imageMimeType,
             imageStorages: _setImage(imageChunks),
-            referenceTokenIds: new uint256[](0),
-            splitParams: splitParams
+            referenceTokenIds: new uint256[](0)
+        });
+
+        splits[tokenId] = Split({
+            address_: pullSplitFactory.createSplit(
+                splitParams,
+                address(this),
+                msg.sender
+            ),
+            params: splitParams
         });
 
         emit Created(tokenId, msg.sender, records[tokenId]);
@@ -156,12 +170,11 @@ contract EIS is Ownable {
 
     function loadRawImage(uint256 tokenId) public view returns (bytes memory) {
         bytes memory data;
-        Record memory record = records[tokenId];
-        address[] memory imageStorages = record.imageStorages;
+        address[] memory imageStorages = records[tokenId].imageStorages;
         for (uint8 i = 0; i < imageStorages.length; i++) {
             data = abi.encodePacked(data, SSTORE2.read(imageStorages[i]));
         }
-        if (record.imageCompression == Compression.ZIP) {
+        if (records[tokenId].imageCompression == Compression.ZIP) {
             data = unzip(data);
         }
         return data;
@@ -180,19 +193,21 @@ contract EIS is Ownable {
             );
     }
 
-    function uri(uint256 tokenId) public view returns (string memory) {
-        Record memory record = records[tokenId];
-        require(record.creator != address(0x0), "EIS: image doesn't exist");
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        require(
+            records[tokenId].creator != address(0x0),
+            "EIS: image doesn't exist"
+        );
         return
             string(
                 abi.encodePacked(
                     "data:application/json;utf8,{",
                     '"name": "',
-                    record.name,
+                    records[tokenId].name,
                     '", "description": "',
-                    record.description,
+                    records[tokenId].description,
                     '", "creator": "',
-                    LibString.toHexString(record.creator),
+                    LibString.toHexString(records[tokenId].creator),
                     '", "image": "',
                     loadImage(tokenId),
                     '"}'
@@ -200,8 +215,26 @@ contract EIS is Ownable {
             );
     }
 
+    function contractURI() public view override returns (string memory) {
+        return uri(CONTRACT_BASE_ID);
+    }
+
+    function setup(bytes memory initData) public override {
+        // not implemented
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) external pure override returns (bool) {
+        console.log("supportsInterface called");
+
+        return
+            interfaceId == type(IERC165).interfaceId ||
+            interfaceId == type(IRenderer1155).interfaceId;
+    }
+
     function _setImage(
-        bytes[] calldata image
+        bytes[] memory image
     ) internal returns (address[] memory) {
         address[] memory imageStorages = new address[](image.length);
         for (uint8 i = 0; i < image.length; i++) {
