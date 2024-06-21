@@ -594,8 +594,16 @@ function CreatePage() {
             )}
             {modalMode == "loading" && (
               <>
-                <div className="text-white text-xl font-bold tracking-wider">
-                  CREATING...
+                <div className="flex mb-8">
+                  <div className="text-white text-xl font-bold tracking-wider">
+                    CREATING...
+                  </div>
+                  <button
+                    className="absolute top-6 right-4 text-4xl text-white"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    &times;
+                  </button>
                 </div>
                 <SpinnerLoader />
                 <div className="text-white tracking-wider text-center text-md md:text-xl font-bold">
