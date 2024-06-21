@@ -114,6 +114,14 @@ contract EIS is IRenderer1155 {
                 setupActions: setupActions
             })
         );
+
+        address fixedPriceMinter = zoraCreator1155Factory.fixedPriceMinter();
+
+        zoraCreator1155.addPermission(
+            CONTRACT_BASE_ID,
+            fixedPriceMinter,
+            PERMISSION_BIT_MINTER
+        );
     }
 
     function create(
@@ -154,27 +162,13 @@ contract EIS is IRenderer1155 {
             referenceTokenIds: new uint256[](0)
         });
 
-        splits[tokenId] = Split({
-            address_: pullSplitFactory.createSplit(
-                splitParams,
-                address(this),
-                msg.sender
-            ),
-            params: splitParams
-        });
-
-        zoraCreator1155.setTokenMetadataRenderer(
-            tokenId,
-            IRenderer1155(address(this))
+        address splitAddress = pullSplitFactory.createSplit(
+            splitParams,
+            address(this),
+            msg.sender
         );
 
-        address fixedPriceMinter = zoraCreator1155Factory.fixedPriceMinter();
-
-        zoraCreator1155.addPermission(
-            tokenId,
-            fixedPriceMinter,
-            PERMISSION_BIT_MINTER
-        );
+        splits[tokenId] = Split({address_: splitAddress, params: splitParams});
 
         zoraCreator1155.callSale({
             tokenId: tokenId,
@@ -185,9 +179,9 @@ contract EIS is IRenderer1155 {
                 IZoraCreatorFixedPriceSaleStrategy.SalesConfig({
                     pricePerToken: fixedPrice,
                     saleStart: 0,
-                    saleEnd: type(uint64).max,
+                    saleEnd: 0,
                     maxTokensPerAddress: 0,
-                    fundsRecipient: address(0)
+                    fundsRecipient: splitAddress
                 })
             )
         });
