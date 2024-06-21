@@ -7,11 +7,13 @@ import "solady/src/utils/LibString.sol";
 import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/SSTORE2.sol";
 
+import {ICreatorRoyaltiesControl} from "./interfaces/ICreatorRoyaltiesControl.sol";
 import {IERC165} from "./interfaces/IERC165.sol";
+import {IMinter1155} from "./interfaces/IMinter1155.sol";
 import {IRenderer1155} from "./interfaces/IRenderer1155.sol";
 import {IZoraCreator1155} from "./interfaces/IZoraCreator1155.sol";
 import {IZoraCreator1155Factory} from "./interfaces/IZoraCreator1155Factory.sol";
-import {ICreatorRoyaltiesControl} from "./interfaces/ICreatorRoyaltiesControl.sol";
+import {IZoraCreatorFixedPriceSaleStrategy} from "./interfaces/IZoraCreatorFixedPriceSaleStrategy.sol";
 
 import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
 import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
@@ -119,7 +121,8 @@ contract EIS is IRenderer1155 {
         Compression imageCompression,
         string memory imageMimeType,
         bytes[] memory imageChunks,
-        uint256 maxSupply
+        uint256 maxSupply,
+        uint96 fixedPrice
     ) public {
         uint256 tokenId = zoraCreator1155.setupNewToken({
             newURI: "",
@@ -158,6 +161,27 @@ contract EIS is IRenderer1155 {
             ),
             params: splitParams
         });
+
+        zoraCreator1155.setTokenMetadataRenderer(
+            tokenId,
+            IRenderer1155(address(this))
+        );
+
+        // zoraCreator1155.callSale({
+        //     tokenId: tokenId,
+        //     salesConfig: IMinter1155(zoraCreator1155Factory.fixedPriceMinter()),
+        //     data: abi.encodeWithSelector(
+        //         IZoraCreatorFixedPriceSaleStrategy.setSale.selector,
+        //         tokenId,
+        //         IZoraCreatorFixedPriceSaleStrategy.SalesConfig({
+        //             pricePerToken: fixedPrice,
+        //             saleStart: 0,
+        //             saleEnd: type(uint64).max,
+        //             maxTokensPerAddress: 0,
+        //             fundsRecipient: address(0)
+        //         })
+        //     )
+        // });
 
         emit Created(tokenId, msg.sender, records[tokenId]);
     }
@@ -223,7 +247,7 @@ contract EIS is IRenderer1155 {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) external pure override returns (bool) {
+    ) external pure returns (bool) {
         return
             interfaceId == type(IERC165).interfaceId ||
             interfaceId == type(IRenderer1155).interfaceId;

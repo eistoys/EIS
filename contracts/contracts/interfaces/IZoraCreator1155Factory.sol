@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import {ICreatorRoyaltiesControl} from "./ICreatorRoyaltiesControl.sol";
 
 interface IZoraCreator1155Factory {
+    function fixedPriceMinter() external view returns (address);
+
     function createContract(
         string memory contractURI,
         string calldata name,

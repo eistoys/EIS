@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { toHex, Hex } from "viem";
+import { toHex, Hex, parseEther } from "viem";
 import { expect } from "chai";
 
 import {
@@ -56,6 +56,8 @@ const middleSVGHex = toHex(middleSVG);
 // use large svg to test unzip capacity
 const largeSVGHex = toHex(largeSVG);
 
+const fixedPrice = parseEther("0.001");
+
 const getFixture = async () => {
   const publicClient = await hre.viem.getPublicClient();
   const [creator, distributor] = await hre.viem.getWalletClients();
@@ -71,13 +73,15 @@ const getFixture = async () => {
 
   const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
 
-  await eis.write.createZoraCreator1155Contract([
-    EIS_NAME,
-    EIS_DESCRIPTION,
-    compression.zip,
-    pngMimeType,
-    chunk(zippedImageHex),
-  ]);
+  await publicClient.waitForTransactionReceipt({
+    hash: await eis.write.createZoraCreator1155Contract([
+      EIS_NAME,
+      EIS_DESCRIPTION,
+      compression.zip,
+      pngMimeType,
+      chunk(zippedImageHex),
+    ]),
+  });
 
   const zoraCreator1155Address = await eis.read.zoraCreator1155();
 
@@ -87,7 +91,7 @@ const getFixture = async () => {
     client: publicClient,
   });
 
-  return { creator, distributor, eis, zoraCreator1155 };
+  return { publicClient, creator, distributor, eis, zoraCreator1155 };
 };
 
 describe("EIP", function () {
@@ -105,18 +109,21 @@ describe("EIP", function () {
 
   describe("View Image", function () {
     it("Should work: loadImage", async function () {
-      const { eis } = await getFixture();
+      const { publicClient, eis } = await getFixture();
       const createdTokenId = BigInt("1");
       const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
 
-      await eis.write.create([
-        name,
-        description,
-        compression.zip,
-        pngMimeType,
-        chunk(zippedImageHex),
-        MAX_UINT_256,
-      ]);
+      await publicClient.waitForTransactionReceipt({
+        hash: await eis.write.create([
+          name,
+          description,
+          compression.zip,
+          pngMimeType,
+          chunk(zippedImageHex),
+          MAX_UINT_256,
+          fixedPrice,
+        ]),
+      });
 
       const loadedImage = await eis.read.loadImage([createdTokenId]);
       expect(loadedImage).to.equal(expectedLoadedImageForPngImage);
@@ -132,20 +139,27 @@ describe("EIP", function () {
     });
 
     it("Should work: uri", async function () {
-      const { eis, zoraCreator1155 } = await getFixture();
+      const { publicClient, eis, zoraCreator1155 } = await getFixture();
+
+      console.log("eis.address", eis.address);
+      console.log("zoraCreator1155.address", zoraCreator1155.address);
+
       const createdTokenId = BigInt("1");
       const name = "name";
       const description = "description";
 
       const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
-      await eis.write.create([
-        name,
-        description,
-        compression.zip,
-        pngMimeType,
-        chunk(zippedImageHex),
-        MAX_UINT_256,
-      ]);
+      await publicClient.waitForTransactionReceipt({
+        hash: await eis.write.create([
+          name,
+          description,
+          compression.zip,
+          pngMimeType,
+          chunk(zippedImageHex),
+          MAX_UINT_256,
+          fixedPrice,
+        ]),
+      });
 
       const uriFromEIS = await eis.read.uri([createdTokenId]);
       const uriFromZora = await zoraCreator1155.read.uri([createdTokenId]);
