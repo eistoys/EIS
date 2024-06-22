@@ -177,14 +177,19 @@ contract EIS is IRenderer1155 {
                 IZoraCreatorFixedPriceSaleStrategy.setSale.selector,
                 tokenId,
                 IZoraCreatorFixedPriceSaleStrategy.SalesConfig({
-                    pricePerToken: fixedPrice,
                     saleStart: 0,
-                    saleEnd: 0,
+                    saleEnd: 18446744073709551615,
                     maxTokensPerAddress: 0,
-                    fundsRecipient: splitAddress
+                    pricePerToken: fixedPrice,
+                    fundsRecipient: treasuryAddress
                 })
             )
         });
+
+        zoraCreator1155.setTokenMetadataRenderer(
+            tokenId,
+            IRenderer1155(address(this))
+        );
 
         emit Created(tokenId, msg.sender, records[tokenId]);
     }
@@ -223,16 +228,16 @@ contract EIS is IRenderer1155 {
             records[tokenId].creator != address(0x0),
             "EIS: image doesn't exist"
         );
+
         return
             string(
                 abi.encodePacked(
-                    "data:application/json;utf8,{",
+                    "data:application/json;utf8,",
+                    "{",
                     '"name": "',
                     records[tokenId].name,
                     '", "description": "',
                     records[tokenId].description,
-                    '", "creator": "',
-                    LibString.toHexString(records[tokenId].creator),
                     '", "image": "',
                     loadImage(tokenId),
                     '"}'

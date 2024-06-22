@@ -22,8 +22,16 @@ const config: HardhatUserConfig = {
         blockNumber: 11591880, // Jun-21-2024 06:40:48 AM +UTC
       },
     },
+    sepolia: {
+      url: "https://rpc.sepolia.org",
+      accounts,
+    },
     baseSepolia: {
       url: "https://sepolia.base.org",
+      accounts,
+    },
+    zoraSepolia: {
+      url: "https://sepolia.rpc.zora.energy",
       accounts,
     },
   },
