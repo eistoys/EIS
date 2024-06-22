@@ -181,7 +181,7 @@ contract EIS is IRenderer1155 {
                     saleEnd: 18446744073709551615,
                     maxTokensPerAddress: 0,
                     pricePerToken: fixedPrice,
-                    fundsRecipient: treasuryAddress
+                    fundsRecipient: splitAddress
                 })
             )
         });
