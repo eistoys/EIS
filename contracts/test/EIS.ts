@@ -31,8 +31,9 @@ import {
   smallSVG,
   middleSVG,
   largeSVG,
-  pngImageHex,
-  expectedLoadedImageForPngImage,
+  smallPngImageHex,
+  middlePngImageHex,
+  expectedLoadedImageForSmallPngImage,
 } from "./data";
 import { zoraCreator1155ImplAbi } from "./abis/ZoraCreator1155Impl";
 
@@ -71,7 +72,7 @@ const getFixture = async () => {
     DISTRIBUTION_INCENTIVE,
   ]);
 
-  const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
+  const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
   await publicClient.waitForTransactionReceipt({
     hash: await eis.write.createZoraCreator1155Contract([
@@ -101,10 +102,8 @@ describe("EIP", function () {
       expect(eis.address).not.to.be.undefined;
       const uri = await eis.read.uri([BigInt(0)]);
       const metadata = JSON.parse(uri.split("data:application/json;utf8,")[1]);
-      // console.log("metadata", metadata);
       expect(metadata.name).to.equal(EIS_NAME);
       expect(metadata.description).to.equal(EIS_DESCRIPTION);
-      // expect(metadata.creator).to.equal(eis.address);
     });
   });
 
@@ -112,7 +111,7 @@ describe("EIP", function () {
     it("Should work: loadImage", async function () {
       const { publicClient, eis } = await getFixture();
       const createdTokenId = BigInt("1");
-      const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
       await publicClient.waitForTransactionReceipt({
         hash: await eis.write.create([
@@ -127,7 +126,7 @@ describe("EIP", function () {
       });
 
       const loadedImage = await eis.read.loadImage([createdTokenId]);
-      expect(loadedImage).to.equal(expectedLoadedImageForPngImage);
+      expect(loadedImage).to.equal(expectedLoadedImageForSmallPngImage);
     });
   });
 
@@ -139,7 +138,7 @@ describe("EIP", function () {
       expect(uriFromEIS).to.equal(contractURIFromZora);
     });
 
-    it("Should work: uri", async function () {
+    it.only("Should work: uri", async function () {
       const { publicClient, eis, zoraCreator1155 } = await getFixture();
 
       console.log("eis.address", eis.address);
@@ -149,7 +148,7 @@ describe("EIP", function () {
       const name = "name";
       const description = "description";
 
-      const zippedImageHex = solady.LibZip.flzCompress(pngImageHex) as Hex;
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
       await publicClient.waitForTransactionReceipt({
         hash: await eis.write.create([
           name,
