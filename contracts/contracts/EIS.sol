@@ -115,13 +115,11 @@ contract EIS is IRenderer1155 {
             })
         );
 
-        address fixedPriceMinter = zoraCreator1155Factory.fixedPriceMinter();
-
-        zoraCreator1155.addPermission(
-            CONTRACT_BASE_ID,
-            fixedPriceMinter,
-            PERMISSION_BIT_MINTER
-        );
+        zoraCreator1155.addPermission({
+            tokenId: CONTRACT_BASE_ID,
+            user: minter(),
+            permissionBits: PERMISSION_BIT_MINTER
+        });
     }
 
     function create(
@@ -172,7 +170,7 @@ contract EIS is IRenderer1155 {
 
         zoraCreator1155.callSale({
             tokenId: tokenId,
-            salesConfig: IMinter1155(zoraCreator1155Factory.fixedPriceMinter()),
+            salesConfig: IMinter1155(minter()),
             data: abi.encodeWithSelector(
                 IZoraCreatorFixedPriceSaleStrategy.setSale.selector,
                 tokenId,
@@ -192,6 +190,10 @@ contract EIS is IRenderer1155 {
         );
 
         emit Created(tokenId, msg.sender, records[tokenId]);
+    }
+
+    function minter() public view returns (address) {
+        return zoraCreator1155Factory.fixedPriceMinter();
     }
 
     function unzip(bytes memory data) public pure returns (bytes memory) {

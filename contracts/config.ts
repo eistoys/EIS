@@ -14,6 +14,7 @@ export const ZORA_1155_FACTORY_ADDRESS =
   "0x777777C338d93e2C7adf08D102d45CA7CC4Ed021" as Address;
 
 export const ZORA_CONTRACT_BASE_ID = BigInt("0");
+export const ZORA_BASE_FEE = BigInt("777000000000000");
 
 export const BASIS_POINTS_BASE = BigInt("10000");
 export const PROTOCOL_FEE_BASIS_POINTS = BigInt("1000");
