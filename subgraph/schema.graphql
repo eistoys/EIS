@@ -1,0 +1,62 @@
+type ApprovalForAll @entity(immutable: true) {
+  id: Bytes!
+  account: Bytes! # address
+  operator: Bytes! # address
+  approved: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Created @entity(immutable: true) {
+  id: Bytes!
+  tokenId: BigInt! # uint256
+  creator: Bytes! # address
+  record_creator: Bytes! # address
+  record_split: Bytes! # address
+  record_name: String! # string
+  record_description: String! # string
+  record_mimeType: String! # string
+  record_imageChunks: [Bytes!]! # address[]
+  record_referenceTokenIds: [BigInt!]! # uint256[]
+  record_splitParams_recipients: [Bytes!]! # address[]
+  record_splitParams_allocations: [BigInt!]! # uint256[]
+  record_splitParams_totalAllocation: BigInt! # uint256
+  record_splitParams_distributionIncentive: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TransferBatch @entity(immutable: true) {
+  id: Bytes!
+  operator: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  ids: [BigInt!]! # uint256[]
+  values: [BigInt!]! # uint256[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TransferSingle @entity(immutable: true) {
+  id: Bytes!
+  operator: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  EIS_id: BigInt! # uint256
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type URI @entity(immutable: true) {
+  id: Bytes!
+  value: String! # string
+  EIS_id: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
