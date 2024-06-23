@@ -1,5 +1,7 @@
-type Record @entity(immutable: true) {
+type Record @entity(immutable: false) {
   id: ID!
-  creator: Bytes! # address
-  uri: String! # string
+  creator: Bytes!
+  uri: String!
+  referTo: [String!]!
+  referedFrom: [String!]!
 }
