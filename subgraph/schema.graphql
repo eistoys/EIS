@@ -1,0 +1,8 @@
+type Record @entity(immutable: false) {
+  id: ID!
+  tokenId: BigInt!
+  creator: Bytes!
+  uri: String!
+  referTo: [String!]!
+  referedFrom: [String!]!
+}

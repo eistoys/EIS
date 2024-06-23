@@ -320,7 +320,7 @@ function CreatePage() {
                     <div className="text-xl font-bold tracking-wide text-white mb-4">
                       SOURCE
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 overflow-x-auto">
                       <img
                         // key={`source_${i}`}
                         src={usedReferences[usedReferences.length - 1].image}
