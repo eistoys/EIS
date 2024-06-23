@@ -8,6 +8,7 @@ import {
 import { WagmiProvider } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 
 const config = getDefaultConfig({
   appName: "EIS",
@@ -18,6 +19,11 @@ const config = getDefaultConfig({
 
 const queryClient = new QueryClient();
 
+const apolloClient = new ApolloClient({
+  uri: "https://api.studio.thegraph.com/query/70647/eis/6",
+  cache: new InMemoryCache(),
+});
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
@@ -27,7 +33,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             accentColor: "#22CC02",
           })}
         >
-          {children}
+          <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

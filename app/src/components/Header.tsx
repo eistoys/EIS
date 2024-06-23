@@ -28,14 +28,14 @@ export const Header = () => {
             className="w-28 cursor-pointer"
           />
         </Link>
-        {/* <Link
+        <Link
           href="/concept"
-          className="hover:opacity-75 hover:opacity-75 transition-opacity"
+          className="hover:opacity-75 hover:opacity-75 transition-opacity hidden md:block"
         >
           <p className="text-lg font-bold text-white cursor-pointer tracking-wider">
             CONCEPT
           </p>
-        </Link> */}
+        </Link>
         <a
           target="_blank"
           href="https://warpcast.com/~/channel/eis"
@@ -95,6 +95,16 @@ export const Header = () => {
               aria-labelledby="options-menu"
             >
               <div className="py-1" role="none">
+                <Link
+                  href="/concept"
+                  className="block px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  onClick={() => {
+                    setIsOpen(false);
+                  }}
+                >
+                  Concept
+                </Link>
                 <a
                   target="_blank"
                   href="https://warpcast.com/~/channel/eis"

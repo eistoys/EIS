@@ -7,6 +7,7 @@ import { Record } from "../generated/schema";
 export function handleCreated(event: CreatedEvent): void {
   let entity = new Record(event.params.tokenId.toString());
   let contract = ESIContract.bind(event.address);
+  entity.tokenId = event.params.tokenId;
   entity.creator = event.params.creator;
   entity.uri = contract.uri(event.params.tokenId);
   entity.referTo = event.params.record.referenceTokenIds.map<string>((value) =>
