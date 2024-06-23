@@ -3,9 +3,10 @@
 import { gql, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { useMemo } from "react";
+import { Record } from "@/types/record";
 
 const GET_RECORDS = gql`
-  query GetAccount {
+  query GetRecords {
     records(first: 21, orderBy: tokenId, orderDirection: desc) {
       tokenId
       creator
@@ -16,14 +17,6 @@ const GET_RECORDS = gql`
   }
 `;
 
-interface Record {
-  tokenId: string;
-  creator: string;
-  image: string;
-  referTo: string[];
-  referedFrom: string[];
-}
-
 export default function Home() {
   const { data } = useQuery(GET_RECORDS);
 
@@ -33,7 +26,7 @@ export default function Home() {
     }
     return data.records.map((record: any) => {
       return {
-        tokenId: record.id,
+        tokenId: record.tokenId,
         creator: record.creator,
         image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
           .image,
@@ -132,7 +125,8 @@ export default function Home() {
         <div className="container mx-auto px-4 pb-12 max-w-5xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {records.map((record: Record) => (
-              <div
+              <Link
+                href={`/view/${record.tokenId}`}
                 className="w-full aspect-square cursor-pointer"
                 key={record.tokenId}
               >
@@ -141,7 +135,7 @@ export default function Home() {
                   alt={record.creator}
                   className="w-full h-full object-cover"
                 />
-              </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -9,7 +9,7 @@ import { FaPlus } from "react-icons/fa";
 import { useState } from "react";
 
 export const Header = () => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const pathname = usePathname();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +61,7 @@ export const Header = () => {
             showBalance={false}
           />
         )}
-        <div className="relative inline-block text-left md:hidden">
+        <div className="relative inline-block text-left">
           <div className="mt-1">
             <button
               type="button"
@@ -113,6 +113,18 @@ export const Header = () => {
                 >
                   Feedback
                 </a>
+                {isConnected && (
+                  <Link
+                    href={`/users/${address}`}
+                    className="block px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsOpen(false);
+                    }}
+                  >
+                    MyPage
+                  </Link>
+                )}
                 <Link
                   href="/create"
                   className="block px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
