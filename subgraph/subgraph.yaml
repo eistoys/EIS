@@ -16,23 +16,11 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - ApprovalForAll
-        - Created
-        - TransferBatch
-        - TransferSingle
-        - URI
+        - Record
       abis:
         - name: EIS
           file: ./abis/EIS.json
       eventHandlers:
-        - event: ApprovalForAll(indexed address,indexed address,bool)
-          handler: handleApprovalForAll
         - event: Created(indexed uint256,indexed address,(address,address,string,string,string,address[],uint256[],(address[],uint256[],uint256,uint16)))
           handler: handleCreated
-        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
-          handler: handleTransferBatch
-        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleTransferSingle
-        - event: URI(string,indexed uint256)
-          handler: handleURI
       file: ./src/eis.ts
