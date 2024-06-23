@@ -1,11 +1,10 @@
 import hre from "hardhat";
-import { toHex, Hex, parseEther } from "viem";
+import { Hex, parseEther } from "viem";
 import { expect } from "chai";
 
 import {
   BASIS_POINTS_BASE,
   DISTRIBUTION_INCENTIVE,
-  PROTOCOL_FEE_BASIS_POINTS,
   SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
   TREASURY_ADDRESS,
   ZORA_1155_FACTORY_ADDRESS,
@@ -22,13 +21,7 @@ import solady from "solady";
 
 import { chunk } from "./utils";
 
-import {
-  smallSVG,
-  middleSVG,
-  largeSVG,
-  smallPngImageHex,
-  expectedLoadedImageForSmallPngImage,
-} from "./data";
+import { smallPngImageHex, expectedLoadedImageForSmallPngImage } from "./data";
 import { zoraCreator1155ImplAbi } from "./abis/ZoraCreator1155Impl";
 
 const name = "name";
@@ -52,7 +45,6 @@ const getFixture = async () => {
     SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
     TREASURY_ADDRESS,
     BASIS_POINTS_BASE,
-    PROTOCOL_FEE_BASIS_POINTS,
     DISTRIBUTION_INCENTIVE,
   ]);
 
@@ -108,6 +100,7 @@ describe("EIP", function () {
           compression.zip,
           pngMimeType,
           chunk(zippedImageHex),
+          [],
           MAX_UINT_256,
           fixedPrice,
         ]),
@@ -141,6 +134,7 @@ describe("EIP", function () {
           compression.zip,
           pngMimeType,
           chunk(zippedImageHex),
+          [],
           MAX_UINT_256,
           fixedPrice,
         ]),
@@ -166,6 +160,7 @@ describe("EIP", function () {
           compression.zip,
           pngMimeType,
           chunk(zippedImageHex),
+          [],
           MAX_UINT_256,
           fixedPrice,
         ]),

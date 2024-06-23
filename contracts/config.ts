@@ -17,7 +17,6 @@ export const ZORA_CONTRACT_BASE_ID = BigInt("0");
 export const ZORA_BASE_FEE = BigInt("777000000000000");
 
 export const BASIS_POINTS_BASE = BigInt("10000");
-export const PROTOCOL_FEE_BASIS_POINTS = BigInt("1000");
 export const DISTRIBUTION_INCENTIVE = 100;
 
 export const EIS_NAME = "EIS";

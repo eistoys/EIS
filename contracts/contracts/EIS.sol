@@ -65,14 +65,12 @@ contract EIS is IRenderer1155 {
         ISplitFactoryV2 pullSplitFactory_,
         address treasuryAddress_,
         uint256 basisPointsBase_,
-        uint256 protocolFeeBasisPoints_,
         uint16 distributionIncentive_
     ) {
         zoraCreator1155Factory = zoraCreator1155Factory_;
         pullSplitFactory = pullSplitFactory_;
         treasuryAddress = treasuryAddress_;
         basisPointsBase = basisPointsBase_;
-        protocolFeeBasisPoints = protocolFeeBasisPoints_;
         distributionIncentive = distributionIncentive_;
     }
 
@@ -128,6 +126,7 @@ contract EIS is IRenderer1155 {
         Compression imageCompression,
         string memory imageMimeType,
         bytes[] memory imageChunks,
+        uint256[] memory referenceTokenIds,
         uint256 maxSupply,
         uint96 fixedPrice
     ) public {
@@ -136,7 +135,6 @@ contract EIS is IRenderer1155 {
             maxSupply: maxSupply
         });
 
-        // TODO: set split with treasuryAddress
         address[] memory recipients = new address[](1);
         recipients[0] = msg.sender;
 
@@ -157,7 +155,7 @@ contract EIS is IRenderer1155 {
             imageCompression: imageCompression,
             imageMimeType: imageMimeType,
             imageStorages: _setImage(imageChunks),
-            referenceTokenIds: new uint256[](0)
+            referenceTokenIds: referenceTokenIds
         });
 
         address splitAddress = pullSplitFactory.createSplit(
