@@ -1,3 +1,5 @@
+'use client'
+
 import { connectors } from "./connectors";
 import { http, createConfig } from "@wagmi/core";
 import { baseSepolia } from "@wagmi/core/chains";
