@@ -1,13 +1,20 @@
 "use client";
 
-import {
-  RainbowKitProvider,
-  darkTheme,
-} from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { WagmiProvider, createConfig, http } from "wagmi";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-import { wagmiConfig } from "@/lib/wagmi";
+import { baseSepolia } from "viem/chains";
+import { connectors } from "@/lib/connectors";
+
+export const wagmiConfigWithConnecter = createConfig({
+  connectors,
+  chains: [baseSepolia],
+  transports: {
+    [baseSepolia.id]: http(),
+  },
+  ssr: true,
+});
 
 const queryClient = new QueryClient();
 
@@ -18,7 +25,7 @@ const apolloClient = new ApolloClient({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={wagmiConfigWithConnecter}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={darkTheme({
