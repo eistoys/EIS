@@ -4,8 +4,9 @@ import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-import { baseSepolia } from "viem/chains";
+import { baseSepolia, base } from "viem/chains";
 import { connectors } from "@/lib/connectors";
+import { OnchainKitProvider } from "@coinbase/onchainkit";
 
 export const wagmiConfigWithConnecter = createConfig({
   connectors,
@@ -23,6 +24,8 @@ const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+const { NEXT_PUBLIC_COINBASE_API_KEY } = process.env;
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfigWithConnecter}>
@@ -32,7 +35,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
             accentColor: "#22CC02",
           })}
         >
-          <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
+          <ApolloProvider client={apolloClient}>
+            <OnchainKitProvider
+              apiKey={NEXT_PUBLIC_COINBASE_API_KEY}
+              chain={base}
+            >
+              {children}
+            </OnchainKitProvider>
+          </ApolloProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
