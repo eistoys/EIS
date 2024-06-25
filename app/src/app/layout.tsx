@@ -1,3 +1,4 @@
+import '@coinbase/onchainkit/tailwind.css';
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 
