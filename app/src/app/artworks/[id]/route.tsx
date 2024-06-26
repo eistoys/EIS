@@ -74,6 +74,10 @@ const handleRequest = frames(async (ctx) => {
         width: 500,
         height: 500,
       },
+      headers: {
+        // Max cache age in seconds
+        "Cache-Control": "max-age=0",
+      },
     };
   } else if (ver === "testnet-2") {
     const tokenId = ctx.url.pathname.split("/").pop();
@@ -122,6 +126,10 @@ const handleRequest = frames(async (ctx) => {
         aspectRatio: "1:1",
         width: 500,
         height: 500,
+      },
+      headers: {
+        // Max cache age in seconds
+        "Cache-Control": "max-age=0",
       },
     };
   } else {
