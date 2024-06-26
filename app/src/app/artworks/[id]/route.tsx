@@ -40,8 +40,14 @@ const handleRequest = frames(async (ctx) => {
 
     const price = "0.00069";
 
+    const cacheBusterId = `img_${Date.now()}`;
+
     return {
-      image: <img src={image} />,
+      image: (
+        <div tw="flex" id={cacheBusterId}>
+          <img src={image} />
+        </div>
+      ),
       buttons: [
         <Button
           action="tx"
@@ -89,8 +95,14 @@ const handleRequest = frames(async (ctx) => {
 
     const price = "0.00069";
 
+    const cacheBusterId = `img_${Date.now()}`;
+
     return {
-      image: <img src={image} />,
+      image: (
+        <div tw="flex" id={cacheBusterId}>
+          <img src={`${image}`} />
+        </div>
+      ),
       buttons: [
         <Button
           action="tx"
