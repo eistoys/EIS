@@ -71,6 +71,8 @@ const handleRequest = frames(async (ctx) => {
         //   },
         // ],
         aspectRatio: "1:1",
+        width: 500,
+        height: 500,
       },
     };
   } else if (ver === "testnet-2") {
@@ -118,6 +120,8 @@ const handleRequest = frames(async (ctx) => {
         //   },
         // ],
         aspectRatio: "1:1",
+        width: 500,
+        height: 500,
       },
     };
   } else {
