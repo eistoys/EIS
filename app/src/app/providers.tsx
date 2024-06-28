@@ -7,6 +7,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { baseSepolia, base } from "viem/chains";
 import { connectors } from "@/lib/connectors";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
+import { COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID } from "@/config/const";
 
 export const wagmiConfigWithConnecter = createConfig({
   connectors,
@@ -38,6 +39,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <ApolloProvider client={apolloClient}>
             <OnchainKitProvider
               apiKey={NEXT_PUBLIC_COINBASE_API_KEY}
+              schemaId={COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID}
               chain={base}
             >
               {children}
