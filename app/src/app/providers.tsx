@@ -38,7 +38,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         >
           <ApolloProvider client={apolloClient}>
             <OnchainKitProvider
-              apiKey={NEXT_PUBLIC_COINBASE_API_KEY}
               schemaId={COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID}
               chain={base}
             >
