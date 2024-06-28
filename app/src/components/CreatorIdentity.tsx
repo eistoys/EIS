@@ -1,13 +1,11 @@
-import { COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID } from "@/config/const";
 import { Avatar, Badge, Name, Identity, Address } from '@coinbase/onchainkit/identity';
-
+import { Address as AddressType } from "viem"; 
 
 const CreatorIdentity = ({ address }: { address: string }) => {
   return (
     <Identity
       className="bg-transparent"
-      schemaId={COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID}
-      address={address as `0x${string}`}
+      address={address as AddressType}
     >
       <Avatar />
       <Name className="text-white">

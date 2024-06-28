@@ -1,6 +1,6 @@
 "use client";
 
-import CreatorIdentity from "@/components/creatorIdentity";
+import CreatorIdentity from "@/components/CreatorIdentity";
 import { Record } from "@/types/record";
 import { gql, useQuery } from "@apollo/client";
 import Link from "next/link";

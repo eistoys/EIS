@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { Record } from "@/types/record";
 import Link from "next/link";
-import CreatorIdentity from "@/components/creatorIdentity";
+import CreatorIdentity from "@/components/CreatorIdentity";
 
 const GET_RECORDS = gql`
   query GetRecords($address: String!) {
