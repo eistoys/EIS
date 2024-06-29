@@ -25,8 +25,6 @@ const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-const { NEXT_PUBLIC_COINBASE_API_KEY } = process.env;
-
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfigWithConnecter}>

@@ -2,7 +2,7 @@
 
 import PixelEditor from "@/components/PixelEditor";
 
-export default function TestEditorPage() {
+export default function CampaignBasedHanabiArtworkCreatePage() {
   return (
     <div className="">
       <PixelEditor />
