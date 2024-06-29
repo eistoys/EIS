@@ -18,7 +18,7 @@ export default function CampaignBasedHanabLayout({
         className={`${roboto.className} bg-[#191D88] min-h-screen flex flex-col`}
       >
         <Header />
-        <div>{children}</div>
+        <div className="flex-grow">{children}</div>
       </div>
     </Providers>
   );

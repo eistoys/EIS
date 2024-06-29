@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const ArtworkListItem = () => {
   return (
     <div>
@@ -15,14 +17,16 @@ export const ArtworkListItem = () => {
           />
           <div>MINT</div>
         </button>
-        <button className="w-full flex justify-center items-center px-4 py-2 text-blue-[#191D88] bg-[#FFD582] rounded-xl space-x-3 hover:opacity-75">
-          <img
-            loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/74adfd0e2048e52c1ba6d8c41acbd81f99084a137f2e45e27bf071dbf79264c1?"
-            className="my-auto w-4 h-4"
-          />
-          <div>REMIX</div>
-        </button>
+        <Link href="/campaign/based-hanabi/artworks/create" className="w-full">
+          <button className="w-full flex justify-center items-center px-4 py-2 text-[#191D88] bg-[#FFD582] rounded-xl space-x-3 hover:opacity-75">
+            <img
+              loading="lazy"
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/74adfd0e2048e52c1ba6d8c41acbd81f99084a137f2e45e27bf071dbf79264c1?"
+              className="my-auto w-4 h-4"
+            />
+            <div>REMIX</div>
+          </button>
+        </Link>
       </div>
     </div>
   );
