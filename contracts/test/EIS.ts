@@ -30,8 +30,8 @@ import {
   smallSVG,
   middleSVG,
   largeSVG,
-  pngImageHex,
-  expectedLoadedImageForPngImage,
+  smallPngImageHex,
+  expectedLoadedImageForSmallPngImage,
 } from "./data";
 
 const name = "name";
@@ -94,7 +94,7 @@ describe("EIP", function () {
       const { eis } = await getFixture();
       const publicClient = await hre.viem.getPublicClient();
 
-      const zipped = solady.LibZip.flzCompress(pngImageHex) as Hex;
+      const zipped = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
       const createTxHash = await eis.write.create([
         name,
@@ -107,7 +107,7 @@ describe("EIP", function () {
       const createdTokenId = BigInt(0);
 
       const loadedImage = await eis.read.loadImage([createdTokenId]);
-      expect(loadedImage).to.equal(expectedLoadedImageForPngImage);
+      expect(loadedImage).to.equal(expectedLoadedImageForSmallPngImage);
     });
 
     it("Should work with middle svg", async function () {

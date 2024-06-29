@@ -19,11 +19,19 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: "https://sepolia.base.org",
-        blockNumber: 11062685, // Jun-09-2024 12:40:58 AM +UTC
+        blockNumber: 11591880, // Jun-21-2024 06:40:48 AM +UTC
       },
+    },
+    sepolia: {
+      url: "https://rpc.sepolia.org",
+      accounts,
     },
     baseSepolia: {
       url: "https://sepolia.base.org",
+      accounts,
+    },
+    zoraSepolia: {
+      url: "https://sepolia.rpc.zora.energy",
       accounts,
     },
   },
