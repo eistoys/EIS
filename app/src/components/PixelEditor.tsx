@@ -165,24 +165,48 @@ const PixelEditor: React.FC = () => {
     });
   };
 
-  const floodFill = (
-    x: number,
-    y: number,
-    targetColor: string,
-    replacementColor: string
-  ): Pixel[] => {
-    // implement
-    const newPixels = [...pixels];
-    return newPixels;
-  };
-
   const handleClick = (x: number, y: number) => {
     const currentPixel = pixels.find((p) => p.x === x && p.y === y);
     const targetColor = currentPixel ? currentPixel.color : "#ffffff";
 
     let newPixels = [...pixels];
     if (mode === "fill") {
-      newPixels = floodFill(x, y, targetColor, currentColor);
+      const isInitialTransparent = !currentPixel;
+
+      const floodFill = (
+        x: number,
+        y: number,
+        targetColor: string,
+        fillColor: string
+      ) => {
+        if (targetColor === fillColor) return;
+
+        const stack = [{ x, y }];
+        while (stack.length > 0) {
+          const { x, y } = stack.pop() as { x: number; y: number };
+          if (x < 0 || x >= canvasSize || y < 0 || y >= canvasSize) continue; // Boundary check
+          const pixelIndex = newPixels.findIndex((p) => p.x === x && p.y === y);
+          const pixel = newPixels[pixelIndex];
+          const isTransparent = !pixel || pixel.color === "#ffffff";
+
+          if (
+            (pixel && pixel.color === targetColor) ||
+            (isInitialTransparent && isTransparent)
+          ) {
+            if (pixel) {
+              newPixels[pixelIndex].color = fillColor;
+            } else {
+              newPixels.push({ x, y, color: fillColor });
+            }
+            stack.push({ x: x + 1, y });
+            stack.push({ x: x - 1, y });
+            stack.push({ x, y: y + 1 });
+            stack.push({ x, y: y - 1 });
+          }
+        }
+      };
+
+      floodFill(x, y, targetColor, currentColor);
     } else {
       const newPixel = {
         x,
