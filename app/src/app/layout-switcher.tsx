@@ -15,8 +15,6 @@ export function LayoutSwitcher({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   if (pathname.includes("/campaign/based-hanabi")) {
-    console.log("test");
-
     return <>{children}</>;
   } else {
     return (
