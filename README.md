@@ -38,8 +38,36 @@
 - The Graph for artwork curation
 - OnchainKit
 - Coinbase Onchain Verification
-- Rainbowkit SDK for Coinbase Smart Walle
+- Rainbowkit SDK for Coinbase Smart Wallet
 
 ## Base Integraion
 
-TBD
+### Coinbase Smart Wallet
+
+We integrated Smart Wallet for enhanced user experience via Rainbowkit SDK.
+
+Code is found here:
+
+https://github.com/eistoys/EIS/blob/docs/app/src/lib/connectors.ts#L8
+
+![smart-wallet-integration](./docs/smart-wallet-integration.png)
+
+### OnchainKit
+
+We integrated OnchainKit to fetch onchain data such as ENS name and avatar.
+
+Code is found here:
+
+https://github.com/eistoys/EIS/blob/docs/app/src/components/CreatorIdentity.tsx#L6
+
+![onchain-kit](./docs/onchain-kit.png)
+
+### Coinbase Onchain Verification
+
+We integrated Coinbase Onchain Verification for user trust and authenticity.
+
+Code is found here:
+
+https://github.com/eistoys/EIS/blob/docs/app/src/components/CreatorIdentity.tsx#L12
+
+![eas-verification](./docs/eas-verification.png)
