@@ -1,142 +1,80 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-// import "solady/src/auth/Ownable.sol";
-import "solady/src/utils/Base64.sol";
-import "solady/src/utils/LibString.sol";
-import "solady/src/utils/LibZip.sol";
-import "solady/src/utils/SSTORE2.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICreatorRoyaltiesControl} from "./interfaces/ICreatorRoyaltiesControl.sol";
-import {IERC165} from "./interfaces/IERC165.sol";
-import {IMinter1155} from "./interfaces/IMinter1155.sol";
-import {IRenderer1155} from "./interfaces/IRenderer1155.sol";
-import {IZoraCreator1155} from "./interfaces/IZoraCreator1155.sol";
-import {IZoraCreator1155Factory} from "./interfaces/IZoraCreator1155Factory.sol";
-import {IZoraCreatorFixedPriceSaleStrategy} from "./interfaces/IZoraCreatorFixedPriceSaleStrategy.sol";
+import "solady/src/utils/SSTORE2.sol";
+import "solady/src/utils/LibZip.sol";
+import "solady/src/utils/Base64.sol";
 
 import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
 import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 
-contract EIS is IRenderer1155 {
+contract EIS is ERC1155 {
     event Created(
         uint256 indexed tokenId,
         address indexed creator,
         Record record
     );
 
-    enum Compression {
-        None,
-        ZIP
-    }
-
     struct Record {
         address creator;
+        address split;
         string name;
         string description;
-        Compression imageCompression;
-        string imageMimeType;
-        address[] imageStorages;
+        string mimeType;
+        address[] imageChunks;
         uint256[] referenceTokenIds;
-    }
-
-    struct Split {
-        address address_;
-        SplitV2Lib.Split params;
+        SplitV2Lib.Split splitParams;
     }
 
     mapping(uint256 => Record) public records;
-    mapping(uint256 => Split) public splits;
 
     ISplitFactoryV2 public pullSplitFactory;
-    IZoraCreator1155Factory public zoraCreator1155Factory;
-    IZoraCreator1155 public zoraCreator1155;
-
-    uint256 public constant PERMISSION_BIT_MINTER = 2 ** 2;
-    uint256 public constant CONTRACT_BASE_ID = 0;
-
     address public treasuryAddress;
+
+    uint256 public tokenIdCounter;
+    uint256 public fixedMintFee;
     uint256 public basisPointsBase;
     uint256 public protocolFeeBasisPoints;
+    uint256 public frontendFeeBasisPoints;
+    uint256 public royaltyFeeBasisPoints;
     uint16 public distributionIncentive;
 
     constructor(
-        IZoraCreator1155Factory zoraCreator1155Factory_,
-        ISplitFactoryV2 pullSplitFactory_,
+        address pullSplitFactoryAddress,
         address treasuryAddress_,
+        uint256 fixedMintFee_,
         uint256 basisPointsBase_,
+        uint256 protocolFeeBasisPoints_,
+        uint256 frontendFeeBasisPoints_,
+        uint256 royaltyFeeBasisPoints_,
         uint16 distributionIncentive_
-    ) {
-        zoraCreator1155Factory = zoraCreator1155Factory_;
-        pullSplitFactory = pullSplitFactory_;
+    ) ERC1155("") {
+        pullSplitFactory = ISplitFactoryV2(pullSplitFactoryAddress);
         treasuryAddress = treasuryAddress_;
+        fixedMintFee = fixedMintFee_;
         basisPointsBase = basisPointsBase_;
+        protocolFeeBasisPoints = protocolFeeBasisPoints_;
+        frontendFeeBasisPoints = frontendFeeBasisPoints_;
+        royaltyFeeBasisPoints = royaltyFeeBasisPoints_;
         distributionIncentive = distributionIncentive_;
-    }
-
-    function createZoraCreator1155Contract(
-        string memory name,
-        string memory description,
-        Compression imageCompression,
-        string memory imageMimeType,
-        bytes[] memory imageChunks
-    ) public {
-        require(
-            zoraCreator1155 == IZoraCreator1155(address(0x0)),
-            "EIS: ZoraCreator1155 contract already created"
-        );
-        records[CONTRACT_BASE_ID] = Record({
-            creator: address(this),
-            name: name,
-            description: description,
-            imageCompression: imageCompression,
-            imageMimeType: imageMimeType,
-            imageStorages: _setImage(imageChunks),
-            referenceTokenIds: new uint256[](0)
-        });
-
-        bytes[] memory setupActions = new bytes[](1);
-        setupActions[0] = abi.encodeWithSelector(
-            IZoraCreator1155.setTokenMetadataRenderer.selector,
-            CONTRACT_BASE_ID,
-            address(this)
-        );
-
-        zoraCreator1155 = IZoraCreator1155(
-            zoraCreator1155Factory.createContract({
-                contractURI: "",
-                name: "EIS",
-                defaultRoyaltyConfiguration: ICreatorRoyaltiesControl
-                    .RoyaltyConfiguration(0, 500, treasuryAddress),
-                defaultAdmin: payable(address(this)),
-                setupActions: setupActions
-            })
-        );
-
-        zoraCreator1155.addPermission({
-            tokenId: CONTRACT_BASE_ID,
-            user: minter(),
-            permissionBits: PERMISSION_BIT_MINTER
-        });
     }
 
     function create(
         string memory name,
         string memory description,
-        Compression imageCompression,
-        string memory imageMimeType,
-        bytes[] memory imageChunks,
-        uint256[] memory referenceTokenIds,
-        uint256 maxSupply,
-        uint96 fixedPrice
+        string memory mimeType,
+        bytes[] calldata image
     ) public {
-        uint256 tokenId = zoraCreator1155.setupNewToken({
-            newURI: "",
-            maxSupply: maxSupply
-        });
+        uint256 tokenId = tokenIdCounter++;
+        address creator = _msgSender();
 
         address[] memory recipients = new address[](1);
-        recipients[0] = msg.sender;
+        recipients[0] = creator;
+
+        uint256 totalAllocation = basisPointsBase;
 
         uint256[] memory allocations = new uint256[](1);
         allocations[0] = basisPointsBase;
@@ -144,70 +82,207 @@ contract EIS is IRenderer1155 {
         SplitV2Lib.Split memory splitParams = SplitV2Lib.Split({
             recipients: recipients,
             allocations: allocations,
-            totalAllocation: basisPointsBase,
+            totalAllocation: totalAllocation,
             distributionIncentive: distributionIncentive
         });
 
         records[tokenId] = Record({
-            creator: msg.sender,
+            creator: creator,
+            split: pullSplitFactory.createSplit(
+                splitParams,
+                address(this),
+                creator
+            ),
             name: name,
             description: description,
-            imageCompression: imageCompression,
-            imageMimeType: imageMimeType,
-            imageStorages: _setImage(imageChunks),
-            referenceTokenIds: referenceTokenIds
+            mimeType: mimeType,
+            imageChunks: _setImage(image),
+            referenceTokenIds: new uint256[](0),
+            splitParams: splitParams
         });
 
-        address splitAddress = pullSplitFactory.createSplit(
-            splitParams,
-            address(this),
-            msg.sender
-        );
-
-        splits[tokenId] = Split({address_: splitAddress, params: splitParams});
-
-        zoraCreator1155.callSale({
-            tokenId: tokenId,
-            salesConfig: IMinter1155(minter()),
-            data: abi.encodeWithSelector(
-                IZoraCreatorFixedPriceSaleStrategy.setSale.selector,
-                tokenId,
-                IZoraCreatorFixedPriceSaleStrategy.SalesConfig({
-                    saleStart: 0,
-                    saleEnd: 18446744073709551615,
-                    maxTokensPerAddress: 0,
-                    pricePerToken: fixedPrice,
-                    fundsRecipient: splitAddress
-                })
-            )
-        });
-
-        zoraCreator1155.setTokenMetadataRenderer(
-            tokenId,
-            IRenderer1155(address(this))
-        );
-
-        emit Created(tokenId, msg.sender, records[tokenId]);
+        emit Created(tokenId, _msgSender(), records[tokenId]);
     }
 
-    function minter() public view returns (address) {
-        return zoraCreator1155Factory.fixedPriceMinter();
+    function remix(
+        string memory name,
+        string memory description,
+        string memory mimeType,
+        bytes[] calldata image,
+        uint256[] memory referenceTokenIds,
+        uint256[] memory referenceAllocations
+    ) public {
+        uint256 tokenId = tokenIdCounter++;
+        address creator = _msgSender();
+
+        address[] memory recipients = new address[](
+            1 + referenceTokenIds.length
+        );
+        recipients[0] = creator;
+        for (uint8 i = 0; i < referenceTokenIds.length; i++) {
+            recipients[i + 1] = records[referenceTokenIds[i]].split;
+        }
+
+        (
+            uint256 totalAllocation,
+            uint256 creatorAllocation
+        ) = getTotalAllocationAndCreatorAllocation(referenceAllocations);
+
+        uint256[] memory allocations = new uint256[](
+            1 + referenceAllocations.length
+        );
+
+        allocations[0] = creatorAllocation;
+        for (uint8 i = 0; i < referenceAllocations.length; i++) {
+            allocations[i + 1] = referenceAllocations[i];
+        }
+
+        SplitV2Lib.Split memory splitParams = SplitV2Lib.Split({
+            recipients: recipients,
+            allocations: allocations,
+            totalAllocation: totalAllocation,
+            distributionIncentive: distributionIncentive
+        });
+
+        records[tokenId] = Record({
+            creator: creator,
+            split: pullSplitFactory.createSplit(
+                splitParams,
+                address(this),
+                creator
+            ),
+            name: name,
+            description: description,
+            mimeType: mimeType,
+            imageChunks: _setImage(image),
+            referenceTokenIds: referenceTokenIds,
+            splitParams: splitParams
+        });
+
+        emit Created(tokenId, _msgSender(), records[tokenId]);
+    }
+
+    function mint(
+        uint256 tokenId,
+        uint256 amount,
+        address frontendFeeRecipient
+    ) public payable {
+        uint256 totalMintFee = fixedMintFee * amount;
+        require(msg.value >= totalMintFee, "EIS: insufficient total mint fee");
+        (
+            uint256 protocolFee,
+            uint256 frontendFee,
+            uint256 remainingFeeAfterFrontendFee
+        ) = getDividedFeeFromTotalMintFee(totalMintFee);
+
+        if (frontendFeeRecipient == address(0x0)) {
+            payable(treasuryAddress).transfer(protocolFee + frontendFee);
+        } else {
+            payable(treasuryAddress).transfer(protocolFee);
+            payable(frontendFeeRecipient).transfer(frontendFee);
+        }
+        payable(records[tokenId].split).transfer(remainingFeeAfterFrontendFee);
+
+        _mint(_msgSender(), tokenId, amount, "");
+    }
+
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        Record memory record = records[tokenId];
+        require(record.creator != address(0x0), "EIS: image doesn't exist");
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;utf8,{",
+                    '"name": "',
+                    record.name,
+                    '", "description": "',
+                    record.description,
+                    '", "creator": "',
+                    Strings.toHexString(record.creator),
+                    '", "image": "',
+                    loadImage(tokenId),
+                    '"}'
+                )
+            );
+    }
+
+    function uris(
+        uint256 start,
+        uint256 max
+    ) public view returns (string[] memory) {
+        require(start < max, "Invalid range");
+        string[] memory result = new string[](max - start);
+        uint256 index = 0;
+
+        for (uint256 i = start; i < max; i++) {
+            try this.uri(i) returns (string memory uriString) {
+                result[index] = uriString;
+                index++;
+            } catch {
+                break;
+            }
+        }
+
+        string[] memory trimmedResult = new string[](index);
+        for (uint256 j = 0; j < index; j++) {
+            trimmedResult[j] = result[j];
+        }
+
+        return trimmedResult;
     }
 
     function unzip(bytes memory data) public pure returns (bytes memory) {
         return abi.encodePacked(LibZip.flzDecompress(data));
     }
 
+    function zip(bytes memory data) public pure returns (bytes memory) {
+        return abi.encodePacked(LibZip.flzCompress(data));
+    }
+
+    function getDividedFeeFromTotalMintFee(
+        uint256 totalMintFee
+    ) public view returns (uint256, uint256, uint256) {
+        uint256 protocolFee = (totalMintFee * protocolFeeBasisPoints) /
+            basisPointsBase;
+        uint256 remainingFeeAfterProtocolFee = totalMintFee - protocolFee;
+
+        uint256 frontendFee = (remainingFeeAfterProtocolFee *
+            frontendFeeBasisPoints) / basisPointsBase;
+        uint256 remainingFeeAfterFrontendFee = remainingFeeAfterProtocolFee -
+            frontendFee;
+        return (protocolFee, frontendFee, remainingFeeAfterFrontendFee);
+    }
+
+    function getTotalAllocationAndCreatorAllocation(
+        uint256[] memory referenceAllocations
+    ) public view returns (uint256, uint256) {
+        uint256 inputTotalAllocation;
+        for (uint8 i = 0; i < referenceAllocations.length; i++) {
+            inputTotalAllocation += referenceAllocations[i];
+        }
+
+        uint256 totalAllocation = (inputTotalAllocation * basisPointsBase) /
+            royaltyFeeBasisPoints;
+
+        uint256 creatorAllocation = totalAllocation - inputTotalAllocation;
+        return (totalAllocation, creatorAllocation);
+    }
+
     function loadRawImage(uint256 tokenId) public view returns (bytes memory) {
         bytes memory data;
-        address[] memory imageStorages = records[tokenId].imageStorages;
-        for (uint8 i = 0; i < imageStorages.length; i++) {
-            data = abi.encodePacked(data, SSTORE2.read(imageStorages[i]));
+        address[] memory imageChunks = records[tokenId].imageChunks;
+        for (uint8 i = 0; i < imageChunks.length; i++) {
+            data = abi.encodePacked(data, SSTORE2.read(imageChunks[i]));
         }
-        if (records[tokenId].imageCompression == Compression.ZIP) {
-            data = unzip(data);
-        }
-        return data;
+        return LibZip.flzDecompress(data);
+    }
+
+    // ERC-4883: Composable SVG NFT
+    function renderTokenById(
+        uint256 tokenId
+    ) public view returns (string memory) {
+        bytes memory data = loadRawImage(tokenId);
+        return string(data);
     }
 
     function loadImage(uint256 tokenId) public view returns (string memory) {
@@ -216,58 +291,20 @@ contract EIS is IRenderer1155 {
             string(
                 abi.encodePacked(
                     "data:",
-                    records[tokenId].imageMimeType,
+                    records[tokenId].mimeType,
                     ";base64,",
                     Base64.encode(data)
                 )
             );
     }
 
-    function uri(uint256 tokenId) public view override returns (string memory) {
-        require(
-            records[tokenId].creator != address(0x0),
-            "EIS: image doesn't exist"
-        );
-
-        return
-            string(
-                abi.encodePacked(
-                    "data:application/json;utf8,",
-                    "{",
-                    '"name": "',
-                    records[tokenId].name,
-                    '", "description": "',
-                    records[tokenId].description,
-                    '", "image": "',
-                    loadImage(tokenId),
-                    '"}'
-                )
-            );
-    }
-
-    function contractURI() public view override returns (string memory) {
-        return uri(CONTRACT_BASE_ID);
-    }
-
-    function setup(bytes memory initData) public override {
-        // not implemented
-    }
-
-    function supportsInterface(
-        bytes4 interfaceId
-    ) external pure returns (bool) {
-        return
-            interfaceId == type(IERC165).interfaceId ||
-            interfaceId == type(IRenderer1155).interfaceId;
-    }
-
     function _setImage(
-        bytes[] memory image
+        bytes[] calldata image
     ) internal returns (address[] memory) {
-        address[] memory imageStorages = new address[](image.length);
+        address[] memory imageChunks = new address[](image.length);
         for (uint8 i = 0; i < image.length; i++) {
-            imageStorages[i] = (SSTORE2.write(image[i]));
+            imageChunks[i] = (SSTORE2.write(image[i]));
         }
-        return imageStorages;
+        return imageChunks;
     }
 }

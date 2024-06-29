@@ -1,77 +1,68 @@
 import hre from "hardhat";
-import { Hex, parseEther } from "viem";
+import { toHex, Hex } from "viem";
 import { expect } from "chai";
 
 import {
   BASIS_POINTS_BASE,
   DISTRIBUTION_INCENTIVE,
+  FIXED_MINT_FEE,
+  FRONTEND_FEE_BASIS_POINTS,
+  PROTOCOL_FEE_BASIS_POINTS,
   SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
+  ROYALTY_BASIS_POINTS,
+  SPLIT_NATIVE_TOKEN_ADDRESS,
   TREASURY_ADDRESS,
-  ZORA_1155_FACTORY_ADDRESS,
-  EIS_NAME,
-  EIS_DESCRIPTION,
-  ZORA_CONTRACT_BASE_ID,
-  MAX_UINT_256,
-  ZORA_BASE_FEE,
+  SPLIT_WAREHOUSE_ADDRESS,
+  ZERO_ADDRESS,
 } from "../config";
 
-import { getContract, encodeAbiParameters, parseAbiParameters } from "viem";
+import { pullSplitAbi } from "./abis/PullSplit";
+import { splitsWarehouseAbi } from "./abis/SplitsWarehouse";
 
+import { getContract } from "viem";
+
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import solady from "solady";
 
 import { chunk } from "./utils";
 
-import { smallPngImageHex, expectedLoadedImageForSmallPngImage } from "./data";
-import { zoraCreator1155ImplAbi } from "./abis/ZoraCreator1155Impl";
+import {
+  smallSVG,
+  middleSVG,
+  largeSVG,
+  smallPngImageHex,
+  expectedLoadedImageForSmallPngImage,
+} from "./data";
 
 const name = "name";
 const description = "description";
 
-const compression = {
-  none: 0,
-  zip: 1,
-};
-
 const pngMimeType = "image/png";
+const svgMimeType = "image/svg+xml";
 
-const fixedPrice = parseEther("0.001");
+// use small svg to test zip funcionality and faster test
+const smallSVGHex = toHex(smallSVG);
+
+// use middle for other tests
+const middleSVGHex = toHex(middleSVG);
+
+// use large svg to test unzip capacity
+const largeSVGHex = toHex(largeSVG);
 
 const getFixture = async () => {
-  const publicClient = await hre.viem.getPublicClient();
-  const [creator, buyer] = await hre.viem.getWalletClients();
-
+  const [creator, distributor] = await hre.viem.getWalletClients();
   const eis = await hre.viem.deployContract("EIS", [
-    ZORA_1155_FACTORY_ADDRESS,
     SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
     TREASURY_ADDRESS,
+    FIXED_MINT_FEE,
     BASIS_POINTS_BASE,
+    PROTOCOL_FEE_BASIS_POINTS,
+    FRONTEND_FEE_BASIS_POINTS,
+    ROYALTY_BASIS_POINTS,
     DISTRIBUTION_INCENTIVE,
   ]);
 
-  const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
-
-  await publicClient.waitForTransactionReceipt({
-    hash: await eis.write.createZoraCreator1155Contract([
-      EIS_NAME,
-      EIS_DESCRIPTION,
-      compression.zip,
-      pngMimeType,
-      chunk(zippedImageHex),
-    ]),
-  });
-
-  const zoraCreator1155Address = await eis.read.zoraCreator1155();
-
-  const zoraCreator1155 = getContract({
-    address: zoraCreator1155Address,
-    abi: zoraCreator1155ImplAbi,
-    client: publicClient,
-  });
-
-  // console.log("eis.address", eis.address);
-  // console.log("zoraCreator1155.address", zoraCreator1155.address);
-
-  return { publicClient, creator, buyer, eis, zoraCreator1155 };
+  return { creator, distributor, eis };
 };
 
 describe("EIP", function () {
@@ -79,111 +70,302 @@ describe("EIP", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();
       expect(eis.address).not.to.be.undefined;
-      const uri = await eis.read.uri([BigInt(0)]);
-      const metadata = JSON.parse(uri.split("data:application/json;utf8,")[1]);
-      // console.log(metadata);
-      expect(metadata.name).to.equal(EIS_NAME);
-      expect(metadata.description).to.equal(EIS_DESCRIPTION);
     });
   });
 
-  describe("View Image", function () {
-    it("Should work: loadImage", async function () {
-      const { publicClient, eis } = await getFixture();
-      const createdTokenId = BigInt("1");
-      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+  describe("View - Zip", function () {
+    it("Should work zip", async function () {
+      const { eis } = await getFixture();
+      const zippedOffchain = solady.LibZip.flzCompress(smallSVGHex) as Hex;
+      const zipped = await eis.read.zip([smallSVGHex]);
+      expect(zippedOffchain).to.equal(zipped);
+    });
 
-      await publicClient.waitForTransactionReceipt({
-        hash: await eis.write.create([
-          name,
-          description,
-          compression.zip,
-          pngMimeType,
-          chunk(zippedImageHex),
-          [],
-          MAX_UINT_256,
-          fixedPrice,
-        ]),
-      });
+    it("Should work unzip", async function () {
+      const { eis } = await getFixture();
+      const zipped = solady.LibZip.flzCompress(largeSVGHex) as Hex;
+      const unzipped = await eis.read.unzip([zipped]);
+      expect(unzipped).to.equal(largeSVGHex);
+    });
+  });
+
+  describe("View - Image", function () {
+    it("Should work with png", async function () {
+      const { eis } = await getFixture();
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        pngMimeType,
+        chunk(zipped),
+      ]);
+
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
 
       const loadedImage = await eis.read.loadImage([createdTokenId]);
       expect(loadedImage).to.equal(expectedLoadedImageForSmallPngImage);
     });
-  });
 
-  describe("Zora Integration", function () {
-    it("Should work: contractURI", async function () {
-      const { eis, zoraCreator1155 } = await getFixture();
-      const uriFromEIS = await eis.read.uri([ZORA_CONTRACT_BASE_ID]);
-      const contractURIFromZora = await zoraCreator1155.read.contractURI();
-      expect(uriFromEIS).to.equal(contractURIFromZora);
-    });
+    it("Should work with middle svg", async function () {
+      const { eis } = await getFixture();
+      const publicClient = await hre.viem.getPublicClient();
 
-    it("Should work: uri", async function () {
-      const { publicClient, eis, zoraCreator1155 } = await getFixture();
+      const zipped = solady.LibZip.flzCompress(middleSVGHex) as Hex;
 
-      const createdTokenId = BigInt("1");
-      const name = "name";
-      const description = "description";
-
-      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
-      await publicClient.waitForTransactionReceipt({
-        hash: await eis.write.create([
-          name,
-          description,
-          compression.zip,
-          pngMimeType,
-          chunk(zippedImageHex),
-          [],
-          MAX_UINT_256,
-          fixedPrice,
-        ]),
-      });
-
-      const uriFromEIS = await eis.read.uri([createdTokenId]);
-      const uriFromZora = await zoraCreator1155.read.uri([createdTokenId]);
-      expect(uriFromEIS).to.equal(uriFromZora);
-    });
-
-    it("Should work: purchase", async function () {
-      const { publicClient, eis, buyer, zoraCreator1155 } = await getFixture();
-
-      const createdTokenId = BigInt("1");
-      const name = "name";
-      const description = "description";
-
-      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
-      await publicClient.waitForTransactionReceipt({
-        hash: await eis.write.create([
-          name,
-          description,
-          compression.zip,
-          pngMimeType,
-          chunk(zippedImageHex),
-          [],
-          MAX_UINT_256,
-          fixedPrice,
-        ]),
-      });
-
-      const minterAddress = await eis.read.minter();
-      const [buyerAddress] = await buyer.getAddresses();
-
-      const mintArguments = encodeAbiParameters(parseAbiParameters("address"), [
-        buyerAddress,
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        svgMimeType,
+        chunk(zipped),
       ]);
 
-      await zoraCreator1155.write.mint(
-        [minterAddress, createdTokenId, BigInt(1), [], mintArguments],
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
+
+      const loadedImage = await eis.read.loadImage([createdTokenId]);
+
+      const decodedLoadedImage = Buffer.from(
+        loadedImage.split("data:image/svg+xml;base64,")[1],
+        "base64"
+      ).toString("utf-8");
+
+      expect(decodedLoadedImage).to.equal(middleSVG);
+
+      const erc4883Data = await eis.read.renderTokenById([createdTokenId]);
+      expect(erc4883Data).to.equal(middleSVG);
+
+      const tokenURI = await eis.read.uri([createdTokenId]);
+      const metadata = JSON.parse(
+        tokenURI.split("data:application/json;utf8,")[1]
+      );
+      expect(metadata.image).to.equal(loadedImage);
+    });
+  });
+
+  describe("View - Fee", function () {
+    it("Should work", async function () {
+      const { eis } = await getFixture();
+      const totalMintFee = BigInt("10000");
+      const [protocolFee, frontendFee, remainingFeeAfterFrontendFee] =
+        await eis.read.getDividedFeeFromTotalMintFee([totalMintFee]);
+      expect(protocolFee).to.equal(BigInt("1000"));
+      expect(frontendFee).to.equal(BigInt("900"));
+      expect(remainingFeeAfterFrontendFee).to.equal(BigInt("8100"));
+    });
+  });
+
+  describe("View - Allocation", function () {
+    it("Should work", async function () {
+      const { eis } = await getFixture();
+      const allocations = [BigInt("10000"), BigInt("10000")];
+      const [totalAllocation, creatorAllocation] =
+        await eis.read.getTotalAllocationAndCreatorAllocation([allocations]);
+      expect(totalAllocation).to.equal(BigInt("100000"));
+      expect(creatorAllocation).to.equal(BigInt("80000"));
+    });
+  });
+
+  describe("Fee without Splits", function () {
+    it("Should work without frontend fee", async function () {
+      const { eis } = await getFixture();
+
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        svgMimeType,
+        chunk(zipped),
+      ]);
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
+
+      const amount = BigInt(1);
+      const value = amount * BigInt(FIXED_MINT_FEE);
+      const mintTxHash = await eis.write.mint(
+        [createdTokenId, amount, ZERO_ADDRESS],
         {
-          account: buyerAddress,
-          value: fixedPrice + ZORA_BASE_FEE,
+          value,
         }
       );
+      await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+    });
 
-      expect(
-        await zoraCreator1155.read.balanceOf([buyerAddress, createdTokenId])
-      ).to.equal(BigInt(1));
+    it("Should work with frontend fee", async function () {
+      const { eis } = await getFixture();
+
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        svgMimeType,
+        chunk(zipped),
+      ]);
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
+
+      const amount = BigInt(1);
+      const value = amount * BigInt(FIXED_MINT_FEE);
+
+      const frontendFeeRecipientPrivateKey = generatePrivateKey();
+      const frontendFeeRecipient = privateKeyToAccount(
+        frontendFeeRecipientPrivateKey
+      );
+
+      const mintTxHash = await eis.write.mint(
+        [createdTokenId, amount, frontendFeeRecipient.address],
+        {
+          value,
+        }
+      );
+      await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+    });
+  });
+
+  describe("Fee with Splits", function () {
+    it("Should work with non remixed asset", async function () {
+      const { creator, distributor, eis } = await getFixture();
+      const publicClient = await hre.viem.getPublicClient();
+
+      const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
+      const createTxHash = await eis.write.create([
+        name,
+        description,
+        svgMimeType,
+        chunk(zipped),
+      ]);
+
+      await publicClient.waitForTransactionReceipt({ hash: createTxHash });
+      const createdTokenId = BigInt(0);
+
+      const amount = BigInt(1);
+      const value = amount * FIXED_MINT_FEE;
+      const mintTxHash = await eis.write.mint(
+        [createdTokenId, amount, ZERO_ADDRESS],
+        {
+          value,
+        }
+      );
+      await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+
+      const [, splitAddress, , , , splitParams] = await eis.read.records([
+        createdTokenId,
+      ]);
+
+      const pullSplit = getContract({
+        address: splitAddress,
+        abi: pullSplitAbi,
+        client: distributor,
+      });
+
+      await pullSplit.write.distribute([
+        splitParams,
+        SPLIT_NATIVE_TOKEN_ADDRESS,
+        distributor.account.address,
+      ]);
+
+      const splitsWarehouse = getContract({
+        address: SPLIT_WAREHOUSE_ADDRESS,
+        abi: splitsWarehouseAbi,
+        client: distributor,
+      });
+
+      const balanceOfCreatorBefore = await publicClient.getBalance({
+        address: creator.account.address,
+      });
+      console.log("balanceOfCreatorBefore", balanceOfCreatorBefore);
+      await splitsWarehouse.write.withdraw([
+        creator.account.address,
+        SPLIT_NATIVE_TOKEN_ADDRESS,
+      ]);
+      const balanceOfCreatorAfter = await publicClient.getBalance({
+        address: creator.account.address,
+      });
+      console.log("balanceOfCreatorAfter", balanceOfCreatorAfter);
+    });
+  });
+
+  it("Should work with remixed asset", async function () {
+    const { creator, distributor, eis } = await getFixture();
+    const publicClient = await hre.viem.getPublicClient();
+
+    const zipped = solady.LibZip.flzCompress(smallSVGHex) as Hex;
+    const createTxHash1 = await eis.write.create([
+      name,
+      description,
+      svgMimeType,
+      chunk(zipped),
+    ]);
+
+    await publicClient.waitForTransactionReceipt({ hash: createTxHash1 });
+    const createdTokenId1 = BigInt(0);
+
+    const createTxHash2 = await eis.write.create([
+      name,
+      description,
+      svgMimeType,
+      chunk(zipped),
+    ]);
+    await publicClient.waitForTransactionReceipt({ hash: createTxHash2 });
+    const createdTokenId2 = BigInt(1);
+
+    const allocation1 = BigInt("100");
+    const allocation2 = BigInt("400");
+    const remixTxHash = await eis.write.remix([
+      name,
+      description,
+      svgMimeType,
+      chunk(zipped),
+      [createdTokenId1, createdTokenId2],
+      [allocation1, allocation2],
+    ]);
+    await publicClient.waitForTransactionReceipt({ hash: remixTxHash });
+    const remixedTokenId = BigInt(2);
+
+    const amount = BigInt(1);
+    const value = amount * BigInt(FIXED_MINT_FEE);
+    const mintTxHash = await eis.write.mint(
+      [remixedTokenId, amount, ZERO_ADDRESS],
+      {
+        value,
+      }
+    );
+    await publicClient.waitForTransactionReceipt({ hash: mintTxHash });
+
+    // TODO: implment the rest of the test
+
+    const [, splitAddressForCreatedToken1, , , , splitParamsForCreatedToken1] =
+      await eis.read.records([createdTokenId1]);
+
+    const [, splitAddressForCreatedToken2, , , , splitParamsForCreatedToken2] =
+      await eis.read.records([createdTokenId2]);
+
+    const [, splitAddressForRemixedToken, , , , splitParamsForRemixedToken] =
+      await eis.read.records([remixedTokenId]);
+
+    const pullSplitForCreatedToken1 = getContract({
+      address: splitAddressForCreatedToken1,
+      abi: pullSplitAbi,
+      client: distributor,
+    });
+
+    const pullSplitForCreatedToken2 = getContract({
+      address: splitAddressForCreatedToken2,
+      abi: pullSplitAbi,
+      client: distributor,
+    });
+
+    const pullSplitForRemixedToken = getContract({
+      address: splitAddressForRemixedToken,
+      abi: pullSplitAbi,
+      client: distributor,
     });
   });
 });
