@@ -15,13 +15,19 @@
 
 - To establish fee streaming for Remix asset creation, we utilized splits
 - Splits require management of the distribution flow and withdrawal process, which necessitated extensive testing to ensure functionality
+- Now we have flexible royalty streaming with splits
 
 ### Zora Integration
 
-- Integrated EIS full onchain image with Zora Contract as a custom metadata renderer
+- Integrated EIS full onchain image with Zora Contract as a custom metadata renderer and splits as a royalty recipient
+
 - Initially, the image was not displayed on the Zora platform due to:
-  - Zora testnet not functioning properly on Base Sepolia, but it was found to work well on the Zora testnet
+
+  - Zora testnet web app not functioning properly on Base Sepolia, but it was found to work well on the Zora testnet
   - Zora contract needing to emit a URI event to prompt the indexer to fetch the data, which we implemented
+
+- Now we have successfully integrated and tested here
+  https://testnet.zora.co/collect/zsep:0x6cd915072796ad62ff4614d6caa436e6354450b6
 
 ## Technology Used
 
