@@ -8,6 +8,7 @@ import { baseSepolia, base } from "viem/chains";
 import { connectors } from "@/lib/connectors";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
 import { COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID } from "@/config/const";
+import { useEffect } from "react";
 
 export const wagmiConfigWithConnecter = createConfig({
   connectors,
@@ -25,9 +26,21 @@ const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-const { NEXT_PUBLIC_COINBASE_API_KEY } = process.env;
-
 export function Providers({ children }: { children: React.ReactNode }) {
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elements = document.querySelectorAll('div');
+      elements.forEach((element) => {
+        if (element.textContent === 'Smart Wallet: Recommended' && !element.classList.contains('smart-wallet-group')) {
+          element.classList.add('smart-wallet-group');
+        }
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <WagmiProvider config={wagmiConfigWithConnecter}>
       <QueryClientProvider client={queryClient}>
