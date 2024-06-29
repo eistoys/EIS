@@ -26,8 +26,11 @@
   - Zora testnet web app not functioning properly on Base Sepolia, but it was found to work well on the Zora testnet
   - Zora contract needing to emit a URI event to prompt the indexer to fetch the data, which we implemented
 
-- Now we have successfully integrated and tested here
+- Now we have successfully integrated and tested here:
   https://testnet.zora.co/collect/zsep:0x6cd915072796ad62ff4614d6caa436e6354450b6
+
+- Contract code is found here:
+  https://github.com/eistoys/EIS/blob/main/contracts/contracts/ZEIS.sol
 
 ## Technology Used
 
