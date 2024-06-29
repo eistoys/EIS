@@ -1,10 +1,18 @@
 "use client";
 
 import PixelEditor from "@/components/PixelEditor";
+import { SpinnerLoader } from "@/components/SpinnerLoader";
 import { useState } from "react";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 export default function CampaignBasedHanabiArtworkCreatePage() {
   const [mode, setMode] = useState<"create" | "info">("create");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"remix" | "loading" | "created">(
+    "remix"
+  );
+  const { width, height } = useWindowSize();
 
   const [imageDataURL, setImageDataURL] = useState("https://placehold.co/500");
   const [title, setTitle] = useState("");
@@ -149,11 +157,99 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
         )}
         <button
           className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 "
-          onClick={() => setMode("info")}
+          onClick={() => {
+            if (mode == "create") {
+              setMode("info");
+            } else {
+              setIsModalOpen(true);
+              setModalMode("loading");
+              setTimeout(() => {
+                setModalMode("created");
+              }, 3000);
+            }
+          }}
         >
           Complete
         </button>
       </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
+          {modalMode == "created" && <Confetti width={width} height={height} />}
+          <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-3xl shadow-2xl bg-[#191D88] m-4">
+            {modalMode == "loading" && (
+              <>
+                <div className="flex mb-8">
+                  <div className="text-white text-xl font-bold tracking-wider">
+                    CREATING...
+                  </div>
+                  <button
+                    className="absolute top-6 right-4 text-4xl text-white"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    &times;
+                  </button>
+                </div>
+                <SpinnerLoader />
+                <div className="text-white tracking-wider text-center text-md md:text-xl font-bold">
+                  Please don't close this modal
+                  <br />
+                  until the transaction is completed.
+                </div>
+              </>
+            )}
+            {modalMode == "created" && (
+              <>
+                <div className="flex mb-8">
+                  <div className="text-white text-xl font-bold tracking-wider">
+                    CREATE COMPLETED
+                  </div>
+                  <button
+                    className="absolute top-6 right-4 text-4xl text-white"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    &times;
+                  </button>
+                </div>
+                <img
+                  loading="lazy"
+                  srcSet={imageDataURL}
+                  className="bg-white rounded-xl h-64 w-64 mx-auto mb-8"
+                />
+                <div className="flex gap-4 px-0 md:px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
+                  <button
+                    className="w-1/2 font-bold text-white px-4 py-2 text-lg font-bold border-2 rounded-xl border-white hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    OK
+                  </button>
+
+                  <button
+                    className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                    onClick={() => {
+                      window.open(
+                        `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?ver=testnet-2`,
+                        "_blank"
+                      );
+                    }}
+                  >
+                    <img
+                      loading="lazy"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/2ba240d0e724425be2b041267b06998427ee6b477e1e5c751c1cda26a12580b1?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
+                      className="shrink-0 aspect-[1.41] fill-white w-6"
+                    />
+                    <div>SHARE</div>
+                  </button>
+                </div>
+                <div className="text-white tracking-wider text-center text-xs md:text-sm font-bold">
+                  The artwork you created has been carved onchain as CC0. 🎉
+                  <br />
+                  This public good benefits everyone! ✨
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
