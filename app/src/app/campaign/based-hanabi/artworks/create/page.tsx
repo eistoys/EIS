@@ -20,6 +20,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
   const [price, setPrice] = useState("0.00069");
   const [supply, setSupply] = useState("∞");
   const [isLicenseChecked, setIsLicenseChecked] = useState(false);
+  const [createdTokenId, setCreatedTokenId] = useState("");
 
   const [usedReferences, setUsedReferences] = useState<
     { tokenId: BigInt; image: string }[]

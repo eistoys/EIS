@@ -162,7 +162,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                     className="w-full font-bold bg-violet-800 px-4 py-3 rounded-xl text-white flex justify-center items-center text-center flex space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                     onClick={() => {
                       window.open(
-                        `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${id}?ver=testnet-2`,
+                        `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${record.tokenId}?ver=testnet-2`,
                         "_blank"
                       );
                     }}
