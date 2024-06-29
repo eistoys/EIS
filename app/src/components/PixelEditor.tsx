@@ -19,6 +19,7 @@ const downloadSize = 256;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gridCanvasRef = useRef<HTMLCanvasElement>(null);
   const [currentColor, setCurrentColor] = useState<string>("#000000");
   const [pixels, setPixels] = useState<Pixel[]>([]);
   const [history, setHistory] = useState<Pixel[][]>([]);
@@ -32,7 +33,7 @@ const PixelEditor: React.FC = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      let width = Math.min(window.innerWidth, window.innerHeight - 200); // Limit the width to 512 pixels
+      let width = Math.min(window.innerWidth, window.innerHeight - 270); // Limit the width to 512 pixels
       // width -= 32; // Subtract the padding
       const newPixelSize = Math.max(1, Math.floor(width / canvasSize));
       setPixelSize(newPixelSize);
@@ -98,18 +99,18 @@ const PixelEditor: React.FC = () => {
   }, [pixels, pixelSize]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const gridCanvas = gridCanvasRef.current;
+    if (!gridCanvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = gridCanvas.getContext("2d");
     if (!ctx) return;
 
-    const cellSize = canvasSize / gridCount;
-
-    // Always clear the canvas first
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Always clear the grid canvas first
+    ctx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
     if (showGrid) {
+      const cellSize = canvasSize / gridCount;
+
       ctx.beginPath();
       for (let x = 0; x <= gridCount; x++) {
         ctx.moveTo(x * cellSize * pixelSize, 0);
@@ -122,13 +123,7 @@ const PixelEditor: React.FC = () => {
       ctx.strokeStyle = "#ddd";
       ctx.stroke();
     }
-
-    // Redraw pixels
-    pixels.forEach(({ x, y, color }) => {
-      ctx.fillStyle = color;
-      ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-    });
-  }, [showGrid, pixelSize, gridCount, pixels, canvasSize]);
+  }, [showGrid, pixelSize, gridCount, canvasSize]);
 
   const addToHistory = (newPixels: Pixel[]) => {
     if (
@@ -385,16 +380,18 @@ const PixelEditor: React.FC = () => {
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-2 py-4">
-        <select
-          value={gridCount}
-          onChange={(e) => setGridCount(parseInt(e.target.value))}
-          className="px-2 py-1 bg-gray-200 rounded-md"
+        <button
+          onClick={handleUndo}
+          className="p-2 border border-gray-200 rounded-md"
         >
-          <option value={8}>8x8</option>
-          <option value={16}>16x16</option>
-          <option value={32}>32x32</option>
-          <option value={64}>64x64</option>
-        </select>
+          <FaUndo className="text-white" />
+        </button>
+        <button
+          onClick={handleRedo}
+          className="p-2 border border-gray-200 rounded-md"
+        >
+          <FaRedo className="text-white" />
+        </button>
         <input
           type="color"
           value={currentColor}
@@ -420,31 +417,37 @@ const PixelEditor: React.FC = () => {
           <FaThLarge className="text-white" />
         </button>
       </div>
-      <canvas
-        ref={canvasRef}
-        width={canvasSize * pixelSize}
-        height={canvasSize * pixelSize}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchMove}
-        className="bg-white"
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          width={canvasSize * pixelSize}
+          height={canvasSize * pixelSize}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchMove}
+          className="bg-white"
+        />
+        <canvas
+          ref={gridCanvasRef}
+          width={canvasSize * pixelSize}
+          height={canvasSize * pixelSize}
+          className="absolute top-0 left-0 pointer-events-none"
+        />
+      </div>
       <div className="flex items-center gap-2 py-4">
-        <button
-          onClick={handleUndo}
-          className="p-2 border border-gray-200 rounded-md"
+        <select
+          value={gridCount}
+          onChange={(e) => setGridCount(parseInt(e.target.value))}
+          className="px-2 py-1 bg-gray-200 rounded-md"
         >
-          <FaUndo className="text-white" />
-        </button>
-        <button
-          onClick={handleRedo}
-          className="p-2 border border-gray-200 rounded-md"
-        >
-          <FaRedo className="text-white" />
-        </button>
+          <option value={8}>8x8</option>
+          <option value={16}>16x16</option>
+          <option value={32}>32x32</option>
+          <option value={64}>64x64</option>
+        </select>
         <label
           htmlFor="file-upload"
           className="p-2 border border-gray-200 rounded-md cursor-pointer"
