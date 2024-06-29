@@ -25,7 +25,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
     <div className="pb-[70px]">
       {mode == "create" && <PixelEditor />}
       {mode == "info" && (
-        <div className="flex border-b border-solid border-zinc-600 px-4 flex-grow">
+        <div className="flex border-b border-solid border-[#888888] px-4 flex-grow">
           <div className="flex flex-col md:flex-row w-full">
             <div className="w-full md:w-2/3 py-12">
               <img
@@ -51,13 +51,13 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
               )}
             </div>
 
-            <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-zinc-600">
+            <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 TITLE <span className="text-red-600">*</span>
               </div>
               <input
                 type="text"
-                className="w-full bg-[#191D88] border border-solid border-zinc-600 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
+                className="w-full bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
                 placeholder="Enter title here"
                 required
                 value={title}
@@ -68,7 +68,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
                 <span className="text-base font-medium">(Optional)</span>
               </div>
               <textarea
-                className="w-full bg-[#191D88] border border-solid border-zinc-600 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
+                className="w-full bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
                 rows={5}
                 placeholder="Enter description here"
                 value={description}
@@ -83,7 +83,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
               <div className="relative mb-6">
                 <input
                   type="text"
-                  className="text-xl bg-[#191D88] border border-solid border-zinc-600 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
+                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
                   required
                   disabled
                   value={price}
@@ -104,7 +104,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
                 </button>
                 <input
                   type="text"
-                  className="text-xl bg-[#191D88] border border-solid border-zinc-600 rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
+                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
                   required
                   disabled
                   value={supply}

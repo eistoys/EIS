@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { MintModal } from "./MintModal";
+import { useState } from "react";
 
 export const ArtworkListItem = () => {
+  const [isMintModalOpen, setIsMintModalOpen] = useState(false);
+
   return (
     <div>
       <Link href="/campaign/based-hanabi/artworks/1">
@@ -11,7 +15,10 @@ export const ArtworkListItem = () => {
         <div className="">consome.eth</div>
       </div>
       <div className="flex space-x-2 font-bold">
-        <button className="w-full flex justify-center items-center px-4 py-2 text-white bg-blue-600 rounded-xl space-x-3 hover:opacity-75 transition-opacity duration-300 tracking-wider ">
+        <button
+          className="w-full flex justify-center items-center px-4 py-2 text-white bg-blue-600 rounded-xl space-x-3 hover:opacity-75 transition-opacity duration-300 tracking-wider"
+          onClick={() => setIsMintModalOpen(true)}
+        >
           <img
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/bc3e19d227e2bf6ee5f8fd6813316690db486ab3861739ef2df46d9675f1df82?"
@@ -30,6 +37,10 @@ export const ArtworkListItem = () => {
           </button>
         </Link>
       </div>
+      <MintModal
+        isOpen={isMintModalOpen}
+        close={() => setIsMintModalOpen(false)}
+      />
     </div>
   );
 };

@@ -29,7 +29,7 @@ export default function CampaignBasedHanabiPage() {
           className={`p-2 font-bold tracking-wider cursor-pointer ${
             mode === "overview"
               ? "text-white border-b-2 border-white"
-              : "text-stone-500"
+              : "text-stone-400"
           }`}
           onClick={() => setMode("overview")}
         >
@@ -39,7 +39,7 @@ export default function CampaignBasedHanabiPage() {
           className={`p-2 font-bold tracking-wider cursor-pointer ${
             mode === "leaderBoard"
               ? "text-white border-b-2 border-white"
-              : "text-stone-500"
+              : "text-stone-400"
           }`}
           onClick={() => setMode("leaderBoard")}
         >

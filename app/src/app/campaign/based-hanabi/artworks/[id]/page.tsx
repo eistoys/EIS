@@ -5,6 +5,7 @@ import { Record } from "@/types/record";
 import { gql, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { MintModal } from "../../_components/MintModal";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -31,7 +32,7 @@ const GET_RECORDS = gql`
 `;
 
 function ViewPage({ params }: { params: { id: string } }) {
-  const [amount, setAmoun] = useState("1");
+  const [isMintModalOpen, setIsMintModalOpen] = useState(false);
 
   const { data: recordQueryData } = useQuery(GET_RECORD, {
     variables: { id: params.id },
@@ -125,32 +126,14 @@ function ViewPage({ params }: { params: { id: string } }) {
                 <div className="py-8 space-y-4">
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <div className="text-white text-2xl w-full tracking-wider">
+                      <div className="text-white text-3xl w-full tracking-wider font-bold">
                         0.006 ETH
                       </div>
-                      <div className="w-full relative flex items-center">
-                        <button
-                          type="button"
-                          className="absolute left-0 text-white w-12 h-12"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="text"
-                          className="text-xl bg-[#191D88] border border-solid border-zinc-600 rounded-xl focus:border-[#22CC02] focus:outline-none p-2 text-white w-full text-center"
-                          required
-                          disabled
-                          value={amount}
-                        />
-                        <button
-                          type="button"
-                          className="absolute right-0 text-white w-12 h-12"
-                        >
-                          +
-                        </button>
-                      </div>
                     </div>
-                    <button className="font-bold w-full flex justify-center items-center px-4 py-3 text-white bg-blue-600 rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2">
+                    <button
+                      className="font-bold w-full flex justify-center items-center px-4 py-3 text-white bg-blue-600 rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2"
+                      onClick={() => setIsMintModalOpen(true)}
+                    >
                       <img
                         loading="lazy"
                         src="https://cdn.builder.io/api/v1/image/assets/TEMP/bc3e19d227e2bf6ee5f8fd6813316690db486ab3861739ef2df46d9675f1df82?"
@@ -215,6 +198,10 @@ function ViewPage({ params }: { params: { id: string } }) {
           )}
         </div>
       )}
+      <MintModal
+        isOpen={isMintModalOpen}
+        close={() => setIsMintModalOpen(false)}
+      />
     </>
   );
 }
