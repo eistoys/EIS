@@ -32,7 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const interval = setInterval(() => {
       const elements = document.querySelectorAll('div');
       elements.forEach((element) => {
-        if (element.textContent === 'Smart Wallet: Recommended' && !element.classList.contains('smart-wallet-group')) {
+        if (element.textContent === 'Recommended' && !element.classList.contains('smart-wallet-group')) {
           element.classList.add('smart-wallet-group');
         }
       });

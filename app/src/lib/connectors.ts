@@ -1,17 +1,20 @@
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import {
-  coinbaseWallet,
   rainbowWallet,
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-
-coinbaseWallet.preference = "smartWalletOnly";
+import { customCoinbaseWallet } from "./customCoinbaseWallet";
 
 const connectors = connectorsForWallets(
   [
     {
-      groupName: "Smart Wallet: Recommended",
-      wallets: [coinbaseWallet],
+      groupName: "Recommended",
+      wallets: [
+        customCoinbaseWallet({
+          appName: "EIS",
+          preference: "smartWalletOnly",
+        }),
+      ],
     },
     {
       groupName: "Others",
