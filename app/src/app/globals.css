@@ -33,3 +33,8 @@
       --bg-success: theme(colors.lime.300);
     }
   }
+
+
+.smart-wallet-group {
+  color: #22CC02 !important;
+}
