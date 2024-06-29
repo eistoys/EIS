@@ -136,9 +136,19 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
         </div>
       )}
       <div className="fixed bottom-0 left-0 w-full flex justify-between p-4">
-        <div className=""></div>
+        {mode == "info" ? (
+          <button
+            type="button"
+            className="px-4 py-1.5 font-bold border border-gray-500 text-gray-500 rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wide"
+            onClick={() => setMode("create")}
+          >
+            Back
+          </button>
+        ) : (
+          <div />
+        )}
         <button
-          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75"
+          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 "
           onClick={() => setMode("info")}
         >
           Complete
