@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant User
+    participant E as EIS
+    participant A as Efficax
+    participant B as Splits
+    participant C as Zora 1155 Factory & Contract
+
+    User ->> E: Interact with EIS
+    E ->> A: Register full onchain image
+    A -->> E: Full onchain image registered
+    
+    E ->> B: Create splits for fee and royalty distribution
+    B -->> E: Splits registered
+    
+    E ->> C: Request Zora 1155 Contract creation    
+    C -->> E: Zora Contract registered
+    
+    C ->> E: Request asset metadata
+    E -->> C: Provide asset metadata as custom renderer
+    C -->> User: Return asset metadata
+    
+    C ->> B: Send royalty fee
+    B -->> User: Send royalty fee
