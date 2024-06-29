@@ -1,5 +1,6 @@
 "use client";
 
+import CreatorIdentity from "@/components/CreatorIdentity";
 import { Record } from "@/types/record";
 import { gql, useQuery } from "@apollo/client";
 import Link from "next/link";
@@ -113,9 +114,12 @@ function ViewPage({ params }: { params: { id: string } }) {
                 <div className="text-2xl font-bold tracking-wider text-white mb-2">
                   {record.name}
                 </div>
-                <Link href={`/users/${record.creator}`}>
-                  <div className="text-sm font-bold tracking-wider text-zinc-500 mb-2 hover:underline">
+                <Link  className="inline-flex" href={`/users/${record.creator}`}>
+                  {/* <div className="text-sm font-bold tracking-wider text-zinc-500 mb-2 hover:underline">
                     {record.creator}
+                  </div> */}
+                  <div className="hover:opacity-80">
+                   <CreatorIdentity address={record.creator}/>
                   </div>
                 </Link>
                 <div className="py-8 space-y-4">

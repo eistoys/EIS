@@ -8,6 +8,7 @@ import {
   SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
   ROYALTY_BASIS_POINTS,
   TREASURY_ADDRESS,
+  ZORA_1155_FACTORY_ADDRESS,
 } from "../config";
 
 async function main() {
@@ -15,6 +16,7 @@ async function main() {
   console.log("deployer.account.address", deployer.account.address);
 
   const eis = await hre.viem.deployContract("EIS", [
+    ZORA_1155_FACTORY_ADDRESS,
     SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
     TREASURY_ADDRESS,
     FIXED_MINT_FEE,
