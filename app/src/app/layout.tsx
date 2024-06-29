@@ -4,7 +4,6 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 
-import { Providers } from "./providers";
 import { LayoutSwitcher } from "./layout-switcher";
 
 export const metadata: Metadata = {
@@ -35,9 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <Providers>
-          <LayoutSwitcher>{children}</LayoutSwitcher>
-        </Providers>
+        <LayoutSwitcher>{children}</LayoutSwitcher>
       </body>
     </html>
   );
