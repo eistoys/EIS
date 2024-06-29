@@ -57,7 +57,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
               </div>
               <input
                 type="text"
-                className="w-full bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
+                className="w-full bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white mb-6"
                 placeholder="Enter title here"
                 required
                 value={title}
@@ -68,7 +68,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
                 <span className="text-base font-medium">(Optional)</span>
               </div>
               <textarea
-                className="w-full bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white mb-6"
+                className="w-full bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white mb-6"
                 rows={5}
                 placeholder="Enter description here"
                 value={description}
@@ -83,7 +83,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
               <div className="relative mb-6">
                 <input
                   type="text"
-                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white text-center w-full"
+                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white text-center w-full"
                   required
                   disabled
                   value={price}
@@ -104,7 +104,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
                 </button>
                 <input
                   type="text"
-                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
+                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white w-full text-center px-12"
                   required
                   disabled
                   value={supply}

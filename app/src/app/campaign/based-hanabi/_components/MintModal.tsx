@@ -31,7 +31,7 @@ export const MintModal = ({
                 </button>
                 <input
                   type="text"
-                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-4 text-white w-full text-center px-12"
+                  className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white w-full text-center px-12"
                   required
                   disabled
                   value={6}
@@ -49,7 +49,7 @@ export const MintModal = ({
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/bc3e19d227e2bf6ee5f8fd6813316690db486ab3861739ef2df46d9675f1df82?"
                   className="my-auto w-5 h-5"
                 />
-                <div className="text-2xl">MINT TO VOTE</div>
+                <div className="">MINT TO VOTE</div>
               </button>
             </>
           </div>
