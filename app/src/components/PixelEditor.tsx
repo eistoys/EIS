@@ -7,7 +7,9 @@ import {
   FaEraser,
   FaPen,
   FaThLarge,
+  FaFill,
 } from "react-icons/fa";
+
 interface Pixel {
   x: number;
   y: number;
@@ -25,9 +27,11 @@ const PixelEditor: React.FC = () => {
   const [history, setHistory] = useState<Pixel[][]>([]);
   const [redoStack, setRedoStack] = useState<Pixel[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [gridCount, setGridCount] = useState<number>(16);
-  const [isEraser, setIsEraser] = useState(false);
+  const [mode, setMode] = useState<"pen" | "eraser" | "fill">("pen");
+
   const [pixelSize, setPixelSize] = useState<number>(1); // Add state for pixel size
+  const [gridCount, setGridCount] = useState<number>(16);
+  const [penSize, setPenSize] = useState<number>(1);
 
   const [showGrid, setShowGrid] = useState(true);
 
@@ -161,41 +165,65 @@ const PixelEditor: React.FC = () => {
     });
   };
 
+  const floodFill = (
+    x: number,
+    y: number,
+    targetColor: string,
+    replacementColor: string
+  ): Pixel[] => {
+    // implement
+    const newPixels = [...pixels];
+    return newPixels;
+  };
+
   const handleClick = (x: number, y: number) => {
-    const newPixel = { x, y, color: isEraser ? "#ffffff" : currentColor };
-    const existingPixelIndex = pixels.findIndex((p) => p.x === x && p.y === y);
-    let newPixels;
+    const currentPixel = pixels.find((p) => p.x === x && p.y === y);
+    const targetColor = currentPixel ? currentPixel.color : "#ffffff";
 
-    if (existingPixelIndex !== -1) {
-      newPixels = [...pixels];
-      newPixels[existingPixelIndex] = newPixel;
+    let newPixels = [...pixels];
+    if (mode === "fill") {
+      newPixels = floodFill(x, y, targetColor, currentColor);
     } else {
-      newPixels = [...pixels, newPixel];
-    }
-    // Draw pixels for the pen size
-    const cellSize = canvasSize / gridCount;
-    const cellX = Math.floor(x / cellSize) * cellSize;
-    const cellY = Math.floor(y / cellSize) * cellSize;
+      const newPixel = {
+        x,
+        y,
+        color: mode === "eraser" ? "#ffffff" : currentColor,
+      };
+      const existingPixelIndex = pixels.findIndex(
+        (p) => p.x === x && p.y === y
+      );
 
-    for (let i = 0; i < cellSize; i++) {
-      for (let j = 0; j < cellSize; j++) {
-        const penX = cellX + i;
-        const penY = cellY + j;
-        const existingPenPixelIndex = newPixels.findIndex(
-          (p) => p.x === penX && p.y === penY
-        );
-        if (existingPenPixelIndex !== -1) {
-          newPixels[existingPenPixelIndex] = {
-            x: penX,
-            y: penY,
-            color: isEraser ? "#ffffff" : currentColor,
-          };
-        } else {
-          newPixels.push({
-            x: penX,
-            y: penY,
-            color: isEraser ? "#ffffff" : currentColor,
-          });
+      if (existingPixelIndex !== -1) {
+        newPixels[existingPixelIndex] = newPixel;
+      } else {
+        newPixels.push(newPixel);
+      }
+
+      // Draw pixels for the pen size
+      const cellSize = canvasSize / gridCount;
+      const cellX = Math.floor(x / cellSize) * cellSize;
+      const cellY = Math.floor(y / cellSize) * cellSize;
+
+      for (let i = 0; i < cellSize; i++) {
+        for (let j = 0; j < cellSize; j++) {
+          const penX = cellX + i;
+          const penY = cellY + j;
+          const existingPenPixelIndex = newPixels.findIndex(
+            (p) => p.x === penX && p.y === penY
+          );
+          if (existingPenPixelIndex !== -1) {
+            newPixels[existingPenPixelIndex] = {
+              x: penX,
+              y: penY,
+              color: mode === "eraser" ? "#ffffff" : currentColor,
+            };
+          } else {
+            newPixels.push({
+              x: penX,
+              y: penY,
+              color: mode === "eraser" ? "#ffffff" : currentColor,
+            });
+          }
         }
       }
     }
@@ -378,97 +406,124 @@ const PixelEditor: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center gap-2 py-4">
-        <button
-          onClick={handleUndo}
-          className="p-2 border border-gray-200 rounded-md"
-        >
-          <FaUndo className="text-white" />
-        </button>
-        <button
-          onClick={handleRedo}
-          className="p-2 border border-gray-200 rounded-md"
-        >
-          <FaRedo className="text-white" />
-        </button>
-        <input
-          type="color"
-          value={currentColor}
-          onChange={(e) => setCurrentColor(e.target.value)}
-          className="border-none"
-        />
-        <button
-          onClick={() => setIsEraser(false)}
-          className={`p-2 border border-gray-200 rounded-md ${!isEraser && ""}`}
-        >
-          <FaPen className={`text-white ${isEraser ? "opacity-20" : ""}`} />
-        </button>
-        <button
-          onClick={() => setIsEraser(true)}
-          className={`p-2 border border-gray-200 rounded-md ${isEraser && ""}`}
-        >
-          <FaEraser className={`text-white ${!isEraser ? "opacity-20" : ""}`} />
-        </button>
-        <button
-          onClick={() => setShowGrid(!showGrid)}
-          className="p-2 border border-gray-200 rounded-md"
-        >
-          <FaThLarge className="text-white" />
-        </button>
-      </div>
-      <div className="relative">
-        <canvas
-          ref={canvasRef}
-          width={canvasSize * pixelSize}
-          height={canvasSize * pixelSize}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchMove={handleTouchMove}
-          className="bg-white"
-        />
-        <canvas
-          ref={gridCanvasRef}
-          width={canvasSize * pixelSize}
-          height={canvasSize * pixelSize}
-          className="absolute top-0 left-0 pointer-events-none"
-        />
-      </div>
-      <div className="flex items-center gap-2 py-4">
-        <select
-          value={gridCount}
-          onChange={(e) => setGridCount(parseInt(e.target.value))}
-          className="px-2 py-1 bg-gray-200 rounded-md"
-        >
-          <option value={8}>8x8</option>
-          <option value={16}>16x16</option>
-          <option value={32}>32x32</option>
-          <option value={64}>64x64</option>
-        </select>
-        <label
-          htmlFor="file-upload"
-          className="p-2 border border-gray-200 rounded-md cursor-pointer"
-        >
-          <FaUpload className="text-white" />
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          accept="image/*"
-          onChange={handleImportImage}
-          className="hidden"
-        />
-        <button
-          onClick={handleDownload}
-          className="p-2 border border-gray-200 rounded-md"
-        >
-          <FaDownload className="text-white" />
-        </button>
-      </div>
-    </div>
+    <>
+      {pixelSize > 1 && (
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-2 py-4">
+            <button
+              onClick={handleUndo}
+              className="p-2 border border-gray-200 rounded-md"
+            >
+              <FaUndo className="text-white" />
+            </button>
+            <button
+              onClick={handleRedo}
+              className="p-2 border border-gray-200 rounded-md"
+            >
+              <FaRedo className="text-white" />
+            </button>
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className="p-2 border border-gray-200 rounded-md"
+            >
+              <FaThLarge className="text-white" />
+            </button>
+            <select
+              value={gridCount}
+              onChange={(e) => setGridCount(parseInt(e.target.value))}
+              className="px-2 py-1 bg-gray-200 rounded-md"
+            >
+              <option value={8}>8x8</option>
+              <option value={16}>16x16</option>
+              <option value={32}>32x32</option>
+              <option value={64}>64x64</option>
+            </select>
+            <label
+              htmlFor="file-upload"
+              className="p-2 border border-gray-200 rounded-md cursor-pointer"
+            >
+              <FaUpload className="text-white" />
+            </label>
+            <input
+              id="file-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImportImage}
+              className="hidden"
+            />
+            <button
+              onClick={handleDownload}
+              className="p-2 border border-gray-200 rounded-md"
+            >
+              <FaDownload className="text-white" />
+            </button>
+          </div>
+
+          <div className="relative">
+            <canvas
+              ref={canvasRef}
+              width={canvasSize * pixelSize}
+              height={canvasSize * pixelSize}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onTouchMove={handleTouchMove}
+              className="bg-white"
+            />
+            <canvas
+              ref={gridCanvasRef}
+              width={canvasSize * pixelSize}
+              height={canvasSize * pixelSize}
+              className="absolute top-0 left-0 pointer-events-none"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 py-4">
+            <button
+              onClick={() => setMode("pen")}
+              className={`p-2 border border-gray-200 rounded-md ${
+                mode === "pen" && "active"
+              }`}
+            >
+              <FaPen
+                className={`text-white ${mode !== "pen" ? "opacity-20" : ""}`}
+              />
+            </button>
+            <button
+              onClick={() => setMode("fill")}
+              className={`p-2 border border-gray-200 rounded-md ${
+                mode === "fill" && "active"
+              }`}
+            >
+              <FaFill
+                className={`text-white ${mode !== "fill" ? "opacity-20" : ""}`}
+              />
+            </button>
+            <button
+              onClick={() => setMode("eraser")}
+              className={`p-2 border border-gray-200 rounded-md ${
+                mode === "eraser" && "active"
+              }`}
+            >
+              <FaEraser
+                className={`text-white ${
+                  mode !== "eraser" ? "opacity-20" : ""
+                }`}
+              />
+            </button>
+
+            <input
+              type="color"
+              value={currentColor}
+              onChange={(e) => setCurrentColor(e.target.value)}
+              className="border-none"
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
