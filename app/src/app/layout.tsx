@@ -1,19 +1,10 @@
-import '@coinbase/onchainkit/tailwind.css';
+import "@coinbase/onchainkit/tailwind.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
 
-import { Providers } from "./providers";
-import { Header } from "@/components/Header";
-import { Suspense } from "react";
-import { ToastContainer } from "@/components/ToastContainer";
-
-const roboto = Roboto({
-  weight: ["400", "700", "900"],
-  subsets: ["latin"],
-});
+import { LayoutSwitcher } from "./layout-switcher";
 
 export const metadata: Metadata = {
   title: "Ethereum Image Service",
@@ -43,15 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <Providers>
-          <div
-            className={`${roboto.className} bg-[#222222] min-h-screen flex flex-col`}
-          >
-            <Header />
-            {children}
-            <ToastContainer />
-          </div>
-        </Providers>
+        <LayoutSwitcher>{children}</LayoutSwitcher>
       </body>
     </html>
   );
