@@ -10,10 +10,12 @@ export const ArtworkListItem = () => {
       <Link href="/campaign/based-hanabi/artworks/1">
         <div className="bg-white rounded-3xl aspect-square mb-4" />
       </Link>
-      <div className="flex space-x-3 font-semibold text-white items-center mb-4">
-        <div className="rounded-full bg-zinc-500 h-[30px] w-[30px]" />
-        <div className="">consome.eth</div>
-      </div>
+      <Link href="/campaign/based-hanabi/users/0xab95e42096ef6c18ed278f4fca25754c96e60aae">
+        <div className="flex space-x-3 font-semibold text-white items-center mb-4">
+          <div className="rounded-full bg-zinc-500 h-[30px] w-[30px]" />
+          <div className="">consome.eth</div>
+        </div>
+      </Link>
       <div className="flex space-x-2 font-bold">
         <button
           className="w-full flex justify-center items-center px-4 py-2 text-white bg-blue-600 rounded-xl space-x-3 hover:opacity-75 transition-opacity duration-300 tracking-wider"

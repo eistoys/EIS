@@ -118,7 +118,10 @@ function ViewPage({ params }: { params: { id: string } }) {
                 <div className="text-2xl font-bold tracking-wider text-white mb-2">
                   {record.name}
                 </div>
-                <Link className="inline-flex" href={`/users/${record.creator}`}>
+                <Link
+                  className="inline-flex"
+                  href={`/campaign/based-hanabi/users/${record.creator}`}
+                >
                   <div className="hover:opacity-80">
                     <CreatorIdentity address={record.creator} />
                   </div>
