@@ -54,30 +54,32 @@ const PixelEditor: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-
     const preventDefault = (e: Event) => {
       if (e.cancelable) {
         e.preventDefault();
       }
     };
-
-    if (canvas) {
-      // Adding event listeners to prevent default behavior
-      canvas.addEventListener("touchstart", preventDefault, { passive: false });
-      canvas.addEventListener("touchmove", preventDefault, { passive: false });
-      canvas.addEventListener("mousedown", preventDefault);
-      canvas.addEventListener("mousemove", preventDefault);
-    }
-
-    // Cleanup event listeners on component unmount
+    window.addEventListener("touchstart", preventDefault);
+    window.addEventListener("touchmove", preventDefault);
+    window.addEventListener("mousedown", preventDefault);
+    window.addEventListener("mousemove", preventDefault);
     return () => {
-      if (canvas) {
-        canvas.removeEventListener("touchstart", preventDefault);
-        canvas.removeEventListener("touchmove", preventDefault);
-        canvas.removeEventListener("mousedown", preventDefault);
-        canvas.removeEventListener("mousemove", preventDefault);
-      }
+      window.removeEventListener("touchstart", preventDefault);
+      window.removeEventListener("touchmove", preventDefault);
+      window.removeEventListener("mousedown", preventDefault);
+      window.removeEventListener("mousemove", preventDefault);
+    };
+  }, []);
+
+  useEffect(() => {
+    const setIsDrawingFalse = () => {
+      setIsDrawing(false);
+    };
+    window.addEventListener("mouseup", setIsDrawingFalse);
+    window.addEventListener("touchend", setIsDrawingFalse);
+    return () => {
+      window.removeEventListener("mouseup", setIsDrawingFalse);
+      window.removeEventListener("touchend", setIsDrawingFalse);
     };
   }, []);
 
@@ -165,7 +167,7 @@ const PixelEditor: React.FC = () => {
     });
   };
 
-  const handleClick = (x: number, y: number) => {
+  const draw = (x: number, y: number) => {
     const currentPixel = pixels.find((p) => p.x === x && p.y === y);
     const targetColor = currentPixel ? currentPixel.color : "#ffffff";
 
@@ -263,22 +265,19 @@ const PixelEditor: React.FC = () => {
       const x = Math.floor((event.clientX - rect.left) / pixelSize);
       const y = Math.floor((event.clientY - rect.top) / pixelSize);
       setIsDrawing(true);
-      handleClick(x, y);
+      draw(x, y);
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDrawing(false);
-  };
-
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    console.log("handleMouseMove");
     if (isDrawing) {
       const canvas = canvasRef.current;
       if (canvas) {
         const rect = canvas.getBoundingClientRect();
         const x = Math.floor((event.clientX - rect.left) / pixelSize);
         const y = Math.floor((event.clientY - rect.top) / pixelSize);
-        handleClick(x, y);
+        draw(x, y);
       }
     }
   };
@@ -291,15 +290,12 @@ const PixelEditor: React.FC = () => {
       const x = Math.floor((touch.clientX - rect.left) / pixelSize);
       const y = Math.floor((touch.clientY - rect.top) / pixelSize);
       setIsDrawing(true);
-      handleClick(x, y);
+      draw(x, y);
     }
   };
 
-  const handleTouchEnd = () => {
-    setIsDrawing(false);
-  };
-
   const handleTouchMove = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    console.log("handleTouchMove");
     if (isDrawing) {
       const canvas = canvasRef.current;
       if (canvas) {
@@ -307,7 +303,7 @@ const PixelEditor: React.FC = () => {
         const touch = event.touches[0];
         const x = Math.floor((touch.clientX - rect.left) / pixelSize);
         const y = Math.floor((touch.clientY - rect.top) / pixelSize);
-        handleClick(x, y);
+        draw(x, y);
       }
     }
   };
@@ -489,10 +485,8 @@ const PixelEditor: React.FC = () => {
               width={canvasSize * pixelSize}
               height={canvasSize * pixelSize}
               onMouseDown={handleMouseDown}
-              onMouseUp={handleMouseUp}
               onMouseMove={handleMouseMove}
               onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
               onTouchMove={handleTouchMove}
               className="bg-white"
             />
