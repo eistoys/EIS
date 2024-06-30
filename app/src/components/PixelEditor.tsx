@@ -9,6 +9,7 @@ import {
   FaFill,
   FaSearchPlus,
   FaSearchMinus,
+  FaLayerGroup,
 } from "react-icons/fa";
 
 import { BiMove } from "react-icons/bi";
@@ -18,6 +19,17 @@ interface Pixel {
   x: number;
   y: number;
   color: string;
+}
+
+interface Layer {
+  id: number;
+  pixels: Pixel[];
+  visible: boolean;
+}
+
+interface HistoryEntry {
+  layers: Layer[];
+  activeLayerId: number;
 }
 
 const canvasPixelCount = 64;
@@ -37,9 +49,6 @@ const PixelEditor: React.FC = () => {
   }, []);
   const [gridCanvas, setGridCanvas] = useState<HTMLCanvasElement | null>(null);
   const [currentColor, setCurrentColor] = useState<string>("#000000");
-  const [pixels, setPixels] = useState<Pixel[]>([]);
-  const [history, setHistory] = useState<Pixel[][]>([]);
-  const [redoStack, setRedoStack] = useState<Pixel[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [mode, setMode] = useState<"pen" | "eraser" | "fill" | "camera">("pen");
 
@@ -56,6 +65,14 @@ const PixelEditor: React.FC = () => {
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
 
   const [currentDrawing, setCurrentDrawing] = useState<Pixel[]>([]);
+
+  const [layers, setLayers] = useState<Layer[]>([
+    { id: 1, pixels: [], visible: true },
+  ]);
+  const [activeLayerId, setActiveLayerId] = useState<number>(1);
+  const [showLayerModal, setShowLayerModal] = useState<boolean>(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
 
   const handleZoomIn = () => {
     setCameraZoomFactor((prev) => Math.min(8, prev + 1));
@@ -139,9 +156,52 @@ const PixelEditor: React.FC = () => {
     const ctx = canvas.getContext("2d");
     if (ctx) {
       clearCanvas(ctx);
-      drawPixels(ctx);
+      drawLayers(ctx);
     }
-  }, [canvas, pixels, pixelSize, camera]);
+  }, [canvas, layers, pixelSize, camera]);
+
+  const drawLayers = (ctx: CanvasRenderingContext2D) => {
+    ctx.save();
+    ctx.translate(camera.x, camera.y);
+    ctx.scale(camera.zoom, camera.zoom);
+    layers.forEach((layer) => {
+      if (layer.visible) {
+        layer.pixels.forEach(({ x, y, color }) => {
+          ctx.fillStyle = color;
+          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        });
+      }
+    });
+    ctx.restore();
+  };
+
+  const addLayer = () => {
+    const newLayer: Layer = {
+      id: layers.length + 1,
+      pixels: [],
+      visible: true,
+    };
+    setLayers([...layers, newLayer]);
+    setActiveLayerId(newLayer.id);
+  };
+
+  const toggleLayerVisibility = (id: number) => {
+    setLayers(
+      layers.map((layer) =>
+        layer.id === id ? { ...layer, visible: !layer.visible } : layer
+      )
+    );
+  };
+
+  const removeLayer = (id: number) => {
+    if (layers.length > 1) {
+      const newLayers = layers.filter((layer) => layer.id !== id);
+      setLayers(newLayers);
+      if (activeLayerId === id) {
+        setActiveLayerId(newLayers[newLayers.length - 1].id);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!gridCanvas) {
@@ -181,7 +241,7 @@ const PixelEditor: React.FC = () => {
       ) {
         return;
       }
-      setHistory((prevHistory) => [...prevHistory, newPixels]);
+      // setHistory((prevHistory) => [...prevHistory, newPixels]);
       setRedoStack([]);
     },
     [history]
@@ -191,22 +251,16 @@ const PixelEditor: React.FC = () => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   };
 
-  const drawPixels = (ctx: CanvasRenderingContext2D) => {
-    ctx.save();
-    ctx.translate(camera.x, camera.y);
-    ctx.scale(camera.zoom, camera.zoom);
-    pixels.forEach(({ x, y, color }) => {
-      ctx.fillStyle = color;
-      ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-    });
-    ctx.restore();
-  };
-
   const draw = (x: number, y: number) => {
-    const currentPixel = pixels.find((p) => p.x === x && p.y === y);
+    const activeLayer = layers.find((layer) => layer.id === activeLayerId);
+    if (!activeLayer) return;
+
+    let newPixels = [...activeLayer.pixels];
+
+    const currentPixel = newPixels.find((p) => p.x === x && p.y === y);
     const targetColor = currentPixel ? currentPixel.color : "#ffffff";
 
-    let newPixels = [...pixels];
+    // let newPixels = [...pixels];
     if (mode === "fill") {
       const isInitialTransparent = !currentPixel;
 
@@ -252,7 +306,7 @@ const PixelEditor: React.FC = () => {
         color: mode === "eraser" ? "#ffffff" : currentColor,
       };
 
-      const existingPixelIndex = pixels.findIndex(
+      const existingPixelIndex = newPixels.findIndex(
         (p) => p.x === x && p.y === y
       );
 
@@ -289,7 +343,10 @@ const PixelEditor: React.FC = () => {
       }
     }
 
-    setPixels(newPixels);
+    const newLayers = layers.map((layer) =>
+      layer.id === activeLayerId ? { ...layer, pixels: newPixels } : layer
+    );
+    setLayers(newLayers);
     setCurrentDrawing(newPixels);
   };
 
@@ -386,8 +443,8 @@ const PixelEditor: React.FC = () => {
     const newHistory = [...history];
     const previousState = newHistory[newHistory.length - 2];
     newHistory.pop();
-    setRedoStack([pixels, ...redoStack]);
-    setPixels(previousState || []);
+    // setRedoStack([pixels, ...redoStack]);
+    // setPixels(previousState || []);
     setHistory(newHistory);
   };
 
@@ -395,108 +452,108 @@ const PixelEditor: React.FC = () => {
     if (redoStack.length > 0) {
       const newRedoStack = [...redoStack];
       const nextState = newRedoStack.shift();
-      setHistory([...history, pixels]);
-      setPixels(nextState || []);
+      // setHistory([...history, pixels]);
+      // setPixels(nextState || []);
       setRedoStack(newRedoStack);
     }
   };
 
-  const handleImportImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageData = e.target?.result as string;
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+  // const handleImportImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       const imageData = e.target?.result as string;
+  //       const canvas = document.createElement("canvas");
+  //       const ctx = canvas.getContext("2d");
 
-        const img = new Image();
-        img.onload = () => {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
+  //       const img = new Image();
+  //       img.onload = () => {
+  //         canvas.width = img.width;
+  //         canvas.height = img.height;
+  //         if (ctx) {
+  //           ctx.drawImage(img, 0, 0);
 
-            const imageData = ctx.getImageData(
-              0,
-              0,
-              canvas.width,
-              canvas.height
-            );
-            const newPixels = [];
+  //           const imageData = ctx.getImageData(
+  //             0,
+  //             0,
+  //             canvas.width,
+  //             canvas.height
+  //           );
+  //           const newPixels = [];
 
-            for (let y = 0; y < canvasPixelCount; y++) {
-              for (let x = 0; x < canvasPixelCount; x++) {
-                const pixelX = Math.floor((x / canvasPixelCount) * img.width);
-                const pixelY = Math.floor((y / canvasPixelCount) * img.height);
-                const index = (pixelY * img.width + pixelX) * 4;
-                const r = imageData.data[index];
-                const g = imageData.data[index + 1];
-                const b = imageData.data[index + 2];
-                const a = imageData.data[index + 3];
+  //           for (let y = 0; y < canvasPixelCount; y++) {
+  //             for (let x = 0; x < canvasPixelCount; x++) {
+  //               const pixelX = Math.floor((x / canvasPixelCount) * img.width);
+  //               const pixelY = Math.floor((y / canvasPixelCount) * img.height);
+  //               const index = (pixelY * img.width + pixelX) * 4;
+  //               const r = imageData.data[index];
+  //               const g = imageData.data[index + 1];
+  //               const b = imageData.data[index + 2];
+  //               const a = imageData.data[index + 3];
 
-                if (a > 0) {
-                  const color = `rgba(${r},${g},${b},${a / 255})`;
-                  newPixels.push({ x, y, color });
-                }
-              }
-            }
+  //               if (a > 0) {
+  //                 const color = `rgba(${r},${g},${b},${a / 255})`;
+  //                 newPixels.push({ x, y, color });
+  //               }
+  //             }
+  //           }
 
-            let updatedPixels = [...pixels];
+  //           let updatedPixels = [...pixels];
 
-            newPixels.forEach((newPixel) => {
-              const existingPixelIndex = updatedPixels.findIndex(
-                (p) => p.x === newPixel.x && p.y === newPixel.y
-              );
-              if (existingPixelIndex !== -1) {
-                updatedPixels[existingPixelIndex] = newPixel;
-              } else {
-                updatedPixels.push(newPixel);
-              }
-            });
+  //           newPixels.forEach((newPixel) => {
+  //             const existingPixelIndex = updatedPixels.findIndex(
+  //               (p) => p.x === newPixel.x && p.y === newPixel.y
+  //             );
+  //             if (existingPixelIndex !== -1) {
+  //               updatedPixels[existingPixelIndex] = newPixel;
+  //             } else {
+  //               updatedPixels.push(newPixel);
+  //             }
+  //           });
 
-            setPixels(updatedPixels);
-            addToHistory(updatedPixels);
-          }
-        };
+  //           setPixels(updatedPixels);
+  //           addToHistory(updatedPixels);
+  //         }
+  //       };
 
-        img.src = imageData;
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  //       img.src = imageData;
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
-  const convertCanvasToImage = () => {
-    if (!canvas) {
-      return;
-    }
-    const sellSize = downloadSize / canvasPixelCount;
-    const offScreenCanvas = document.createElement("canvas");
-    offScreenCanvas.width = downloadSize;
-    offScreenCanvas.height = downloadSize;
-    const ctx = offScreenCanvas.getContext("2d");
-    if (ctx) {
-      pixels.forEach(({ x, y, color }) => {
-        ctx.fillStyle = color;
-        ctx.fillRect(x * sellSize, y * sellSize, sellSize, sellSize);
-      });
-      return offScreenCanvas.toDataURL("image/png");
-    }
+  // const convertCanvasToImage = () => {
+  //   if (!canvas) {
+  //     return;
+  //   }
+  //   const sellSize = downloadSize / canvasPixelCount;
+  //   const offScreenCanvas = document.createElement("canvas");
+  //   offScreenCanvas.width = downloadSize;
+  //   offScreenCanvas.height = downloadSize;
+  //   const ctx = offScreenCanvas.getContext("2d");
+  //   if (ctx) {
+  //     pixels.forEach(({ x, y, color }) => {
+  //       ctx.fillStyle = color;
+  //       ctx.fillRect(x * sellSize, y * sellSize, sellSize, sellSize);
+  //     });
+  //     return offScreenCanvas.toDataURL("image/png");
+  //   }
 
-    return null;
-  };
+  //   return null;
+  // };
 
-  const handleDownload = () => {
-    const imageDataURL = convertCanvasToImage();
-    if (imageDataURL) {
-      const link = document.createElement("a");
-      link.download = "pixel-art.png";
-      link.href = imageDataURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
+  // const handleDownload = () => {
+  //   const imageDataURL = convertCanvasToImage();
+  //   if (imageDataURL) {
+  //     const link = document.createElement("a");
+  //     link.download = "pixel-art.png";
+  //     link.href = imageDataURL;
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //   }
+  // };
 
   const createSquareCursor = () => {
     const canvas = document.createElement("canvas");
@@ -599,7 +656,13 @@ const PixelEditor: React.FC = () => {
             >
               <FaUpload className="text-white" />
             </label>
-            <input
+            <button
+              onClick={() => setShowLayerModal(true)}
+              className="p-2 border border-gray-200 rounded-md"
+            >
+              <FaLayerGroup className="text-white" />
+            </button>
+            {/* <input
               id="file-upload"
               type="file"
               accept="image/*"
@@ -611,7 +674,7 @@ const PixelEditor: React.FC = () => {
               className="p-2 border border-gray-200 rounded-md"
             >
               <FaDownload className="text-white" />
-            </button>
+            </button> */}
           </div>
 
           <div className="relative">
@@ -694,6 +757,49 @@ const PixelEditor: React.FC = () => {
               <option value={3}>3x3</option>
               <option value={4}>4x4</option>
             </select>
+          </div>
+        </div>
+      )}
+      {showLayerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-md">
+            <h2 className="text-xl font-bold mb-4">Layers</h2>
+            <ul>
+              {layers.map((layer) => (
+                <li key={layer.id} className="flex items-center mb-2">
+                  <input
+                    type="radio"
+                    checked={layer.id === activeLayerId}
+                    onChange={() => setActiveLayerId(layer.id)}
+                  />
+                  <button
+                    onClick={() => toggleLayerVisibility(layer.id)}
+                    className="ml-2 p-1 bg-gray-200 rounded-md"
+                  >
+                    {layer.visible ? "Hide" : "Show"}
+                  </button>
+                  <button
+                    onClick={() => removeLayer(layer.id)}
+                    className="ml-2 p-1 bg-red-200 rounded-md"
+                    disabled={layers.length === 1}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={addLayer}
+              className="mt-4 p-2 bg-blue-500 text-white rounded-md"
+            >
+              Add Layer
+            </button>
+            <button
+              onClick={() => setShowLayerModal(false)}
+              className="mt-4 ml-2 p-2 bg-gray-500 text-white rounded-md"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
