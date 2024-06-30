@@ -113,6 +113,7 @@ const PixelEditor: React.FC = () => {
       };
     });
   };
+
   useEffect(() => {
     const handleResize = () => {
       let width = Math.min(window.innerWidth, window.innerHeight - 300);
@@ -232,20 +233,14 @@ const PixelEditor: React.FC = () => {
     }
   }, [gridCanvas, showGrid, pixelSize, cellSize, camera]);
 
-  const addToHistory = useCallback(
-    (newPixels: Pixel[]) => {
-      if (
-        history.length > 0 &&
-        JSON.stringify(history[history.length - 1]) ===
-          JSON.stringify(newPixels)
-      ) {
-        return;
-      }
-      // setHistory((prevHistory) => [...prevHistory, newPixels]);
-      setRedoStack([]);
-    },
-    [history]
-  );
+  const addToHistory = useCallback(() => {
+    const newHistoryEntry: HistoryEntry = {
+      layers,
+      activeLayerId,
+    };
+    setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+    setRedoStack([]);
+  }, [layers, activeLayerId]);
 
   const clearCanvas = (ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -373,7 +368,7 @@ const PixelEditor: React.FC = () => {
   const handleEnd = useCallback(() => {
     setIsDrawing(false);
     if (currentDrawing.length > 0) {
-      addToHistory(currentDrawing);
+      addToHistory();
       setCurrentDrawing([]);
     }
   }, [currentDrawing, addToHistory]);
@@ -440,120 +435,156 @@ const PixelEditor: React.FC = () => {
   };
 
   const handleUndo = () => {
-    const newHistory = [...history];
-    const previousState = newHistory[newHistory.length - 2];
-    newHistory.pop();
-    // setRedoStack([pixels, ...redoStack]);
-    // setPixels(previousState || []);
-    setHistory(newHistory);
+    if (history.length > 0) {
+      console.log("undo");
+      console.log("history", history);
+
+      const newHistory = [...history];
+      console.log("newHistory", newHistory);
+
+      const currentState = newHistory.pop();
+      const previousState = newHistory[newHistory.length - 1];
+
+      console.log("currentState", currentState);
+      console.log("previousState", previousState);
+
+      if (currentState) {
+        setRedoStack((prevRedoStack) => [...prevRedoStack, currentState]);
+        setLayers(
+          previousState?.layers || [{ id: 1, pixels: [], visible: true }]
+        );
+        setActiveLayerId(previousState?.activeLayerId || 1);
+        setHistory(newHistory);
+      }
+    }
   };
 
   const handleRedo = () => {
     if (redoStack.length > 0) {
       const newRedoStack = [...redoStack];
-      const nextState = newRedoStack.shift();
-      // setHistory([...history, pixels]);
-      // setPixels(nextState || []);
-      setRedoStack(newRedoStack);
+      const nextState = newRedoStack.pop();
+
+      if (nextState) {
+        setHistory((prevHistory) => [...prevHistory, nextState]);
+        setLayers(nextState.layers);
+        setActiveLayerId(nextState.activeLayerId);
+        setRedoStack(newRedoStack);
+      }
     }
   };
 
-  // const handleImportImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = event.target.files?.[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     reader.onload = (e) => {
-  //       const imageData = e.target?.result as string;
-  //       const canvas = document.createElement("canvas");
-  //       const ctx = canvas.getContext("2d");
+  const handleImportImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageData = e.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvasPixelCount;
+          canvas.height = canvasPixelCount;
+          const ctx = canvas.getContext("2d");
 
-  //       const img = new Image();
-  //       img.onload = () => {
-  //         canvas.width = img.width;
-  //         canvas.height = img.height;
-  //         if (ctx) {
-  //           ctx.drawImage(img, 0, 0);
+          if (ctx) {
+            ctx.drawImage(
+              img,
+              0,
+              0,
+              img.width,
+              img.height,
+              0,
+              0,
+              canvasPixelCount,
+              canvasPixelCount
+            );
+            const imageData = ctx.getImageData(
+              0,
+              0,
+              canvasPixelCount,
+              canvasPixelCount
+            );
+            const newPixels: Pixel[] = [];
 
-  //           const imageData = ctx.getImageData(
-  //             0,
-  //             0,
-  //             canvas.width,
-  //             canvas.height
-  //           );
-  //           const newPixels = [];
+            for (let y = 0; y < canvasPixelCount; y++) {
+              for (let x = 0; x < canvasPixelCount; x++) {
+                const index = (y * canvasPixelCount + x) * 4;
+                const r = imageData.data[index];
+                const g = imageData.data[index + 1];
+                const b = imageData.data[index + 2];
+                const a = imageData.data[index + 3];
 
-  //           for (let y = 0; y < canvasPixelCount; y++) {
-  //             for (let x = 0; x < canvasPixelCount; x++) {
-  //               const pixelX = Math.floor((x / canvasPixelCount) * img.width);
-  //               const pixelY = Math.floor((y / canvasPixelCount) * img.height);
-  //               const index = (pixelY * img.width + pixelX) * 4;
-  //               const r = imageData.data[index];
-  //               const g = imageData.data[index + 1];
-  //               const b = imageData.data[index + 2];
-  //               const a = imageData.data[index + 3];
+                if (a > 0) {
+                  const color = `rgba(${r},${g},${b},${a / 255})`;
+                  newPixels.push({ x, y, color });
+                }
+              }
+            }
 
-  //               if (a > 0) {
-  //                 const color = `rgba(${r},${g},${b},${a / 255})`;
-  //                 newPixels.push({ x, y, color });
-  //               }
-  //             }
-  //           }
+            setLayers((prevLayers) => {
+              return prevLayers.map((layer) => {
+                if (layer.id === activeLayerId) {
+                  const updatedPixels = [...layer.pixels];
+                  newPixels.forEach((newPixel) => {
+                    const existingPixelIndex = updatedPixels.findIndex(
+                      (p) => p.x === newPixel.x && p.y === newPixel.y
+                    );
+                    if (existingPixelIndex !== -1) {
+                      updatedPixels[existingPixelIndex] = newPixel;
+                    } else {
+                      updatedPixels.push(newPixel);
+                    }
+                  });
+                  return { ...layer, pixels: updatedPixels };
+                }
+                return layer;
+              });
+            });
 
-  //           let updatedPixels = [...pixels];
+            addToHistory();
+          }
+        };
+        img.src = imageData;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-  //           newPixels.forEach((newPixel) => {
-  //             const existingPixelIndex = updatedPixels.findIndex(
-  //               (p) => p.x === newPixel.x && p.y === newPixel.y
-  //             );
-  //             if (existingPixelIndex !== -1) {
-  //               updatedPixels[existingPixelIndex] = newPixel;
-  //             } else {
-  //               updatedPixels.push(newPixel);
-  //             }
-  //           });
+  const convertCanvasToImage = (): string | null => {
+    const offScreenCanvas = document.createElement("canvas");
+    offScreenCanvas.width = downloadSize;
+    offScreenCanvas.height = downloadSize;
+    const ctx = offScreenCanvas.getContext("2d");
 
-  //           setPixels(updatedPixels);
-  //           addToHistory(updatedPixels);
-  //         }
-  //       };
+    if (ctx) {
+      const cellSize = downloadSize / canvasPixelCount;
 
-  //       img.src = imageData;
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
+      layers.forEach((layer) => {
+        if (layer.visible) {
+          layer.pixels.forEach(({ x, y, color }) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+          });
+        }
+      });
 
-  // const convertCanvasToImage = () => {
-  //   if (!canvas) {
-  //     return;
-  //   }
-  //   const sellSize = downloadSize / canvasPixelCount;
-  //   const offScreenCanvas = document.createElement("canvas");
-  //   offScreenCanvas.width = downloadSize;
-  //   offScreenCanvas.height = downloadSize;
-  //   const ctx = offScreenCanvas.getContext("2d");
-  //   if (ctx) {
-  //     pixels.forEach(({ x, y, color }) => {
-  //       ctx.fillStyle = color;
-  //       ctx.fillRect(x * sellSize, y * sellSize, sellSize, sellSize);
-  //     });
-  //     return offScreenCanvas.toDataURL("image/png");
-  //   }
+      return offScreenCanvas.toDataURL("image/png");
+    }
 
-  //   return null;
-  // };
+    return null;
+  };
 
-  // const handleDownload = () => {
-  //   const imageDataURL = convertCanvasToImage();
-  //   if (imageDataURL) {
-  //     const link = document.createElement("a");
-  //     link.download = "pixel-art.png";
-  //     link.href = imageDataURL;
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //   }
-  // };
+  const handleDownload = () => {
+    const imageDataURL = convertCanvasToImage();
+    if (imageDataURL) {
+      const link = document.createElement("a");
+      link.download = "pixel-art.png";
+      link.href = imageDataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const createSquareCursor = () => {
     const canvas = document.createElement("canvas");
@@ -650,19 +681,19 @@ const PixelEditor: React.FC = () => {
               <option value={32}>32x32</option>
               <option value={64}>64x64</option>
             </select>
-            <label
-              htmlFor="file-upload"
-              className="p-2 border border-gray-200 rounded-md cursor-pointer"
-            >
-              <FaUpload className="text-white" />
-            </label>
             <button
               onClick={() => setShowLayerModal(true)}
               className="p-2 border border-gray-200 rounded-md"
             >
               <FaLayerGroup className="text-white" />
             </button>
-            {/* <input
+            <label
+              htmlFor="file-upload"
+              className="p-2 border border-gray-200 rounded-md cursor-pointer"
+            >
+              <FaUpload className="text-white" />
+            </label>
+            <input
               id="file-upload"
               type="file"
               accept="image/*"
@@ -674,7 +705,7 @@ const PixelEditor: React.FC = () => {
               className="p-2 border border-gray-200 rounded-md"
             >
               <FaDownload className="text-white" />
-            </button> */}
+            </button>
           </div>
 
           <div className="relative">
