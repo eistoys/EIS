@@ -1,22 +1,25 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  FaRedo,
-  FaUndo,
-  FaUpload,
-  FaDownload,
-  FaEraser,
-  FaPen,
-  FaFill,
-  FaSearchPlus,
-  FaSearchMinus,
-  FaLayerGroup,
-} from "react-icons/fa";
-
-import { BiMove } from "react-icons/bi";
-import { MdGridView } from "react-icons/md";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Eye, EyeOff, Trash2, ChevronDown, Layers3 } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Trash2,
+  ChevronDown,
+  Layers3,
+  Proportions,
+  FileUp,
+  FileDown,
+  Grid,
+  ScanSearch,
+  ZoomOut,
+  ZoomIn,
+  Pen,
+  PaintBucket,
+  Eraser,
+  Undo,
+  Redo,
+} from "lucide-react";
 
 interface Pixel {
   x: number;
@@ -39,6 +42,8 @@ interface HistoryEntry {
 
 const canvasPixelCount = 64;
 const downloadSize = 256;
+const minZoomFactor = 1;
+const maxZoomFactor = 8;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useCallback((node: HTMLCanvasElement) => {
@@ -55,7 +60,7 @@ const PixelEditor: React.FC = () => {
   const [gridCanvas, setGridCanvas] = useState<HTMLCanvasElement | null>(null);
   const [currentColor, setCurrentColor] = useState<string>("#000000");
   const [isDrawing, setIsDrawing] = useState(false);
-  const [mode, setMode] = useState<"pen" | "eraser" | "fill" | "camera">("pen");
+  const [mode, setMode] = useState<"pen" | "eraser" | "fill" | "search">("pen");
 
   const [gridCount, setGridCount] = useState<number>(16);
   const [pixelSize, setPixelSize] = useState<number>(1);
@@ -65,7 +70,7 @@ const PixelEditor: React.FC = () => {
   const cellSize = useMemo(() => canvasPixelCount / gridCount, [gridCount]);
   const canvasLength = useMemo(() => canvasPixelCount * pixelSize, [pixelSize]);
 
-  const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 1 });
+  const [camera, setCamera] = useState({ x: 0, y: 0, zoom: minZoomFactor });
   const [cameraZoomFactor, setCameraZoomFactor] = useState(1);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
 
@@ -85,13 +90,15 @@ const PixelEditor: React.FC = () => {
   const [showLayerModal, setShowLayerModal] = useState<boolean>(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showSizeModal, setShowSizeModal] = useState(false);
 
   const handleZoomIn = () => {
-    setCameraZoomFactor((prev) => Math.min(8, prev + 1));
+    setCameraZoomFactor((prev) => Math.min(maxZoomFactor, prev + 1));
   };
 
   const handleZoomOut = () => {
-    setCameraZoomFactor((prev) => Math.max(1, prev - 1));
+    setCameraZoomFactor((prev) => Math.max(minZoomFactor, prev - 1));
   };
 
   useEffect(() => {
@@ -388,7 +395,7 @@ const PixelEditor: React.FC = () => {
     );
     setIsDrawing(true);
 
-    if (mode === "camera") {
+    if (mode === "search") {
       setLastMousePos({ x: clientX, y: clientY });
     } else {
       draw(x, y);
@@ -416,7 +423,7 @@ const PixelEditor: React.FC = () => {
     // const canvas = canvasRef.current;
     if (!canvas || !isDrawing) return;
 
-    if (mode === "camera") {
+    if (mode === "search") {
       const dx = clientX - lastMousePos.x;
       const dy = clientY - lastMousePos.y;
 
@@ -717,74 +724,113 @@ const PixelEditor: React.FC = () => {
           <div className="flex items-center gap-2 py-4">
             <button
               onClick={handleUndo}
-              className="p-2 border border-gray-200 rounded-md"
+              className="p-1 border border-gray-200 rounded-md"
             >
-              <FaUndo className="text-white" />
+              <Undo className="text-white" size={24} />
             </button>
             <button
               onClick={handleRedo}
-              className="p-2 border border-gray-200 rounded-md"
+              className="p-1 border border-gray-200 rounded-md"
             >
-              <FaRedo className="text-white" />
+              <Redo className="text-white" size={24} />
             </button>
             <button
               onClick={handleZoomIn}
-              className="p-2 border border-gray-200 rounded-md"
+              className={`p-1 border border-gray-200 rounded-md ${
+                cameraZoomFactor === maxZoomFactor &&
+                "opacity-25 cursor-not-allowed"
+              }`}
             >
-              <FaSearchPlus className="text-white" />
+              <ZoomIn className="text-white" size={24} />
             </button>
             <button
               onClick={handleZoomOut}
-              className="p-2 border border-gray-200 rounded-md"
+              className={`p-1 border border-gray-200 rounded-md ${
+                cameraZoomFactor === minZoomFactor &&
+                "opacity-25 cursor-not-allowed"
+              }`}
             >
-              <FaSearchMinus className="text-white" />
+              <ZoomOut className="text-white" size={24} />
             </button>
+
             <button
               onClick={() => setShowGrid(!showGrid)}
-              className="p-2 border border-gray-200 rounded-md"
+              className={`p-1 border border-gray-200 rounded-md ${
+                showGrid && "bg-[#FFD582]"
+              }`}
             >
-              <MdGridView className="text-white" />
+              <Grid
+                className="text-white"
+                size={24}
+                color={showGrid ? "#191D88" : "white"}
+              />
             </button>
-            <select
-              value={gridCount}
-              onChange={(e) => setGridCount(parseInt(e.target.value))}
-              className="px-2 py-1 bg-gray-200 rounded-md"
-            >
-              <option value={16}>16x16</option>
-              <option value={32}>32x32</option>
-              <option value={64}>64x64</option>
-            </select>
             <button
               onClick={() => setShowLayerModal(true)}
               className="p-1 border border-gray-200 rounded-md"
             >
               <Layers3 className="text-white" size={24} />
             </button>
-            <button
-              onClick={() => setShowLayerModal(true)}
-              className="p-1 border border-gray-200 rounded-md"
-            >
-              <ChevronDown className="text-white" size={24} />
-            </button>
-            <label
-              htmlFor="file-upload"
-              className="p-2 border border-gray-200 rounded-md cursor-pointer"
-            >
-              <FaUpload className="text-white" />
-            </label>
-            <input
-              id="file-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleImportImage}
-              className="hidden"
-            />
-            <button
-              onClick={handleDownload}
-              className="p-2 border border-gray-200 rounded-md"
-            >
-              <FaDownload className="text-white" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(true)}
+                onMouseLeave={() => setShowMenu(false)}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  showMenu && "bg-[#FFD582]"
+                }`}
+              >
+                <ChevronDown
+                  className="text-white"
+                  size={24}
+                  color={showMenu ? "#191D88" : "white"}
+                />
+              </button>
+              {showMenu && (
+                <>
+                  <div
+                    className="absolute inset-0 h-20 cursor-pointer"
+                    onClick={() => setShowMenu(false)}
+                    onMouseEnter={() => setShowMenu(true)}
+                    onMouseLeave={() => setShowMenu(false)}
+                  />
+                  <div
+                    className="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-10"
+                    onMouseEnter={() => setShowMenu(true)}
+                    onMouseLeave={() => setShowMenu(false)}
+                  >
+                    <button
+                      className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                      onClick={() => {
+                        setShowMenu(false);
+                        setShowSizeModal(true);
+                      }}
+                    >
+                      <Proportions className="text-white" size={24} />
+                    </button>
+                    <label
+                      htmlFor="file-upload"
+                      className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
+                    >
+                      <FileUp className="text-white" size={24} />
+                    </label>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImportImage}
+                      className="hidden"
+                    />
+
+                    <button
+                      onClick={handleDownload}
+                      className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                    >
+                      <FileDown className="text-white" size={24} />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="relative">
@@ -809,46 +855,57 @@ const PixelEditor: React.FC = () => {
           <div className="flex items-center gap-2 py-4">
             <button
               onClick={() => setMode("pen")}
-              className={`p-2 border border-gray-200 rounded-md ${
-                mode === "pen" && "active"
+              className={`p-1 border border-gray-200 rounded-md ${
+                mode === "pen" && "bg-[#FFD582]"
               }`}
             >
-              <FaPen
-                className={`text-white ${mode !== "pen" ? "opacity-20" : ""}`}
+              <Pen
+                className="text-white"
+                size={24}
+                color={mode === "pen" ? "#191D88" : "white"}
               />
             </button>
             <button
               onClick={() => setMode("fill")}
-              className={`p-2 border border-gray-200 rounded-md ${
-                mode === "fill" && "active"
+              className={`p-1 border border-gray-200 rounded-md ${
+                mode === "fill" && "bg-[#FFD582]"
               }`}
             >
-              <FaFill
-                className={`text-white ${mode !== "fill" ? "opacity-20" : ""}`}
+              <PaintBucket
+                className="text-white"
+                size={24}
+                color={mode === "fill" ? "#191D88" : "white"}
               />
             </button>
             <button
               onClick={() => setMode("eraser")}
-              className={`p-2 border border-gray-200 rounded-md ${
-                mode === "eraser" && "active"
+              className={`p-1 border border-gray-200 rounded-md ${
+                mode === "eraser" && "bg-[#FFD582]"
               }`}
             >
-              <FaEraser
-                className={`text-white ${
-                  mode !== "eraser" ? "opacity-20" : ""
-                }`}
+              <Eraser
+                className="text-white"
+                size={24}
+                color={mode === "eraser" ? "#191D88" : "white"}
               />
             </button>
             <button
-              onClick={() => setMode("camera")}
-              className={`p-2 border border-gray-200 rounded-md ${
-                mode === "camera" && "active"
+              onClick={() => setMode("search")}
+              disabled={cameraZoomFactor === minZoomFactor}
+              className={`p-1 border border-gray-200 rounded-md ${
+                cameraZoomFactor === minZoomFactor
+                  ? "opacity-25 cursor-not-allowed"
+                  : mode === "search" && "bg-[#FFD582]"
               }`}
             >
-              <BiMove
-                className={`text-white ${
-                  mode !== "camera" ? "opacity-20" : ""
-                }`}
+              <ScanSearch
+                className="text-white"
+                size={24}
+                color={
+                  cameraZoomFactor !== minZoomFactor && mode === "search"
+                    ? "#191D88"
+                    : "white"
+                }
               />
             </button>
 
@@ -925,7 +982,6 @@ const PixelEditor: React.FC = () => {
                                 className="bg-gray-600 text-white rounded px-2 py-1 w-24 md:w-40"
                               />
                             </div>
-
                             <input
                               type="range"
                               min="0"
@@ -938,7 +994,7 @@ const PixelEditor: React.FC = () => {
                                   parseFloat(e.target.value)
                                 )
                               }
-                              className="w-20 mr-4"
+                              className="w-16 mr-4"
                             />
                             <button
                               onClick={(e) => {
@@ -979,6 +1035,62 @@ const PixelEditor: React.FC = () => {
             >
               +
             </button>
+          </div>
+        </div>
+      )}
+      {showSizeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Canvas</h2>
+              <button
+                onClick={() => setShowSizeModal(false)}
+                className="text-white hover:text-gray-400 text-2xl"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="flex flex-col space-y-4">
+              <button
+                onClick={() => {
+                  setGridCount(16);
+                  setShowSizeModal(false);
+                }}
+                className={`font-bold w-full py-2 mt-2  rounded ${
+                  gridCount === 16
+                    ? "bg-white text-black"
+                    : "bg-gray-700 hover:bg-gray-600 text-white"
+                }`}
+              >
+                16 × 16
+              </button>
+              <button
+                onClick={() => {
+                  setGridCount(32);
+                  setShowSizeModal(false);
+                }}
+                className={`font-bold w-full py-2 mt-2  rounded ${
+                  gridCount === 32
+                    ? "bg-white text-black"
+                    : "bg-gray-700 hover:bg-gray-600 text-white"
+                }`}
+              >
+                32 × 32
+              </button>
+              <button
+                onClick={() => {
+                  setGridCount(64);
+                  setShowSizeModal(false);
+                }}
+                className={`font-bold w-full py-2 mt-2  rounded ${
+                  gridCount === 64
+                    ? "bg-white text-black"
+                    : "bg-gray-700 hover:bg-gray-600 text-white"
+                }`}
+              >
+                64 × 64
+              </button>
+            </div>
           </div>
         </div>
       )}
