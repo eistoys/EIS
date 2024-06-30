@@ -6,9 +6,13 @@ import {
   FaDownload,
   FaEraser,
   FaPen,
-  FaThLarge,
   FaFill,
+  FaSearchPlus,
+  FaSearchMinus,
 } from "react-icons/fa";
+
+import { BiMove } from "react-icons/bi";
+import { MdGridView } from "react-icons/md";
 
 interface Pixel {
   x: number;
@@ -27,7 +31,7 @@ const PixelEditor: React.FC = () => {
   const [history, setHistory] = useState<Pixel[][]>([]);
   const [redoStack, setRedoStack] = useState<Pixel[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [mode, setMode] = useState<"pen" | "eraser" | "fill">("pen");
+  const [mode, setMode] = useState<"pen" | "eraser" | "fill" | "camera">("pen");
 
   const [gridCount, setGridCount] = useState<number>(16);
   const [pixelSize, setPixelSize] = useState<number>(1);
@@ -37,17 +41,57 @@ const PixelEditor: React.FC = () => {
   const cellSize = useMemo(() => canvasPixelCount / gridCount, [gridCount]);
   const canvasLength = useMemo(() => canvasPixelCount * pixelSize, [pixelSize]);
 
+  const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 1 });
+  const [cameraZoomFactor, setCameraZoomFactor] = useState(1);
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+
+  const handleZoomIn = () => {
+    setCameraZoomFactor((prev) => Math.min(8, prev + 1));
+  };
+
+  const handleZoomOut = () => {
+    setCameraZoomFactor((prev) => Math.max(1, prev - 1));
+  };
+
+  useEffect(() => {
+    setCamera((prevCamera) => {
+      const newZoom = cameraZoomFactor;
+      const maxPan = canvasLength * (newZoom - 1);
+      const newX = Math.max(-maxPan, Math.min(0, prevCamera.x));
+      const newY = Math.max(-maxPan, Math.min(0, prevCamera.y));
+      return {
+        ...prevCamera,
+        zoom: newZoom,
+        x: newX,
+        y: newY,
+      };
+    });
+  }, [cameraZoomFactor]);
+
+  const handlePan = (dx: number, dy: number) => {
+    if (camera.zoom <= 1) return;
+
+    setCamera((prevCamera) => {
+      const newX = prevCamera.x + dx;
+      const newY = prevCamera.y + dy;
+
+      const maxPan = canvasLength * (camera.zoom - 1);
+
+      return {
+        ...prevCamera,
+        x: Math.max(-maxPan, Math.min(0, newX)),
+        y: Math.max(-maxPan, Math.min(0, newY)),
+      };
+    });
+  };
   useEffect(() => {
     const handleResize = () => {
-      let width = Math.min(window.innerWidth, window.innerHeight - 270); // Limit the width to 512 pixels
-      // width -= 32; // Subtract the padding
+      let width = Math.min(window.innerWidth, window.innerHeight - 270);
       const newPixelSize = Math.max(1, Math.floor(width / canvasPixelCount));
       setPixelSize(newPixelSize);
     };
 
     window.addEventListener("resize", handleResize);
-
-    // Initial call to set pixel size based on window size
     handleResize();
 
     return () => {
@@ -97,7 +141,7 @@ const PixelEditor: React.FC = () => {
         drawPixels(ctx);
       }
     }
-  }, [pixels, pixelSize]);
+  }, [pixels, pixelSize, camera]);
 
   useEffect(() => {
     const gridCanvas = gridCanvasRef.current;
@@ -106,10 +150,12 @@ const PixelEditor: React.FC = () => {
     const ctx = gridCanvas.getContext("2d");
     if (!ctx) return;
 
-    // Always clear the grid canvas first
     ctx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
     if (showGrid) {
+      ctx.save();
+      ctx.translate(camera.x, camera.y);
+      ctx.scale(camera.zoom, camera.zoom);
       ctx.beginPath();
       for (let x = 0; x <= gridCount; x++) {
         ctx.moveTo(x * cellSize * pixelSize, 0);
@@ -121,8 +167,9 @@ const PixelEditor: React.FC = () => {
       }
       ctx.strokeStyle = "#ddd";
       ctx.stroke();
+      ctx.restore();
     }
-  }, [showGrid, pixelSize, cellSize]);
+  }, [showGrid, pixelSize, cellSize, camera]);
 
   const addToHistory = (newPixels: Pixel[]) => {
     if (
@@ -140,10 +187,14 @@ const PixelEditor: React.FC = () => {
   };
 
   const drawPixels = (ctx: CanvasRenderingContext2D) => {
+    ctx.save();
+    ctx.translate(camera.x, camera.y);
+    ctx.scale(camera.zoom, camera.zoom);
     pixels.forEach(({ x, y, color }) => {
       ctx.fillStyle = color;
       ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
     });
+    ctx.restore();
   };
 
   const draw = (x: number, y: number) => {
@@ -166,7 +217,7 @@ const PixelEditor: React.FC = () => {
         while (stack.length > 0) {
           const { x, y } = stack.pop() as { x: number; y: number };
           if (x < 0 || x >= canvasPixelCount || y < 0 || y >= canvasPixelCount)
-            continue; // Boundary check
+            continue;
           const pixelIndex = newPixels.findIndex((p) => p.x === x && p.y === y);
           const pixel = newPixels[pixelIndex];
           const isTransparent = !pixel || pixel.color === "#ffffff";
@@ -237,54 +288,64 @@ const PixelEditor: React.FC = () => {
     addToHistory(newPixels);
   };
 
-  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleStart = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     if (canvas) {
       const rect = canvas.getBoundingClientRect();
-      const x = Math.floor((event.clientX - rect.left) / pixelSize);
-      const y = Math.floor((event.clientY - rect.top) / pixelSize);
+      const x = Math.floor(
+        (clientX - rect.left - camera.x) / (pixelSize * camera.zoom)
+      );
+      const y = Math.floor(
+        (clientY - rect.top - camera.y) / (pixelSize * camera.zoom)
+      );
       setIsDrawing(true);
+
+      if (mode === "camera") {
+        setLastMousePos({ x: clientX, y: clientY });
+      } else {
+        draw(x, y);
+      }
+    }
+  };
+
+  const handleMove = (clientX: number, clientY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !isDrawing) return;
+
+    if (mode === "camera") {
+      const dx = clientX - lastMousePos.x;
+      const dy = clientY - lastMousePos.y;
+
+      handlePan(dx, dy);
+      setLastMousePos({ x: clientX, y: clientY });
+    } else {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor(
+        (clientX - rect.left - camera.x) / (pixelSize * camera.zoom)
+      );
+      const y = Math.floor(
+        (clientY - rect.top - camera.y) / (pixelSize * camera.zoom)
+      );
       draw(x, y);
     }
+  };
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    handleStart(event.clientX, event.clientY);
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log("handleMouseMove");
-    if (isDrawing) {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const x = Math.floor((event.clientX - rect.left) / pixelSize);
-        const y = Math.floor((event.clientY - rect.top) / pixelSize);
-        draw(x, y);
-      }
-    }
+    handleMove(event.clientX, event.clientY);
   };
 
   const handleTouchStart = (event: React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const touch = event.touches[0];
-      const x = Math.floor((touch.clientX - rect.left) / pixelSize);
-      const y = Math.floor((touch.clientY - rect.top) / pixelSize);
-      setIsDrawing(true);
-      draw(x, y);
-    }
+    const touch = event.touches[0];
+    handleStart(touch.clientX, touch.clientY);
   };
 
   const handleTouchMove = (event: React.TouchEvent<HTMLCanvasElement>) => {
-    console.log("handleTouchMove");
-    if (isDrawing) {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const touch = event.touches[0];
-        const x = Math.floor((touch.clientX - rect.left) / pixelSize);
-        const y = Math.floor((touch.clientY - rect.top) / pixelSize);
-        draw(x, y);
-      }
-    }
+    const touch = event.touches[0];
+    handleMove(touch.clientX, touch.clientY);
   };
 
   const handleUndo = () => {
@@ -341,14 +402,12 @@ const PixelEditor: React.FC = () => {
                 const a = imageData.data[index + 3];
 
                 if (a > 0) {
-                  // Only include non-transparent pixels
                   const color = `rgba(${r},${g},${b},${a / 255})`;
                   newPixels.push({ x, y, color });
                 }
               }
             }
 
-            // Get the existing pixels from state
             let updatedPixels = [...pixels];
 
             newPixels.forEach((newPixel) => {
@@ -356,9 +415,9 @@ const PixelEditor: React.FC = () => {
                 (p) => p.x === newPixel.x && p.y === newPixel.y
               );
               if (existingPixelIndex !== -1) {
-                updatedPixels[existingPixelIndex] = newPixel; // Replace existing pixel
+                updatedPixels[existingPixelIndex] = newPixel;
               } else {
-                updatedPixels.push(newPixel); // Add new pixel
+                updatedPixels.push(newPixel);
               }
             });
 
@@ -449,10 +508,22 @@ const PixelEditor: React.FC = () => {
               <FaRedo className="text-white" />
             </button>
             <button
+              onClick={handleZoomIn}
+              className="p-2 border border-gray-200 rounded-md"
+            >
+              <FaSearchPlus className="text-white" />
+            </button>
+            <button
+              onClick={handleZoomOut}
+              className="p-2 border border-gray-200 rounded-md"
+            >
+              <FaSearchMinus className="text-white" />
+            </button>
+            <button
               onClick={() => setShowGrid(!showGrid)}
               className="p-2 border border-gray-200 rounded-md"
             >
-              <FaThLarge className="text-white" />
+              <MdGridView className="text-white" />
             </button>
             <select
               value={gridCount}
@@ -537,7 +608,18 @@ const PixelEditor: React.FC = () => {
                 }`}
               />
             </button>
-
+            <button
+              onClick={() => setMode("camera")}
+              className={`p-2 border border-gray-200 rounded-md ${
+                mode === "camera" && "active"
+              }`}
+            >
+              <BiMove
+                className={`text-white ${
+                  mode !== "camera" ? "opacity-20" : ""
+                }`}
+              />
+            </button>
             <input
               type="color"
               value={currentColor}
