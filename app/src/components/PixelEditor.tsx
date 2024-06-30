@@ -19,6 +19,8 @@ import {
   Eraser,
   Undo,
   Redo,
+  Palette,
+  Dices,
 } from "lucide-react";
 
 interface Pixel {
@@ -45,6 +47,7 @@ const downloadSize = 256;
 const minZoomFactor = 1;
 const maxZoomFactor = 8;
 const maxLayerCount = 6;
+const maxColorCount = 12;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useCallback((node: HTMLCanvasElement) => {
@@ -93,6 +96,41 @@ const PixelEditor: React.FC = () => {
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const [showSizeModal, setShowSizeModal] = useState(false);
+
+  const [palettes, setPalettes] = useState({
+    default: [
+      "#000000",
+      "#FFFFFF",
+      "#FF0000",
+      "#00FF00",
+      "#0000FF",
+      "#FFFF00",
+      "#FF00FF",
+      "#00FFFF",
+    ],
+    gameboy: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"],
+    "1 Bit Monitor": ["#222323", "#f0f6f0"],
+    "TWILIGHT 5": ["#fbbbad", "#ee8695", "#4a7a96", "#333f58", "#292831"],
+    "STAR POP": ["#674577", "#64b9ca", "#ffa3d6", "#ffebe5"],
+    VOLTAGE: ["#1c1412", "#635650", "#d3ae21", "#d4c9c3"],
+    "BLUSH GB": ["#fe9192", "#fcdebe", "#0cc0d4", "#5e5768"],
+    FUZZYFOUR: ["#302387", "#ff3796", "#00faac", "#fffdaf"],
+    "SOFTSERVE 4": ["#e64270", "#64c1bd", "#ead762", "#e3e6e8"],
+    "Pepe the Frog": [
+      "#55803b",
+      "#54803b",
+      "#292fea",
+      "#cd4c2e",
+      "#170f22",
+      "#557f3c",
+      "#54803c",
+      "#170f24",
+    ],
+    Doge: ["#ffffff", "#dfcd8d", "#d4c27d", "#dcc690"],
+  });
+
+  const [selectedPalette, setSelectedPalette] =
+    useState<keyof typeof palettes>("default");
 
   const handleZoomIn = () => {
     setCameraZoomFactor((prev) => Math.min(maxZoomFactor, prev + 1));
@@ -727,11 +765,51 @@ const PixelEditor: React.FC = () => {
     );
   };
 
+  const randomizeColor = () => {
+    setLayers((prevLayers) => {
+      const activeLayer = prevLayers.find(
+        (layer) => layer.id === activeLayerId
+      );
+      if (!activeLayer) return prevLayers;
+      const uniqueColors = new Set(
+        activeLayer.pixels.map((pixel) => pixel.color)
+      );
+      const colorMap = new Map();
+      uniqueColors.forEach((color) => {
+        const randomColor = `#${Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, "0")}`;
+        colorMap.set(color, randomColor);
+      });
+      const updatedPixels = activeLayer.pixels.map((pixel) => {
+        const newColor = colorMap.get(pixel.color) || pixel.color;
+        return { ...pixel, color: newColor };
+      });
+      return prevLayers.map((layer) =>
+        layer.id === activeLayerId ? { ...layer, pixels: updatedPixels } : layer
+      );
+    });
+    addToHistory();
+  };
+
+  const insertColor = () => {
+    if (currentColor && !palettes[selectedPalette].includes(currentColor)) {
+      setPalettes((prevPalettes) => {
+        const newPalettes = { ...prevPalettes };
+        newPalettes[selectedPalette] = [
+          ...newPalettes[selectedPalette],
+          currentColor,
+        ];
+        return newPalettes;
+      });
+    }
+  };
+
   return (
     <>
       {pixelSize > 1 && (
         <div className="flex flex-col items-center">
-          <div className="flex items-center space-x-4 py-4">
+          <div className="flex justify-center items-center w-full max-w-md space-x-4 px-4 mb-4">
             <div className="space-x-2">
               <button
                 onClick={handleUndo}
@@ -848,7 +926,7 @@ const PixelEditor: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative mb-4">
             <canvas
               ref={canvasRef}
               width={canvasLength}
@@ -867,79 +945,142 @@ const PixelEditor: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 py-4">
-            <button
-              onClick={() => setMode("pen")}
-              className={`p-1 border border-gray-200 rounded-md ${
-                mode === "pen" && "bg-[#FFD582]"
-              }`}
-            >
-              <Pen
-                className="text-white"
-                size={24}
-                color={mode === "pen" ? "#191D88" : "white"}
+          <div className="flex justify-center items-center w-full max-w-md space-x-8 px-4 mb-4">
+            <div className="space-x-2">
+              <button
+                onClick={() => setMode("pen")}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  mode === "pen" && "bg-[#FFD582]"
+                }`}
+              >
+                <Pen
+                  className="text-white"
+                  size={24}
+                  color={mode === "pen" ? "#191D88" : "white"}
+                />
+              </button>
+              <button
+                onClick={() => setMode("fill")}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  mode === "fill" && "bg-[#FFD582]"
+                }`}
+              >
+                <PaintBucket
+                  className="text-white"
+                  size={24}
+                  color={mode === "fill" ? "#191D88" : "white"}
+                />
+              </button>
+              <button
+                onClick={() => setMode("eraser")}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  mode === "eraser" && "bg-[#FFD582]"
+                }`}
+              >
+                <Eraser
+                  className="text-white"
+                  size={24}
+                  color={mode === "eraser" ? "#191D88" : "white"}
+                />
+              </button>
+              <button
+                onClick={() => setMode("search")}
+                disabled={cameraZoomFactor === minZoomFactor}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  cameraZoomFactor === minZoomFactor
+                    ? "opacity-25 cursor-not-allowed"
+                    : mode === "search" && "bg-[#FFD582]"
+                }`}
+              >
+                <ScanSearch
+                  className="text-white"
+                  size={24}
+                  color={
+                    cameraZoomFactor !== minZoomFactor && mode === "search"
+                      ? "#191D88"
+                      : "white"
+                  }
+                />
+              </button>
+            </div>
+            <div className="space-x-2">
+              <input
+                type="color"
+                value={currentColor}
+                onChange={(e) => setCurrentColor(e.target.value)}
+                className="border-none"
               />
-            </button>
-            <button
-              onClick={() => setMode("fill")}
-              className={`p-1 border border-gray-200 rounded-md ${
-                mode === "fill" && "bg-[#FFD582]"
-              }`}
-            >
-              <PaintBucket
-                className="text-white"
-                size={24}
-                color={mode === "fill" ? "#191D88" : "white"}
-              />
-            </button>
-            <button
-              onClick={() => setMode("eraser")}
-              className={`p-1 border border-gray-200 rounded-md ${
-                mode === "eraser" && "bg-[#FFD582]"
-              }`}
-            >
-              <Eraser
-                className="text-white"
-                size={24}
-                color={mode === "eraser" ? "#191D88" : "white"}
-              />
-            </button>
-            <button
-              onClick={() => setMode("search")}
-              disabled={cameraZoomFactor === minZoomFactor}
-              className={`p-1 border border-gray-200 rounded-md ${
-                cameraZoomFactor === minZoomFactor
-                  ? "opacity-25 cursor-not-allowed"
-                  : mode === "search" && "bg-[#FFD582]"
-              }`}
-            >
-              <ScanSearch
-                className="text-white"
-                size={24}
-                color={
-                  cameraZoomFactor !== minZoomFactor && mode === "search"
-                    ? "#191D88"
-                    : "white"
-                }
-              />
-            </button>
+              <button
+                className={`p-1 border border-gray-200 rounded-md ${
+                  (palettes[selectedPalette].length === maxColorCount ||
+                    palettes[selectedPalette].includes(currentColor)) &&
+                  "opacity-25 cursor-not-allowed"
+                }`}
+                onClick={() => randomizeColor()}
+              >
+                <Palette
+                  className="text-white"
+                  size={24}
+                  onClick={() => insertColor()}
+                />
+              </button>
+              <button
+                className="p-1 border border-gray-200 rounded-md"
+                onClick={() => randomizeColor()}
+              >
+                <Dices className="text-white" size={24} />
+              </button>
+            </div>
+          </div>
 
-            <input
-              type="color"
-              value={currentColor}
-              onChange={(e) => setCurrentColor(e.target.value)}
-              className="border-none"
-            />
+          <div className="w-full max-w-sm flex px-4">
             <select
               value={penSize}
               onChange={(e) => setPenSize(Number(e.target.value))}
-              className="px-2 py-1 bg-gray-200 rounded-md"
+              className="px-2 py-3 rounded-md text-sm mr-4 bg-blue-600 text-white font-bold"
             >
               <option value={1}>1x1</option>
               <option value={2}>2x2</option>
               <option value={3}>3x3</option>
               <option value={4}>4x4</option>
             </select>
+            <select
+              className="px-2 py-3 border rounded-md text-sm mr-4 bg-blue-600 text-white font-bold"
+              value={selectedPalette}
+              onChange={(e) =>
+                setSelectedPalette(e.target.value as keyof typeof palettes)
+              }
+            >
+              {Object.keys(palettes).map((palette) => (
+                <option key={palette} value={palette}>
+                  {palette}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex flex-wrap">
+              {Array.from({
+                length: Math.ceil(
+                  palettes[selectedPalette].length / (maxColorCount / 2)
+                ),
+              }).map((_, rowIndex) => (
+                <div className="flex" key={rowIndex}>
+                  {palettes[selectedPalette]
+                    .slice(
+                      rowIndex * (maxColorCount / 2),
+                      rowIndex * (maxColorCount / 2) + maxColorCount / 2
+                    )
+                    .map((color, index) => (
+                      <button
+                        key={index}
+                        className="w-5 h-5"
+                        style={{ backgroundColor: color }}
+                        onClick={() => setCurrentColor(color)}
+                      />
+                    ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

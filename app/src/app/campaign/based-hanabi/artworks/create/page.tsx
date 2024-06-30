@@ -33,7 +33,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
   return (
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
       {mode == "create" && (
-        <div className="flex flex-col flex-grow justify-center">
+        <div className="flex flex-col flex-grow py-4">
           <PixelEditor />
         </div>
       )}
