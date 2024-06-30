@@ -101,15 +101,20 @@ const PixelEditor: React.FC = () => {
 
   useEffect(() => {
     const preventDefault = (e: Event) => {
-      if (e.target instanceof HTMLSelectElement) {
+      console.log(e.target);
+
+      if (
+        e.target instanceof HTMLSelectElement ||
+        e.target instanceof HTMLButtonElement
+      ) {
         return;
       }
       if (e.cancelable) {
         e.preventDefault();
       }
     };
-    window.addEventListener("touchstart", preventDefault);
-    window.addEventListener("touchmove", preventDefault);
+    window.addEventListener("touchstart", preventDefault, { passive: false });
+    window.addEventListener("touchmove", preventDefault, { passive: false });
     window.addEventListener("mousedown", preventDefault);
     window.addEventListener("mousemove", preventDefault);
     return () => {
@@ -530,7 +535,6 @@ const PixelEditor: React.FC = () => {
               onChange={(e) => setGridCount(parseInt(e.target.value))}
               className="px-2 py-1 bg-gray-200 rounded-md"
             >
-              <option value={8}>8x8</option>
               <option value={16}>16x16</option>
               <option value={32}>32x32</option>
               <option value={64}>64x64</option>
