@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import {
   FaRedo,
   FaUndo,
@@ -16,7 +16,7 @@ interface Pixel {
   color: string;
 }
 
-const canvasSize = 64;
+const canvasPixelCount = 64;
 const downloadSize = 256;
 
 const PixelEditor: React.FC = () => {
@@ -29,17 +29,19 @@ const PixelEditor: React.FC = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [mode, setMode] = useState<"pen" | "eraser" | "fill">("pen");
 
-  const [pixelSize, setPixelSize] = useState<number>(1); // Add state for pixel size
   const [gridCount, setGridCount] = useState<number>(16);
+  const [pixelSize, setPixelSize] = useState<number>(1);
   const [penSize, setPenSize] = useState<number>(1);
-
   const [showGrid, setShowGrid] = useState(true);
+
+  const cellSize = useMemo(() => canvasPixelCount / gridCount, [gridCount]);
+  const canvasLength = useMemo(() => canvasPixelCount * pixelSize, [pixelSize]);
 
   useEffect(() => {
     const handleResize = () => {
       let width = Math.min(window.innerWidth, window.innerHeight - 270); // Limit the width to 512 pixels
       // width -= 32; // Subtract the padding
-      const newPixelSize = Math.max(1, Math.floor(width / canvasSize));
+      const newPixelSize = Math.max(1, Math.floor(width / canvasPixelCount));
       setPixelSize(newPixelSize);
     };
 
@@ -91,16 +93,6 @@ const PixelEditor: React.FC = () => {
     if (canvas) {
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        drawGrid(ctx);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
         clearCanvas(ctx);
         drawPixels(ctx);
       }
@@ -118,21 +110,19 @@ const PixelEditor: React.FC = () => {
     ctx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
     if (showGrid) {
-      const cellSize = canvasSize / gridCount;
-
       ctx.beginPath();
       for (let x = 0; x <= gridCount; x++) {
         ctx.moveTo(x * cellSize * pixelSize, 0);
-        ctx.lineTo(x * cellSize * pixelSize, canvasSize * pixelSize);
+        ctx.lineTo(x * cellSize * pixelSize, canvasLength);
       }
       for (let y = 0; y <= gridCount; y++) {
         ctx.moveTo(0, y * cellSize * pixelSize);
-        ctx.lineTo(canvasSize * pixelSize, y * cellSize * pixelSize);
+        ctx.lineTo(canvasLength, y * cellSize * pixelSize);
       }
       ctx.strokeStyle = "#ddd";
       ctx.stroke();
     }
-  }, [showGrid, pixelSize, gridCount, canvasSize]);
+  }, [showGrid, pixelSize, cellSize]);
 
   const addToHistory = (newPixels: Pixel[]) => {
     if (
@@ -147,20 +137,6 @@ const PixelEditor: React.FC = () => {
 
   const clearCanvas = (ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  };
-
-  const drawGrid = (ctx: CanvasRenderingContext2D) => {
-    ctx.beginPath();
-    for (let x = 0; x <= canvasSize; x++) {
-      ctx.moveTo(x * pixelSize, 0);
-      ctx.lineTo(x * pixelSize, canvasSize * pixelSize);
-    }
-    for (let y = 0; y <= canvasSize; y++) {
-      ctx.moveTo(0, y * pixelSize);
-      ctx.lineTo(canvasSize * pixelSize, y * pixelSize);
-    }
-    ctx.strokeStyle = "#ddd";
-    ctx.stroke();
   };
 
   const drawPixels = (ctx: CanvasRenderingContext2D) => {
@@ -189,7 +165,8 @@ const PixelEditor: React.FC = () => {
         const stack = [{ x, y }];
         while (stack.length > 0) {
           const { x, y } = stack.pop() as { x: number; y: number };
-          if (x < 0 || x >= canvasSize || y < 0 || y >= canvasSize) continue; // Boundary check
+          if (x < 0 || x >= canvasPixelCount || y < 0 || y >= canvasPixelCount)
+            continue; // Boundary check
           const pixelIndex = newPixels.findIndex((p) => p.x === x && p.y === y);
           const pixel = newPixels[pixelIndex];
           const isTransparent = !pixel || pixel.color === "#ffffff";
@@ -218,6 +195,7 @@ const PixelEditor: React.FC = () => {
         y,
         color: mode === "eraser" ? "#ffffff" : currentColor,
       };
+
       const existingPixelIndex = pixels.findIndex(
         (p) => p.x === x && p.y === y
       );
@@ -228,13 +206,11 @@ const PixelEditor: React.FC = () => {
         newPixels.push(newPixel);
       }
 
-      // Draw pixels for the pen size
-      const cellSize = canvasSize / gridCount;
       const cellX = Math.floor(x / cellSize) * cellSize;
       const cellY = Math.floor(y / cellSize) * cellSize;
 
-      for (let i = 0; i < cellSize; i++) {
-        for (let j = 0; j < cellSize; j++) {
+      for (let i = 0; i < cellSize * penSize; i++) {
+        for (let j = 0; j < cellSize * penSize; j++) {
           const penX = cellX + i;
           const penY = cellY + j;
           const existingPenPixelIndex = newPixels.findIndex(
@@ -354,10 +330,10 @@ const PixelEditor: React.FC = () => {
             );
             const newPixels = [];
 
-            for (let y = 0; y < canvasSize; y++) {
-              for (let x = 0; x < canvasSize; x++) {
-                const pixelX = Math.floor((x / canvasSize) * img.width);
-                const pixelY = Math.floor((y / canvasSize) * img.height);
+            for (let y = 0; y < canvasPixelCount; y++) {
+              for (let x = 0; x < canvasPixelCount; x++) {
+                const pixelX = Math.floor((x / canvasPixelCount) * img.width);
+                const pixelY = Math.floor((y / canvasPixelCount) * img.height);
                 const index = (pixelY * img.width + pixelX) * 4;
                 const r = imageData.data[index];
                 const g = imageData.data[index + 1];
@@ -400,7 +376,7 @@ const PixelEditor: React.FC = () => {
   const convertCanvasToImage = () => {
     const canvas = canvasRef.current;
     if (canvas) {
-      const sellSize = downloadSize / canvasSize;
+      const sellSize = downloadSize / canvasPixelCount;
       const offScreenCanvas = document.createElement("canvas");
       offScreenCanvas.width = downloadSize;
       offScreenCanvas.height = downloadSize;
@@ -427,6 +403,33 @@ const PixelEditor: React.FC = () => {
       document.body.removeChild(link);
     }
   };
+
+  const createSquareCursor = () => {
+    let size = pixelSize * cellSize * penSize;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) return "";
+    canvas.width = size;
+    canvas.height = size;
+    context.fillStyle = mode === "pen" ? currentColor : "white";
+    context.fillRect(0, 0, size, size);
+    return canvas.toDataURL();
+  };
+
+  const getCursorStyle = () => {
+    if (mode === "pen" || mode === "eraser") {
+      return `url(${createSquareCursor()}) ${pixelSize / 2} ${
+        pixelSize / 2
+      }, auto`;
+    }
+    return "auto";
+  };
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      canvasRef.current.style.cursor = getCursorStyle();
+    }
+  }, [pixelSize, cellSize, penSize, currentColor]);
 
   return (
     <>
@@ -485,8 +488,8 @@ const PixelEditor: React.FC = () => {
           <div className="relative">
             <canvas
               ref={canvasRef}
-              width={canvasSize * pixelSize}
-              height={canvasSize * pixelSize}
+              width={canvasLength}
+              height={canvasLength}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onTouchStart={handleTouchStart}
@@ -495,8 +498,8 @@ const PixelEditor: React.FC = () => {
             />
             <canvas
               ref={gridCanvasRef}
-              width={canvasSize * pixelSize}
-              height={canvasSize * pixelSize}
+              width={canvasLength}
+              height={canvasLength}
               className="absolute top-0 left-0 pointer-events-none"
             />
           </div>
@@ -541,6 +544,16 @@ const PixelEditor: React.FC = () => {
               onChange={(e) => setCurrentColor(e.target.value)}
               className="border-none"
             />
+            <select
+              value={penSize}
+              onChange={(e) => setPenSize(Number(e.target.value))}
+              className="px-2 py-1 bg-gray-200 rounded-md"
+            >
+              <option value={1}>1x1</option>
+              <option value={2}>2x2</option>
+              <option value={3}>3x3</option>
+              <option value={4}>4x4</option>
+            </select>
           </div>
         </div>
       )}
