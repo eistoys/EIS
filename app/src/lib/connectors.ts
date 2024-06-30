@@ -10,8 +10,12 @@ coinbaseWallet.preference = "smartWalletOnly";
 const connectors = connectorsForWallets(
   [
     {
-      groupName: "Recommended",
-      wallets: [coinbaseWallet, rainbowWallet, walletConnectWallet],
+      groupName: "Smart Wallet: Recommended",
+      wallets: [coinbaseWallet],
+    },
+    {
+      groupName: "Others",
+      wallets: [rainbowWallet, walletConnectWallet],
     },
   ],
   {
