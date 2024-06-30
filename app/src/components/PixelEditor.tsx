@@ -55,6 +55,9 @@ const PixelEditor: React.FC = () => {
 
   useEffect(() => {
     const preventDefault = (e: Event) => {
+      if (e.target instanceof HTMLSelectElement) {
+        return;
+      }
       if (e.cancelable) {
         e.preventDefault();
       }
