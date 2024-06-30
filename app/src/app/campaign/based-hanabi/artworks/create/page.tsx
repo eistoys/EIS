@@ -31,9 +31,9 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
   ]);
 
   return (
-    <div className={`${mode == "info" && "pb-[70px]"}`}>
+    <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
       {mode == "create" && (
-        <div>
+        <div className="flex flex-col flex-grow justify-center">
           <PixelEditor />
         </div>
       )}

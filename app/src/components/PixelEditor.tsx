@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   FaRedo,
   FaUndo,
@@ -24,8 +24,18 @@ const canvasPixelCount = 64;
 const downloadSize = 256;
 
 const PixelEditor: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gridCanvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useCallback((node: HTMLCanvasElement) => {
+    if (node !== null) {
+      setCanvas(node);
+    }
+  }, []);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const gridCanvasRef = useCallback((node: HTMLCanvasElement) => {
+    if (node !== null) {
+      setGridCanvas(node);
+    }
+  }, []);
+  const [gridCanvas, setGridCanvas] = useState<HTMLCanvasElement | null>(null);
   const [currentColor, setCurrentColor] = useState<string>("#000000");
   const [pixels, setPixels] = useState<Pixel[]>([]);
   const [history, setHistory] = useState<Pixel[][]>([]);
@@ -86,7 +96,7 @@ const PixelEditor: React.FC = () => {
   };
   useEffect(() => {
     const handleResize = () => {
-      let width = Math.min(window.innerWidth, window.innerHeight - 270);
+      let width = Math.min(window.innerWidth, window.innerHeight - 300);
       const newPixelSize = Math.max(1, Math.floor(width / canvasPixelCount));
       setPixelSize(newPixelSize);
     };
@@ -100,30 +110,25 @@ const PixelEditor: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!canvas) {
+      return;
+    }
     const preventDefault = (e: Event) => {
-      console.log(e.target);
-
-      if (
-        e.target instanceof HTMLSelectElement ||
-        e.target instanceof HTMLButtonElement
-      ) {
-        return;
-      }
       if (e.cancelable) {
         e.preventDefault();
       }
     };
-    window.addEventListener("touchstart", preventDefault, { passive: false });
-    window.addEventListener("touchmove", preventDefault, { passive: false });
-    window.addEventListener("mousedown", preventDefault);
-    window.addEventListener("mousemove", preventDefault);
+    canvas.addEventListener("touchstart", preventDefault, { passive: false });
+    canvas.addEventListener("touchmove", preventDefault, { passive: false });
+    canvas.addEventListener("mousedown", preventDefault);
+    canvas.addEventListener("mousemove", preventDefault);
     return () => {
-      window.removeEventListener("touchstart", preventDefault);
-      window.removeEventListener("touchmove", preventDefault);
-      window.removeEventListener("mousedown", preventDefault);
-      window.removeEventListener("mousemove", preventDefault);
+      canvas.removeEventListener("touchstart", preventDefault);
+      canvas.removeEventListener("touchmove", preventDefault);
+      canvas.removeEventListener("mousedown", preventDefault);
+      canvas.removeEventListener("mousemove", preventDefault);
     };
-  }, []);
+  }, [canvas]);
 
   useEffect(() => {
     const setIsDrawingFalse = () => {
@@ -138,19 +143,20 @@ const PixelEditor: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        clearCanvas(ctx);
-        drawPixels(ctx);
-      }
+    if (!canvas) {
+      return;
     }
-  }, [pixels, pixelSize, camera]);
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      clearCanvas(ctx);
+      drawPixels(ctx);
+    }
+  }, [canvas, pixels, pixelSize, camera]);
 
   useEffect(() => {
-    const gridCanvas = gridCanvasRef.current;
-    if (!gridCanvas) return;
+    if (!gridCanvas) {
+      return;
+    }
 
     const ctx = gridCanvas.getContext("2d");
     if (!ctx) return;
@@ -174,7 +180,7 @@ const PixelEditor: React.FC = () => {
       ctx.stroke();
       ctx.restore();
     }
-  }, [showGrid, pixelSize, cellSize, camera]);
+  }, [gridCanvas, showGrid, pixelSize, cellSize, camera]);
 
   const addToHistory = (newPixels: Pixel[]) => {
     if (
@@ -294,27 +300,27 @@ const PixelEditor: React.FC = () => {
   };
 
   const handleStart = (clientX: number, clientY: number) => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.floor(
-        (clientX - rect.left - camera.x) / (pixelSize * camera.zoom)
-      );
-      const y = Math.floor(
-        (clientY - rect.top - camera.y) / (pixelSize * camera.zoom)
-      );
-      setIsDrawing(true);
+    if (!canvas) {
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor(
+      (clientX - rect.left - camera.x) / (pixelSize * camera.zoom)
+    );
+    const y = Math.floor(
+      (clientY - rect.top - camera.y) / (pixelSize * camera.zoom)
+    );
+    setIsDrawing(true);
 
-      if (mode === "camera") {
-        setLastMousePos({ x: clientX, y: clientY });
-      } else {
-        draw(x, y);
-      }
+    if (mode === "camera") {
+      setLastMousePos({ x: clientX, y: clientY });
+    } else {
+      draw(x, y);
     }
   };
 
   const handleMove = (clientX: number, clientY: number) => {
-    const canvas = canvasRef.current;
+    // const canvas = canvasRef.current;
     if (!canvas || !isDrawing) return;
 
     if (mode === "camera") {
@@ -336,11 +342,23 @@ const PixelEditor: React.FC = () => {
   };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    handleStart(event.clientX, event.clientY);
+    if (mode == "pen" || mode == "eraser") {
+      const offsetX = event.clientX + (pixelSize * cellSize) / 2;
+      const offsetY = event.clientY + (pixelSize * cellSize) / 2;
+      handleStart(offsetX, offsetY);
+    } else {
+      handleStart(event.clientX, event.clientY);
+    }
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    handleMove(event.clientX, event.clientY);
+    if (mode == "pen" || mode == "eraser") {
+      const offsetX = event.clientX + (pixelSize * cellSize) / 2;
+      const offsetY = event.clientY + (pixelSize * cellSize) / 2;
+      handleMove(offsetX, offsetY);
+    } else {
+      handleMove(event.clientX, event.clientY);
+    }
   };
 
   const handleTouchStart = (event: React.TouchEvent<HTMLCanvasElement>) => {
@@ -438,21 +456,22 @@ const PixelEditor: React.FC = () => {
   };
 
   const convertCanvasToImage = () => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const sellSize = downloadSize / canvasPixelCount;
-      const offScreenCanvas = document.createElement("canvas");
-      offScreenCanvas.width = downloadSize;
-      offScreenCanvas.height = downloadSize;
-      const ctx = offScreenCanvas.getContext("2d");
-      if (ctx) {
-        pixels.forEach(({ x, y, color }) => {
-          ctx.fillStyle = color;
-          ctx.fillRect(x * sellSize, y * sellSize, sellSize, sellSize);
-        });
-        return offScreenCanvas.toDataURL("image/png");
-      }
+    if (!canvas) {
+      return;
     }
+    const sellSize = downloadSize / canvasPixelCount;
+    const offScreenCanvas = document.createElement("canvas");
+    offScreenCanvas.width = downloadSize;
+    offScreenCanvas.height = downloadSize;
+    const ctx = offScreenCanvas.getContext("2d");
+    if (ctx) {
+      pixels.forEach(({ x, y, color }) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(x * sellSize, y * sellSize, sellSize, sellSize);
+      });
+      return offScreenCanvas.toDataURL("image/png");
+    }
+
     return null;
   };
 
@@ -469,14 +488,36 @@ const PixelEditor: React.FC = () => {
   };
 
   const createSquareCursor = () => {
-    let size = pixelSize * cellSize * penSize;
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     if (!context) return "";
-    canvas.width = size;
-    canvas.height = size;
-    context.fillStyle = mode === "pen" ? currentColor : "white";
-    context.fillRect(0, 0, size, size);
+    const cursorSize = pixelSize * cellSize * penSize;
+    canvas.width = cursorSize;
+    canvas.height = cursorSize;
+
+    const isColorMoreBlackOrWhite = (color: string) => {
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness < 128 ? "white" : "black";
+    };
+
+    if (mode === "pen") {
+      context.fillStyle = currentColor;
+      context.fillRect(0, 0, cursorSize, cursorSize);
+      const borderColor = isColorMoreBlackOrWhite(currentColor);
+      context.strokeStyle = borderColor;
+      context.lineWidth = 2; // Adjust the border thickness as needed
+      context.strokeRect(0, 0, cursorSize, cursorSize);
+    } else if (mode === "eraser") {
+      context.fillStyle = "white";
+      context.fillRect(0, 0, cursorSize, cursorSize);
+      context.strokeStyle = "black";
+      context.lineWidth = 2;
+      context.strokeRect(0, 0, cursorSize, cursorSize);
+    }
+
     return canvas.toDataURL();
   };
 
@@ -485,15 +526,17 @@ const PixelEditor: React.FC = () => {
       return `url(${createSquareCursor()}) ${pixelSize / 2} ${
         pixelSize / 2
       }, auto`;
+    } else {
+      return "pointer";
     }
-    return "auto";
   };
 
   useEffect(() => {
-    if (canvasRef.current) {
-      canvasRef.current.style.cursor = getCursorStyle();
+    if (!canvas) {
+      return;
     }
-  }, [pixelSize, cellSize, penSize, currentColor]);
+    canvas.style.cursor = getCursorStyle();
+  }, [canvas, mode, pixelSize, cellSize, penSize, currentColor]);
 
   return (
     <>

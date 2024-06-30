@@ -16,6 +16,7 @@
     "encoding": "^0.1.13",
     "frames.js": "^0.16.5",
     "graphql": "^16.9.0",
+    "html2canvas": "^1.4.1",
     "next": "14.2.3",
     "pino-pretty": "^11.1.0",
     "react": "^18",
