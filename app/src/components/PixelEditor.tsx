@@ -15,6 +15,9 @@ import {
 import { BiMove } from "react-icons/bi";
 import { MdGridView } from "react-icons/md";
 
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Eye, EyeOff, Trash2, ChevronDown, Layers3 } from "lucide-react";
+
 interface Pixel {
   x: number;
   y: number;
@@ -23,8 +26,10 @@ interface Pixel {
 
 interface Layer {
   id: number;
+  name: string;
   pixels: Pixel[];
   visible: boolean;
+  opacity: number;
 }
 
 interface HistoryEntry {
@@ -66,10 +71,17 @@ const PixelEditor: React.FC = () => {
 
   const [currentDrawing, setCurrentDrawing] = useState<Pixel[]>([]);
 
+  const defaultLayerId = Date.now();
   const [layers, setLayers] = useState<Layer[]>([
-    { id: 1, pixels: [], visible: true },
+    {
+      id: defaultLayerId,
+      name: "Layer 1",
+      pixels: [],
+      visible: true,
+      opacity: 100,
+    },
   ]);
-  const [activeLayerId, setActiveLayerId] = useState<number>(1);
+  const [activeLayerId, setActiveLayerId] = useState<number>(defaultLayerId);
   const [showLayerModal, setShowLayerModal] = useState<boolean>(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
@@ -165,24 +177,42 @@ const PixelEditor: React.FC = () => {
     ctx.save();
     ctx.translate(camera.x, camera.y);
     ctx.scale(camera.zoom, camera.zoom);
-    layers.forEach((layer) => {
-      if (layer.visible) {
-        layer.pixels.forEach(({ x, y, color }) => {
-          ctx.fillStyle = color;
-          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-        });
-      }
-    });
+    [...layers]
+      .reverse()
+      .sort()
+      .forEach((layer) => {
+        if (layer.visible) {
+          ctx.globalAlpha = layer.opacity;
+          layer.pixels.forEach(({ x, y, color }) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+          });
+        }
+      });
     ctx.restore();
   };
 
-  const addLayer = () => {
+  const addNewLayer = () => {
+    const existingLayerNumbers = layers
+      .map((layer) => parseInt(layer.name.replace("Layer ", "")))
+      .sort((a, b) => a - b);
+
+    let nextLayerNumber = 1;
+    for (let i = 0; i < existingLayerNumbers.length; i++) {
+      if (existingLayerNumbers[i] !== nextLayerNumber) {
+        break;
+      }
+      nextLayerNumber++;
+    }
+
     const newLayer: Layer = {
-      id: layers.length + 1,
+      id: Date.now(),
+      name: `Layer ${nextLayerNumber}`,
       pixels: [],
       visible: true,
+      opacity: 1,
     };
-    setLayers([...layers, newLayer]);
+    setLayers([newLayer, ...layers]);
     setActiveLayerId(newLayer.id);
   };
 
@@ -199,7 +229,7 @@ const PixelEditor: React.FC = () => {
       const newLayers = layers.filter((layer) => layer.id !== id);
       setLayers(newLayers);
       if (activeLayerId === id) {
-        setActiveLayerId(newLayers[newLayers.length - 1].id);
+        setActiveLayerId(newLayers[0].id);
       }
     }
   };
@@ -436,24 +466,24 @@ const PixelEditor: React.FC = () => {
 
   const handleUndo = () => {
     if (history.length > 0) {
-      console.log("undo");
-      console.log("history", history);
-
       const newHistory = [...history];
-      console.log("newHistory", newHistory);
-
       const currentState = newHistory.pop();
       const previousState = newHistory[newHistory.length - 1];
-
-      console.log("currentState", currentState);
-      console.log("previousState", previousState);
-
       if (currentState) {
         setRedoStack((prevRedoStack) => [...prevRedoStack, currentState]);
+        const layerId = Date.now();
         setLayers(
-          previousState?.layers || [{ id: 1, pixels: [], visible: true }]
+          previousState?.layers || [
+            {
+              id: layerId,
+              name: "Layer 1",
+              pixels: [],
+              visible: true,
+              opacity: 100,
+            },
+          ]
         );
-        setActiveLayerId(previousState?.activeLayerId || 1);
+        setActiveLayerId(previousState?.activeLayerId || layerId);
         setHistory(newHistory);
       }
     }
@@ -559,14 +589,18 @@ const PixelEditor: React.FC = () => {
     if (ctx) {
       const cellSize = downloadSize / canvasPixelCount;
 
-      layers.forEach((layer) => {
-        if (layer.visible) {
-          layer.pixels.forEach(({ x, y, color }) => {
-            ctx.fillStyle = color;
-            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-          });
-        }
-      });
+      [...layers]
+        .reverse()
+        .sort()
+        .forEach((layer) => {
+          if (layer.visible) {
+            ctx.globalAlpha = layer.opacity;
+            layer.pixels.forEach(({ x, y, color }) => {
+              ctx.fillStyle = color;
+              ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            });
+          }
+        });
 
       return offScreenCanvas.toDataURL("image/png");
     }
@@ -637,6 +671,45 @@ const PixelEditor: React.FC = () => {
     canvas.style.cursor = getCursorStyle();
   }, [canvas, mode, pixelSize, cellSize, penSize, currentColor]);
 
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) {
+      return;
+    }
+    const items = Array.from(layers);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setLayers(items);
+  };
+
+  const changeLayerOpacity = (id: number, opacity: number) => {
+    setLayers(
+      layers.map((layer) => (layer.id === id ? { ...layer, opacity } : layer))
+    );
+  };
+
+  const generatePreview = (layer: Layer) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.globalAlpha = layer.opacity;
+      layer.pixels.forEach(({ x, y, color }) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(x / 2, y / 2, 1, 1);
+      });
+    }
+    return canvas.toDataURL();
+  };
+
+  const handleLayerNameChange = (id: number, newName: string) => {
+    setLayers(
+      layers.map((layer) =>
+        layer.id === id ? { ...layer, name: newName } : layer
+      )
+    );
+  };
+
   return (
     <>
       {pixelSize > 1 && (
@@ -683,9 +756,15 @@ const PixelEditor: React.FC = () => {
             </select>
             <button
               onClick={() => setShowLayerModal(true)}
-              className="p-2 border border-gray-200 rounded-md"
+              className="p-1 border border-gray-200 rounded-md"
             >
-              <FaLayerGroup className="text-white" />
+              <Layers3 className="text-white" size={24} />
+            </button>
+            <button
+              onClick={() => setShowLayerModal(true)}
+              className="p-1 border border-gray-200 rounded-md"
+            >
+              <ChevronDown className="text-white" size={24} />
             </button>
             <label
               htmlFor="file-upload"
@@ -772,6 +851,7 @@ const PixelEditor: React.FC = () => {
                 }`}
               />
             </button>
+
             <input
               type="color"
               value={currentColor}
@@ -792,44 +872,112 @@ const PixelEditor: React.FC = () => {
         </div>
       )}
       {showLayerModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-md">
-            <h2 className="text-xl font-bold mb-4">Layers</h2>
-            <ul>
-              {layers.map((layer) => (
-                <li key={layer.id} className="flex items-center mb-2">
-                  <input
-                    type="radio"
-                    checked={layer.id === activeLayerId}
-                    onChange={() => setActiveLayerId(layer.id)}
-                  />
-                  <button
-                    onClick={() => toggleLayerVisibility(layer.id)}
-                    className="ml-2 p-1 bg-gray-200 rounded-md"
-                  >
-                    {layer.visible ? "Hide" : "Show"}
-                  </button>
-                  <button
-                    onClick={() => removeLayer(layer.id)}
-                    className="ml-2 p-1 bg-red-200 rounded-md"
-                    disabled={layers.length === 1}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Layer</h2>
+              <button
+                onClick={() => setShowLayerModal(false)}
+                className="text-white hover:text-gray-400 text-2xl"
+              >
+                &times;
+              </button>
+            </div>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="layers">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {layers.map((layer, index) => (
+                      <Draggable
+                        key={layer.id.toString()}
+                        draggableId={layer.id.toString()}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <li
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`flex items-center p-2 mb-2 rounded ${
+                              layer.id === activeLayerId
+                                ? "bg-white text-black"
+                                : "bg-gray-700 text-white"
+                            }`}
+                            onClick={() => {
+                              setActiveLayerId(layer.id);
+                            }}
+                          >
+                            <img
+                              src={generatePreview(layer)}
+                              alt={layer.name}
+                              className="w-8 h-8 mr-2 border border-gray-800 rounded"
+                            />
+                            <div className="flex-grow">
+                              <input
+                                type="text"
+                                value={layer.name}
+                                onChange={(e) =>
+                                  handleLayerNameChange(
+                                    layer.id,
+                                    e.target.value
+                                  )
+                                }
+                                className="bg-gray-600 text-white rounded px-2 py-1 w-24 md:w-40"
+                              />
+                            </div>
+
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.1"
+                              value={layer.opacity}
+                              onChange={(e) =>
+                                changeLayerOpacity(
+                                  layer.id,
+                                  parseFloat(e.target.value)
+                                )
+                              }
+                              className="w-20 mr-4"
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLayerVisibility(layer.id);
+                              }}
+                              className="mr-4"
+                            >
+                              {layer.visible ? (
+                                <Eye size={24} />
+                              ) : (
+                                <EyeOff size={24} />
+                              )}
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeLayer(layer.id);
+                              }}
+                              disabled={layers.length == 1}
+                              className="disabled:opacity-25 disabled:cursor-not-allowed"
+                            >
+                              <Trash2 size={24} />
+                            </button>
+                          </li>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
             <button
-              onClick={addLayer}
-              className="mt-4 p-2 bg-blue-500 text-white rounded-md"
+              onClick={addNewLayer}
+              className="w-full py-2 mt-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-25 disabled:cursor-not-allowed"
+              disabled={layers.length === 5}
             >
-              Add Layer
-            </button>
-            <button
-              onClick={() => setShowLayerModal(false)}
-              className="mt-4 ml-2 p-2 bg-gray-500 text-white rounded-md"
-            >
-              Close
+              +
             </button>
           </div>
         </div>
