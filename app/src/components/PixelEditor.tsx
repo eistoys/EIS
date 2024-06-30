@@ -55,6 +55,8 @@ const PixelEditor: React.FC = () => {
   const [cameraZoomFactor, setCameraZoomFactor] = useState(1);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
 
+  const [currentDrawing, setCurrentDrawing] = useState<Pixel[]>([]);
+
   const handleZoomIn = () => {
     setCameraZoomFactor((prev) => Math.min(8, prev + 1));
   };
@@ -131,18 +133,6 @@ const PixelEditor: React.FC = () => {
   }, [canvas]);
 
   useEffect(() => {
-    const setIsDrawingFalse = () => {
-      setIsDrawing(false);
-    };
-    window.addEventListener("mouseup", setIsDrawingFalse);
-    window.addEventListener("touchend", setIsDrawingFalse);
-    return () => {
-      window.removeEventListener("mouseup", setIsDrawingFalse);
-      window.removeEventListener("touchend", setIsDrawingFalse);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!canvas) {
       return;
     }
@@ -182,16 +172,20 @@ const PixelEditor: React.FC = () => {
     }
   }, [gridCanvas, showGrid, pixelSize, cellSize, camera]);
 
-  const addToHistory = (newPixels: Pixel[]) => {
-    if (
-      history.length > 0 &&
-      JSON.stringify(history[history.length - 1]) === JSON.stringify(newPixels)
-    ) {
-      return;
-    }
-    setHistory([...history, newPixels]);
-    setRedoStack([]);
-  };
+  const addToHistory = useCallback(
+    (newPixels: Pixel[]) => {
+      if (
+        history.length > 0 &&
+        JSON.stringify(history[history.length - 1]) ===
+          JSON.stringify(newPixels)
+      ) {
+        return;
+      }
+      setHistory((prevHistory) => [...prevHistory, newPixels]);
+      setRedoStack([]);
+    },
+    [history]
+  );
 
   const clearCanvas = (ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -296,7 +290,7 @@ const PixelEditor: React.FC = () => {
     }
 
     setPixels(newPixels);
-    addToHistory(newPixels);
+    setCurrentDrawing(newPixels);
   };
 
   const handleStart = (clientX: number, clientY: number) => {
@@ -318,6 +312,23 @@ const PixelEditor: React.FC = () => {
       draw(x, y);
     }
   };
+
+  const handleEnd = useCallback(() => {
+    setIsDrawing(false);
+    if (currentDrawing.length > 0) {
+      addToHistory(currentDrawing);
+      setCurrentDrawing([]);
+    }
+  }, [currentDrawing, addToHistory]);
+
+  useEffect(() => {
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchend", handleEnd);
+    return () => {
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchend", handleEnd);
+    };
+  }, [handleEnd]);
 
   const handleMove = (clientX: number, clientY: number) => {
     // const canvas = canvasRef.current;
