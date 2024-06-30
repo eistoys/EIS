@@ -275,7 +275,16 @@ const PixelEditor: React.FC = () => {
       layers,
       activeLayerId,
     };
-    setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+    setHistory((prevHistory) => {
+      const lastEntry = prevHistory[prevHistory.length - 1];
+      const isDuplicate =
+        lastEntry &&
+        JSON.stringify(lastEntry) === JSON.stringify(newHistoryEntry);
+      if (!isDuplicate) {
+        return [...prevHistory, newHistoryEntry];
+      }
+      return prevHistory;
+    });
     setRedoStack([]);
   }, [layers, activeLayerId]);
 
