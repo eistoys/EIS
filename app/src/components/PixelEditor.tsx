@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
@@ -22,6 +29,10 @@ import {
   Palette,
   Dices,
 } from "lucide-react";
+
+export interface PixelEditorRef {
+  getImageDataURL: () => string;
+}
 
 interface Pixel {
   x: number;
@@ -49,7 +60,7 @@ const maxZoomFactor = 8;
 const maxLayerCount = 6;
 const maxColorCount = 12;
 
-const PixelEditor: React.FC = () => {
+export const PixelEditor = forwardRef<PixelEditorRef>((props, ref) => {
   const canvasRef = useCallback((node: HTMLCanvasElement) => {
     if (node !== null) {
       setCanvas(node);
@@ -675,6 +686,13 @@ const PixelEditor: React.FC = () => {
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    getImageDataURL() {
+      const imageDataURL = convertCanvasToImage();
+      return imageDataURL as string;
+    },
+  }));
+
   const createSquareCursor = () => {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -1252,6 +1270,6 @@ const PixelEditor: React.FC = () => {
       )}
     </>
   );
-};
+});
 
 export default PixelEditor;
