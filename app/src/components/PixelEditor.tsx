@@ -44,6 +44,7 @@ const canvasPixelCount = 64;
 const downloadSize = 256;
 const minZoomFactor = 1;
 const maxZoomFactor = 8;
+const maxLayerCount = 6;
 
 const PixelEditor: React.FC = () => {
   const canvasRef = useCallback((node: HTMLCanvasElement) => {
@@ -730,56 +731,61 @@ const PixelEditor: React.FC = () => {
     <>
       {pixelSize > 1 && (
         <div className="flex flex-col items-center">
-          <div className="flex items-center gap-2 py-4">
-            <button
-              onClick={handleUndo}
-              className="p-1 border border-gray-200 rounded-md"
-            >
-              <Undo className="text-white" size={24} />
-            </button>
-            <button
-              onClick={handleRedo}
-              className="p-1 border border-gray-200 rounded-md"
-            >
-              <Redo className="text-white" size={24} />
-            </button>
-            <button
-              onClick={handleZoomIn}
-              className={`p-1 border border-gray-200 rounded-md ${
-                cameraZoomFactor === maxZoomFactor &&
-                "opacity-25 cursor-not-allowed"
-              }`}
-            >
-              <ZoomIn className="text-white" size={24} />
-            </button>
-            <button
-              onClick={handleZoomOut}
-              className={`p-1 border border-gray-200 rounded-md ${
-                cameraZoomFactor === minZoomFactor &&
-                "opacity-25 cursor-not-allowed"
-              }`}
-            >
-              <ZoomOut className="text-white" size={24} />
-            </button>
-
-            <button
-              onClick={() => setShowGrid(!showGrid)}
-              className={`p-1 border border-gray-200 rounded-md ${
-                showGrid && "bg-[#FFD582]"
-              }`}
-            >
-              <Grid
-                className="text-white"
-                size={24}
-                color={showGrid ? "#191D88" : "white"}
-              />
-            </button>
-            <button
-              onClick={() => setShowLayerModal(true)}
-              className="p-1 border border-gray-200 rounded-md"
-            >
-              <Layers3 className="text-white" size={24} />
-            </button>
+          <div className="flex items-center space-x-4 py-4">
+            <div className="space-x-2">
+              <button
+                onClick={handleUndo}
+                className="p-1 border border-gray-200 rounded-md"
+              >
+                <Undo className="text-white" size={24} />
+              </button>
+              <button
+                onClick={handleRedo}
+                className="p-1 border border-gray-200 rounded-md"
+              >
+                <Redo className="text-white" size={24} />
+              </button>
+            </div>
+            <div className="space-x-2">
+              <button
+                onClick={handleZoomIn}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  cameraZoomFactor === maxZoomFactor &&
+                  "opacity-25 cursor-not-allowed"
+                }`}
+              >
+                <ZoomIn className="text-white" size={24} />
+              </button>
+              <button
+                onClick={handleZoomOut}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  cameraZoomFactor === minZoomFactor &&
+                  "opacity-25 cursor-not-allowed"
+                }`}
+              >
+                <ZoomOut className="text-white" size={24} />
+              </button>
+            </div>
+            <div className="space-x-2">
+              <button
+                onClick={() => setShowGrid(!showGrid)}
+                className={`p-1 border border-gray-200 rounded-md ${
+                  showGrid && "bg-[#FFD582]"
+                }`}
+              >
+                <Grid
+                  className="text-white"
+                  size={24}
+                  color={showGrid ? "#191D88" : "white"}
+                />
+              </button>
+              <button
+                onClick={() => setShowLayerModal(true)}
+                className="p-1 border border-gray-200 rounded-md"
+              >
+                <Layers3 className="text-white" size={24} />
+              </button>
+            </div>
             <div className="relative">
               <button
                 onClick={() => setShowMenu(true)}
@@ -1040,7 +1046,7 @@ const PixelEditor: React.FC = () => {
             <button
               onClick={addNewLayer}
               className="w-full py-2 mt-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-25 disabled:cursor-not-allowed"
-              disabled={layers.length === 5}
+              disabled={layers.length === maxLayerCount}
             >
               +
             </button>
