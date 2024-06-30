@@ -1,8 +1,8 @@
 "use client";
 
-import PixelEditor from "@/components/PixelEditor";
+import PixelEditor, { PixelEditorRef } from "@/components/PixelEditor";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 
@@ -30,9 +30,15 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
     { tokenId: BigInt(3), image: "https://placehold.co/500" },
   ]);
 
+  const editorRef = useRef<PixelEditorRef>(null);
+
   return (
-    <div className="pb-[70px]">
-      {mode == "create" && <PixelEditor />}
+    <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
+      {mode == "create" && (
+        <div className="flex flex-col flex-grow py-4">
+          <PixelEditor ref={editorRef} />
+        </div>
+      )}
       {mode == "info" && (
         <div className="flex border-b border-solid border-[#888888] px-4 flex-grow">
           <div className="flex flex-col md:flex-row w-full">
@@ -161,6 +167,10 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
           onClick={() => {
             if (mode == "create") {
               setMode("info");
+              if (editorRef.current) {
+                const image = editorRef.current.getImageDataURL();
+                setImageDataURL(image);
+              }
             } else {
               setIsModalOpen(true);
               setModalMode("loading");
