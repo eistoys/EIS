@@ -1,19 +1,6 @@
 import hre from "hardhat";
-import { Hex, parseEther } from "viem";
+import { Hex, parseEther, Address } from "viem";
 import { expect } from "chai";
-
-import {
-  BASIS_POINTS_BASE,
-  DISTRIBUTION_INCENTIVE,
-  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-  TREASURY_ADDRESS,
-  ZORA_1155_FACTORY_ADDRESS,
-  EIS_NAME,
-  EIS_DESCRIPTION,
-  ZORA_CONTRACT_BASE_ID,
-  MAX_UINT_256,
-  ZORA_BASE_FEE,
-} from "../config";
 
 import { getContract, encodeAbiParameters, parseAbiParameters } from "viem";
 
@@ -23,6 +10,26 @@ import { chunk } from "./utils";
 
 import { smallPngImageHex, expectedLoadedImageForSmallPngImage } from "./data";
 import { zoraCreator1155ImplAbi } from "./abis/ZoraCreator1155Impl";
+import {
+  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
+  ZORA_1155_FACTORY_ADDRESS,
+  ZORA_BASE_FEE,
+  ZORA_CONTRACT_BASE_ID,
+} from "../config";
+
+const TREASURY_ADDRESS =
+  "0xc0797bd75cd3f34ee1cd046f03d9c85b36c2fd01" as Address;
+
+const BASIS_POINTS_BASE = BigInt("10000");
+const DISTRIBUTION_INCENTIVE = 100;
+
+const EIS_NAME = "EIS";
+const EIS_DESCRIPTION =
+  "Ethereum Image Service is an Infinite Remixable CC0 Garden.";
+
+const MAX_UINT_256 = BigInt(
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+);
 
 const name = "name";
 const description = "description";
