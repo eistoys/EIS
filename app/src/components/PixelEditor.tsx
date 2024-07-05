@@ -583,17 +583,17 @@ export const PixelEditor = forwardRef<PixelEditorRef>((props, ref) => {
           const ctx = canvas.getContext("2d");
 
           if (ctx) {
-            ctx.drawImage(
-              img,
-              0,
-              0,
-              img.width,
-              img.height,
-              0,
-              0,
-              canvasPixelCount,
-              canvasPixelCount
+            const scale = Math.min(
+              canvasPixelCount / img.width,
+              canvasPixelCount / img.height
             );
+            const scaledWidth = img.width * scale;
+            const scaledHeight = img.height * scale;
+            const offsetX = (canvasPixelCount - scaledWidth) / 2;
+            const offsetY = (canvasPixelCount - scaledHeight) / 2;
+
+            ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
+
             const imageData = ctx.getImageData(
               0,
               0,
@@ -620,18 +620,7 @@ export const PixelEditor = forwardRef<PixelEditorRef>((props, ref) => {
             setLayers((prevLayers) => {
               return prevLayers.map((layer) => {
                 if (layer.id === activeLayerId) {
-                  const updatedPixels = [...layer.pixels];
-                  newPixels.forEach((newPixel) => {
-                    const existingPixelIndex = updatedPixels.findIndex(
-                      (p) => p.x === newPixel.x && p.y === newPixel.y
-                    );
-                    if (existingPixelIndex !== -1) {
-                      updatedPixels[existingPixelIndex] = newPixel;
-                    } else {
-                      updatedPixels.push(newPixel);
-                    }
-                  });
-                  return { ...layer, pixels: updatedPixels };
+                  return { ...layer, pixels: newPixels };
                 }
                 return layer;
               });

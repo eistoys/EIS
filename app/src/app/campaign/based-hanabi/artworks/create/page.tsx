@@ -40,8 +40,6 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
 
   const { data: hash, writeContract, reset, error } = useWriteContract();
 
-  console.log("error", error);
-
   const { data } = useWaitForTransactionReceipt({
     hash,
   });
@@ -203,6 +201,7 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
                 setImageDataURL(image);
               }
             } else {
+              reset();
               setIsModalOpen(true);
               setModalMode("loading");
               const escapedTitle = escapeString(title);

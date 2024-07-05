@@ -49,7 +49,6 @@ export default function CampaignBasedHanabiPage() {
     if (!leaderboardData) {
       return [];
     }
-    console.log("leaderboardData", leaderboardData);
     return leaderboardData.hanabiRecords.map((record: any) => {
       return {
         image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
