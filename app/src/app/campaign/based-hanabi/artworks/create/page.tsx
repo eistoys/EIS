@@ -2,9 +2,17 @@
 
 import PixelEditor, { PixelEditorRef } from "@/components/PixelEditor";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
+
+import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
+import { eisHanabiAbi } from "../../_lib/eis/abi";
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { escapeString } from "@/lib/utils";
+import { chunk } from "@/lib/eis/chunk";
+import solady from "solady";
+import { Hex } from "viem";
 
 export default function CampaignBasedHanabiArtworkCreatePage() {
   const [mode, setMode] = useState<"create" | "info">("create");
@@ -30,7 +38,30 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
     { tokenId: BigInt(3), image: "https://placehold.co/500" },
   ]);
 
+  const { data: hash, writeContract, reset, error } = useWriteContract();
+
+  console.log("error", error);
+
+  const { data } = useWaitForTransactionReceipt({
+    hash,
+  });
+
   const editorRef = useRef<PixelEditorRef>(null);
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    console.log("data", data);
+    const event = data.logs[data.logs.length - 1];
+    const tokenIdHex = event.topics[1];
+    if (!tokenIdHex) {
+      return;
+    }
+    const tokenId = parseInt(tokenIdHex, 16);
+    setCreatedTokenId(tokenId.toString());
+    setModalMode("created");
+  }, [data]);
 
   return (
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
@@ -174,9 +205,26 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
             } else {
               setIsModalOpen(true);
               setModalMode("loading");
-              setTimeout(() => {
-                setModalMode("created");
-              }, 3000);
+              const escapedTitle = escapeString(title);
+              const escapedDescription = escapeString(description);
+              const base64 = imageDataURL.split(",")[1];
+              const buffer = Buffer.from(base64, "base64");
+              const imageHex = buffer.toString("hex");
+              const zippedHexImage = solady.LibZip.flzCompress(imageHex) as Hex;
+              writeContract({
+                address: EIS_HANABI_ADDRESS,
+                abi: eisHanabiAbi,
+                functionName: "create",
+                args: [
+                  escapedTitle,
+                  escapedDescription,
+                  1,
+                  "image/png",
+                  chunk(zippedHexImage),
+                  [],
+                  true,
+                ],
+              });
             }
           }}
         >

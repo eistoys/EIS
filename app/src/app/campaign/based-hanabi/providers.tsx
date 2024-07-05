@@ -22,7 +22,7 @@ export const wagmiConfigWithConnecter = createConfig({
 const queryClient = new QueryClient();
 
 const apolloClient = new ApolloClient({
-  uri: "https://api.studio.thegraph.com/query/70647/eis/6",
+  uri: "https://api.studio.thegraph.com/query/70647/eis/7",
   cache: new InMemoryCache(),
 });
 
