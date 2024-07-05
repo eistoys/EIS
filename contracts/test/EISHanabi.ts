@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { Hex, parseEther, getContract } from "viem";
+import { Hex, parseEther, getContract, formatEther } from "viem";
 import { expect } from "chai";
 
 import solady from "solady";
@@ -27,9 +27,9 @@ const pngMimeType = "image/png";
 
 const fixedMintFee = parseEther("0.001");
 const basisPointsBase = 10000n;
-const protocolFeeBasisPoints = 1000n; // 10%
-const collectionOwnerFeeBasisPoints = 4500n; // 45%
-const remixFeeBasisPoints = 1000n; // 10%
+const protocolFeeBasisPoints = 1000n;
+const collectionOwnerFeeBasisPoints = 4500n;
+const remixFeeBasisPoints = 1000n;
 
 const getFixture = async () => {
   const publicClient = await hre.viem.getPublicClient();
@@ -105,6 +105,14 @@ describe("EISHanabi", function () {
       const record = await eisHanabi.read.records([tokenId]);
       expect(record[1]).to.equal(name);
       expect(record[2]).to.equal(description);
+
+      const imageDataUrl = await eisHanabi.read.loadImageDataUrl([tokenId]);
+      const tokenURI = await eisHanabi.read.uri([tokenId]);
+      const metadata = JSON.parse(
+        tokenURI.split("data:application/json;utf8,")[1]
+      );
+      expect(metadata.image).to.equal(imageDataUrl);
+      console.log("imageDataUrl", imageDataUrl);
     });
   });
 
@@ -275,7 +283,7 @@ describe("EISHanabi", function () {
       expect(finalWarehouseBalance).to.equal(SPLIT_REMAINS);
     });
 
-    it("Should correctly distribute fees for remixed NFTs", async function () {
+    it.only("Should correctly distribute fees for remixed NFTs", async function () {
       const {
         publicClient,
         protocolTreasury,
@@ -422,6 +430,23 @@ describe("EISHanabi", function () {
 
       expect(finalOriginalCreatorWarehouseBalance).to.equal(SPLIT_REMAINS);
       expect(finalRemixerWarehouseBalance).to.equal(SPLIT_REMAINS);
+
+      console.log("=== LOG ===");
+      console.log("Fee Distribution for Remixed NFT:");
+      console.log(`Total Mint Price: ${formatEther(fixedMintFee)} ETH`);
+      console.log(
+        `Protocol Fee: ${formatEther(expectedProtocolFee)} ETH (${protocolFeeBasisPoints / 100n}%)`
+      );
+      console.log(
+        `Collection Owner Fee: ${formatEther(expectedCollectionOwnerFee)} ETH (${collectionOwnerFeeBasisPoints / 100n}%)`
+      );
+      console.log(`Total Creator Fee: ${formatEther(totalCreatorFee)} ETH`);
+      console.log(
+        `  Original Creator Fee: ${formatEther(expectedRemixFee)} ETH (${remixFeeBasisPoints / 100n}% of Creator Fee)`
+      );
+      console.log(
+        `  Remixer Fee: ${formatEther(expectedCreatorFee)} ETH (${(10000n - remixFeeBasisPoints) / 100n}% of Creator Fee)`
+      );
     });
   });
 });
