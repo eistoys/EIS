@@ -1,22 +1,21 @@
 import hre from "hardhat";
-import {
-  BASIS_POINTS_BASE,
-  DISTRIBUTION_INCENTIVE,
-  FIXED_MINT_FEE,
-  FRONTEND_FEE_BASIS_POINTS,
-  PROTOCOL_FEE_BASIS_POINTS,
-  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-  ROYALTY_BASIS_POINTS,
-  TREASURY_ADDRESS,
-  ZORA_1155_FACTORY_ADDRESS,
-} from "../config";
+import { Address } from "viem";
+import { SPLIT_PULL_SPLIT_FACTORY_ADDRESS } from "../config";
+
+const TREASURY_ADDRESS =
+  "0xc0797bd75cd3f34ee1cd046f03d9c85b36c2fd01" as Address;
+const FIXED_MINT_FEE = BigInt("690000000000000");
+const BASIS_POINTS_BASE = BigInt("10000");
+const PROTOCOL_FEE_BASIS_POINTS = BigInt("1000");
+const FRONTEND_FEE_BASIS_POINTS = BigInt("1000");
+const ROYALTY_BASIS_POINTS = BigInt("2000");
+const DISTRIBUTION_INCENTIVE = 100;
 
 async function main() {
   const [deployer] = await hre.viem.getWalletClients();
   console.log("deployer.account.address", deployer.account.address);
 
   const eis = await hre.viem.deployContract("EIS", [
-    ZORA_1155_FACTORY_ADDRESS,
     SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
     TREASURY_ADDRESS,
     FIXED_MINT_FEE,

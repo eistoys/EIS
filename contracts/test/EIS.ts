@@ -1,20 +1,6 @@
 import hre from "hardhat";
-import { toHex, Hex } from "viem";
+import { toHex, Hex, Address } from "viem";
 import { expect } from "chai";
-
-import {
-  BASIS_POINTS_BASE,
-  DISTRIBUTION_INCENTIVE,
-  FIXED_MINT_FEE,
-  FRONTEND_FEE_BASIS_POINTS,
-  PROTOCOL_FEE_BASIS_POINTS,
-  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-  ROYALTY_BASIS_POINTS,
-  SPLIT_NATIVE_TOKEN_ADDRESS,
-  TREASURY_ADDRESS,
-  SPLIT_WAREHOUSE_ADDRESS,
-  ZERO_ADDRESS,
-} from "../config";
 
 import { pullSplitAbi } from "./abis/PullSplit";
 import { splitsWarehouseAbi } from "./abis/SplitsWarehouse";
@@ -33,6 +19,22 @@ import {
   smallPngImageHex,
   expectedLoadedImageForSmallPngImage,
 } from "./data";
+import {
+  SPLIT_NATIVE_TOKEN_ADDRESS,
+  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
+  SPLIT_WAREHOUSE_ADDRESS,
+} from "../config";
+
+const TREASURY_ADDRESS =
+  "0xc0797bd75cd3f34ee1cd046f03d9c85b36c2fd01" as Address;
+
+const FIXED_MINT_FEE = BigInt("690000000000000");
+const BASIS_POINTS_BASE = BigInt("10000");
+const PROTOCOL_FEE_BASIS_POINTS = BigInt("1000");
+const FRONTEND_FEE_BASIS_POINTS = BigInt("1000");
+const ROYALTY_BASIS_POINTS = BigInt("2000");
+const DISTRIBUTION_INCENTIVE = 100;
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
 
 const name = "name";
 const description = "description";
@@ -65,7 +67,7 @@ const getFixture = async () => {
   return { creator, distributor, eis };
 };
 
-describe("EIP", function () {
+describe("EIS", function () {
   describe("Deployment", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();
