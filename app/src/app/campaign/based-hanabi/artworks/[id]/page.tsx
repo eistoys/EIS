@@ -38,8 +38,6 @@ function ViewPage({ params }: { params: { id: string } }) {
     variables: { id: params.id },
   });
 
-  console.log("data");
-
   const record = useMemo(() => {
     if (!recordQueryData) {
       return;

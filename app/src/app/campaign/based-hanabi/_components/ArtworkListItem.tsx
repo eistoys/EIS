@@ -52,7 +52,7 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
           <div>MINT</div>
         </button>
         <Link
-          href={`/campaign/based-hanabi/artworks/create?referenceId=${
+          href={`/campaign/based-hanabi/artworks/create?referenceTokenId=${
             tokenId ? tokenId : "1"
           }`}
           className="w-full"

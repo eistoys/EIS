@@ -1,11 +1,11 @@
 "use client";
 
-import PixelEditor, { PixelEditorRef } from "@/components/PixelEditor";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 
+import { PixelEditor, PixelEditorRef } from "../../_components/PixelEditor";
 import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
 import { eisHanabiAbi } from "../../_lib/eis/abi";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
@@ -13,8 +13,36 @@ import { escapeString } from "@/lib/utils";
 import { chunk } from "@/lib/eis/chunk";
 import solady from "solady";
 import { Hex } from "viem";
+import { useSearchParams } from "next/navigation";
+import { gql, useQuery } from "@apollo/client";
+
+const GET_RECORD = gql`
+  query GetRecord($id: ID!) {
+    hanabiRecord(id: $id) {
+      uri
+    }
+  }
+`;
 
 export default function CampaignBasedHanabiArtworkCreatePage() {
+  const searchParams = useSearchParams();
+  const referenceTokenId = searchParams.get("referenceTokenId");
+  const [referenceTokenImage, setReferenceTokenImage] = useState("");
+
+  const { data: recordQueryData } = useQuery(GET_RECORD, {
+    variables: { id: referenceTokenId },
+  });
+
+  useEffect(() => {
+    if (!recordQueryData) {
+      return;
+    }
+    const metadata = JSON.parse(
+      recordQueryData.hanabiRecord.uri.split("data:application/json;utf8,")[1]
+    );
+    setReferenceTokenImage(metadata.image);
+  }, [recordQueryData]);
+
   const [mode, setMode] = useState<"create" | "info">("create");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"remix" | "loading" | "created">(
@@ -65,7 +93,10 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
       {mode == "create" && (
         <div className="flex flex-col flex-grow py-4">
-          <PixelEditor ref={editorRef} />
+          <PixelEditor
+            ref={editorRef}
+            referenceTokenImage={referenceTokenImage}
+          />
         </div>
       )}
       {mode == "info" && (
