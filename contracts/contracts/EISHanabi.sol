@@ -9,6 +9,7 @@ import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/Base64.sol";
 
 import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
+import {IPullSplit} from "./interfaces/IPullSplit.sol";
 import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 
 contract EISHanabi is ERC1155 {
@@ -42,6 +43,7 @@ contract EISHanabi is ERC1155 {
     mapping(uint256 => Split) public splits;
 
     ISplitFactoryV2 public pullSplitFactory;
+    address public splitNativeToken;
     address public protocolTreasuryAddress;
     address public collectionOwnerTreasuryAddress;
 
@@ -51,20 +53,20 @@ contract EISHanabi is ERC1155 {
     uint256 public protocolFeeBasisPoints;
     uint256 public collectionOwnerFeeBasisPoints;
     uint256 public remixFeeBasisPoints;
-    uint16 public distributionIncentive;
 
     constructor(
         address pullSplitFactoryAddress,
+        address splitNativeToken_,
         address protocolTreasuryAddress_,
         address collectionOwnerTreasuryAddress_,
         uint256 fixedMintFee_,
         uint256 basisPointsBase_,
         uint256 protocolFeeBasisPoints_,
         uint256 collectionOwnerFeeBasisPoints_,
-        uint256 remixFeeBasisPoints_,
-        uint16 distributionIncentive_
+        uint256 remixFeeBasisPoints_
     ) ERC1155("") {
         pullSplitFactory = ISplitFactoryV2(pullSplitFactoryAddress);
+        splitNativeToken = splitNativeToken_;
         protocolTreasuryAddress = protocolTreasuryAddress_;
         collectionOwnerTreasuryAddress = collectionOwnerTreasuryAddress_;
         fixedMintFee = fixedMintFee_;
@@ -72,7 +74,6 @@ contract EISHanabi is ERC1155 {
         protocolFeeBasisPoints = protocolFeeBasisPoints_;
         collectionOwnerFeeBasisPoints = collectionOwnerFeeBasisPoints_;
         remixFeeBasisPoints = remixFeeBasisPoints_;
-        distributionIncentive = distributionIncentive_;
     }
 
     function create(
@@ -111,6 +112,7 @@ contract EISHanabi is ERC1155 {
             allocations[0] = totalAllocation - allocationTotal;
 
             for (uint256 i = 0; i < referenceTokenIds.length; i++) {
+                // TODO: check if referenceTokenIds[i] exists
                 recipients[i + 1] = records[referenceTokenIds[i]].creator;
                 allocations[i + 1] = allocationPerReference;
             }
@@ -120,7 +122,7 @@ contract EISHanabi is ERC1155 {
             recipients: recipients,
             allocations: allocations,
             totalAllocation: totalAllocation,
-            distributionIncentive: distributionIncentive
+            distributionIncentive: 0
         });
 
         records[tokenId] = Record({
@@ -160,6 +162,11 @@ contract EISHanabi is ERC1155 {
         payable(protocolTreasuryAddress).transfer(protocolFee);
         payable(collectionOwnerTreasuryAddress).transfer(collectionOwnerFee);
         payable(splits[tokenId].address_).transfer(creatorFee);
+        IPullSplit(splits[tokenId].address_).distribute(
+            splits[tokenId].params,
+            splitNativeToken,
+            address(this)
+        );
         _mint(_msgSender(), tokenId, amount, "");
     }
 

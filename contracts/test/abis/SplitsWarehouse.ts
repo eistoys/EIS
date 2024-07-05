@@ -499,4 +499,4 @@ export const splitsWarehouseAbi = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;

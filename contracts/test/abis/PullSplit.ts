@@ -403,4 +403,4 @@ export const pullSplitAbi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-];
+] as const;
