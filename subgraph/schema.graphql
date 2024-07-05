@@ -15,4 +15,7 @@ type HanabiRecord @entity(immutable: false) {
   uri: String!
   referTo: [String!]!
   referedFrom: [String!]!
+  minted: Int!
+  name: String!
+  description: String
 }

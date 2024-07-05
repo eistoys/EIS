@@ -1,4 +1,9 @@
+import { BigInt, Address } from "@graphprotocol/graph-ts";
+import { constants } from "@amxx/graphprotocol-utils";
+
 import {
+  TransferSingle as TransferSingleEvent,
+  TransferBatch as TransferBatchEvent,
   Created as CreatedEvent,
   EISHanabi as ESIHanabiContract,
 } from "../generated/EISHanabi/EISHanabi";
@@ -16,6 +21,9 @@ export function handleCreated(event: CreatedEvent): void {
     value.toString()
   );
   entity.referedFrom = [];
+  entity.minted = 0;
+  entity.name = event.params.record.name;
+  entity.description = event.params.record.description;
 
   let referenceTokenIds = event.params.record.referenceTokenIds;
   for (let i = 0; i < referenceTokenIds.length; i++) {
@@ -30,4 +38,42 @@ export function handleCreated(event: CreatedEvent): void {
   }
 
   entity.save();
+}
+
+function registerTransfer(
+  from: Address,
+  to: Address,
+  tokenId: BigInt,
+  value: i32
+): void {
+  let entity = HanabiRecord.load(tokenId.toString())!;
+  if (from == constants.ADDRESS_ZERO) {
+    entity.minted = entity.minted + value;
+  }
+  if (to == constants.ADDRESS_ZERO) {
+    entity.minted = entity.minted + value;
+  }
+  entity.save();
+}
+
+export function handleTransferSingle(event: TransferSingleEvent): void {
+  registerTransfer(
+    event.params.from,
+    event.params.to,
+    event.params.id,
+    event.params.value.toI32()
+  );
+}
+
+export function handleTransferBatch(event: TransferBatchEvent): void {
+  let ids = event.params.ids;
+  let values = event.params.values;
+  for (let i = 0; i < ids.length; ++i) {
+    registerTransfer(
+      event.params.from,
+      event.params.to,
+      ids[i],
+      values[i].toI32()
+    );
+  }
 }

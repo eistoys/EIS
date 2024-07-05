@@ -43,4 +43,10 @@ dataSources:
       eventHandlers:
         - event: Created(indexed uint256,indexed address,(address,string,string,uint8,string,address[],uint256[]),(address,(address[],uint256[],uint256,uint16)))
           handler: handleCreated
+        - event: TransferSingle(indexed address,indexed address,indexed
+            address,uint256,uint256)
+          handler: handleTransferSingle
+        - event: TransferBatch(indexed address,indexed address,indexed
+            address,uint256[],uint256[])
+          handler: handleTransferBatch
       file: ./src/eis-hanabi.ts
