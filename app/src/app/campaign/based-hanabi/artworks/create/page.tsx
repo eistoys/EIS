@@ -1,7 +1,7 @@
 "use client";
 
 import { SpinnerLoader } from "@/components/SpinnerLoader";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 
@@ -24,7 +24,7 @@ const GET_RECORD = gql`
   }
 `;
 
-export default function CampaignBasedHanabiArtworkCreatePage() {
+function CampaignBasedHanabiArtworkCreatePage() {
   const searchParams = useSearchParams();
   const referenceTokenId = searchParams.get("referenceTokenId");
   const [referenceTokenImage, setReferenceTokenImage] = useState("");
@@ -340,5 +340,13 @@ export default function CampaignBasedHanabiArtworkCreatePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CreatePageWrapper() {
+  return (
+    <Suspense>
+      <CampaignBasedHanabiArtworkCreatePage />
+    </Suspense>
   );
 }
