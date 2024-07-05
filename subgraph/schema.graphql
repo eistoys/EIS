@@ -6,3 +6,13 @@ type Record @entity(immutable: false) {
   referTo: [String!]!
   referedFrom: [String!]!
 }
+
+type HanabiRecord @entity(immutable: false) {
+  id: ID!
+  tokenId: BigInt!
+  creator: Bytes!
+  split: Bytes!
+  uri: String!
+  referTo: [String!]!
+  referedFrom: [String!]!
+}

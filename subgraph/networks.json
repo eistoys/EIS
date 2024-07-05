@@ -1,8 +1,0 @@
-{
-  "base-sepolia": {
-    "EIS": {
-      "address": "0x6e2a0d7659e6ac127fba5153b40e1bf3fa387939",
-      "startBlock": 11517281
-    }
-  }
-}

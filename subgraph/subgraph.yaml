@@ -24,3 +24,23 @@ dataSources:
         - event: Created(indexed uint256,indexed address,(address,address,string,string,string,address[],uint256[],(address[],uint256[],uint256,uint16)))
           handler: handleCreated
       file: ./src/eis.ts
+  - kind: ethereum
+    name: EISHanabi
+    network: base-sepolia
+    source:
+      address: "0xe226c930d6b7b19f8377a48430a6edf2a5b01b28"
+      abi: EISHanabi
+      startBlock: 12198220
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Record
+      abis:
+        - name: EISHanabi
+          file: ./abis/EISHanabi.json
+      eventHandlers:
+        - event: Created(indexed uint256,indexed address,(address,string,string,uint8,string,address[],uint256[]),(address,(address[],uint256[],uint256,uint16)))
+          handler: handleCreated
+      file: ./src/eis-hanabi.ts

@@ -18,12 +18,6 @@ contract EISHanabi is ERC1155 {
         ZIP
     }
 
-    event Created(
-        uint256 indexed tokenId,
-        address indexed creator,
-        Record record
-    );
-
     struct Record {
         address creator;
         string name;
@@ -38,6 +32,13 @@ contract EISHanabi is ERC1155 {
         address address_;
         SplitV2Lib.Split params;
     }
+
+    event Created(
+        uint256 indexed tokenId,
+        address indexed creator,
+        Record record,
+        Split split
+    );
 
     mapping(uint256 => Record) public records;
     mapping(uint256 => Split) public splits;
@@ -143,7 +144,7 @@ contract EISHanabi is ERC1155 {
 
         splits[tokenId] = Split({address_: splitAddress, params: splitParams});
 
-        emit Created(tokenId, _msgSender(), records[tokenId]);
+        emit Created(tokenId, _msgSender(), records[tokenId], splits[tokenId]);
 
         if (isInitialMintEnabled) {
             _mint(creator, tokenId, 1, "");
