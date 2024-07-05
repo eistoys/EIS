@@ -4,9 +4,9 @@ import { useState } from "react";
 import { truncateString } from "@/lib/utils";
 
 export interface ArtworkListItemProps {
-  tokenId: string;
-  creator: string;
-  image: string;
+  tokenId?: string;
+  creator?: string;
+  image?: string;
 }
 
 export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
@@ -18,7 +18,7 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
 
   return (
     <div>
-      <Link href={`/campaign/based-hanabi/artworks/${tokenId}`}>
+      <Link href={`/campaign/based-hanabi/artworks/${tokenId ? tokenId : "1"}`}>
         <div className="bg-white mb-4 rounded-3xl">
           {image ? (
             <img
@@ -52,7 +52,9 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
           <div>MINT</div>
         </button>
         <Link
-          href={`/campaign/based-hanabi/artworks/create?referenceId${tokenId}`}
+          href={`/campaign/based-hanabi/artworks/create?referenceId=${
+            tokenId ? tokenId : "1"
+          }`}
           className="w-full"
         >
           <button className="w-full flex justify-center items-center px-4 py-2 text-[#191D88] bg-[#FFD582] rounded-xl space-x-3 hover:opacity-75 transition-opacity duration-300 tracking-wider ">

@@ -9,7 +9,7 @@ import { MintModal } from "../../_components/MintModal";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
-    record(id: $id) {
+    hanabiRecord(id: $id) {
       tokenId
       creator
       uri
@@ -21,7 +21,7 @@ const GET_RECORD = gql`
 
 const GET_RECORDS = gql`
   query GetRecords($ids: [ID!]!) {
-    records(where: { tokenId_in: $ids }) {
+    hanabiRecords(where: { tokenId_in: $ids }) {
       tokenId
       creator
       uri
@@ -38,22 +38,24 @@ function ViewPage({ params }: { params: { id: string } }) {
     variables: { id: params.id },
   });
 
+  console.log("data");
+
   const record = useMemo(() => {
     if (!recordQueryData) {
       return;
     }
 
     const metadata = JSON.parse(
-      recordQueryData.record.uri.split("data:application/json;utf8,")[1]
+      recordQueryData.hanabiRecord.uri.split("data:application/json;utf8,")[1]
     );
     return {
-      tokenId: recordQueryData.record.tokenId,
-      creator: recordQueryData.record.creator,
+      tokenId: recordQueryData.hanabiRecord.tokenId,
+      creator: recordQueryData.hanabiRecord.creator,
       image: metadata.image,
       name: metadata.name,
       description: metadata.description,
-      referTo: recordQueryData.record.referTo,
-      referedFrom: recordQueryData.record.referedFrom,
+      referTo: recordQueryData.hanabiRecord.referTo,
+      referedFrom: recordQueryData.hanabiRecord.referedFrom,
     } as Record;
   }, [recordQueryData]);
 
@@ -73,7 +75,7 @@ function ViewPage({ params }: { params: { id: string } }) {
       return {};
     }
     const result: any = {};
-    recordsQueryData.records.forEach((record: any) => {
+    recordsQueryData.hanabiRecords.forEach((record: any) => {
       result[record.tokenId] = JSON.parse(
         record.uri.split("data:application/json;utf8,")[1]
       ).image;
