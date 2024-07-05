@@ -1,19 +1,42 @@
 import Link from "next/link";
 import { MintModal } from "./MintModal";
 import { useState } from "react";
+import { truncateString } from "@/lib/utils";
 
-export const ArtworkListItem = () => {
+export interface ArtworkListItemProps {
+  tokenId: string;
+  creator: string;
+  image: string;
+}
+
+export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
+  tokenId,
+  creator,
+  image,
+}) => {
   const [isMintModalOpen, setIsMintModalOpen] = useState(false);
 
   return (
     <div>
-      <Link href="/campaign/based-hanabi/artworks/1">
-        <div className="bg-white rounded-3xl aspect-square mb-4" />
+      <Link href={`/campaign/based-hanabi/artworks/${tokenId}`}>
+        <div className="bg-white mb-4 rounded-3xl">
+          {image ? (
+            <img
+              src={image}
+              className="w-full h-full object-cover rounded-3xl"
+            />
+          ) : (
+            <div className="aspect-square rounded-3xl" />
+          )}
+        </div>
       </Link>
       <Link href="/campaign/based-hanabi/users/0xab95e42096ef6c18ed278f4fca25754c96e60aae">
         <div className="flex space-x-3 font-semibold text-white items-center mb-4">
           <div className="rounded-full bg-zinc-500 h-[30px] w-[30px]" />
-          <div className="">consome.eth</div>
+
+          <div className="text-md">
+            {creator ? truncateString(creator, 20) : "consome.eth"}
+          </div>
         </div>
       </Link>
       <div className="flex space-x-2 font-bold">
@@ -28,7 +51,10 @@ export const ArtworkListItem = () => {
           />
           <div>MINT</div>
         </button>
-        <Link href="/campaign/based-hanabi/artworks/create" className="w-full">
+        <Link
+          href={`/campaign/based-hanabi/artworks/create?referenceId${tokenId}`}
+          className="w-full"
+        >
           <button className="w-full flex justify-center items-center px-4 py-2 text-[#191D88] bg-[#FFD582] rounded-xl space-x-3 hover:opacity-75 transition-opacity duration-300 tracking-wider ">
             <img
               loading="lazy"

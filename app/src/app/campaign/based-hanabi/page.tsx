@@ -1,10 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ArtworkListItem } from "./_components/ArtworkListItem";
 import { ArtworkListItemRankingHeader } from "./_components/ArtworkListItemRankingHeader";
+import { Record } from "./_types/Record";
+import { gql, useQuery } from "@apollo/client";
+
+const GET_RECORDS = gql`
+  query GetRecords {
+    hanabiRecords(first: 21, orderBy: tokenId, orderDirection: desc) {
+      tokenId
+      creator
+      split
+      uri
+      referTo
+      referedFrom
+    }
+  }
+`;
 
 export default function CampaignBasedHanabiPage() {
+  const { data } = useQuery(GET_RECORDS);
+  const records = useMemo<Record[]>(() => {
+    if (!data) {
+      return [];
+    }
+    return data.hanabiRecords.map((record: any) => {
+      return {
+        image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
+          .image,
+        ...record,
+      };
+    });
+  }, [data]);
+
   const [mode, setMode] = useState<"overview" | "leaderBoard">("overview");
 
   return (
@@ -137,10 +166,17 @@ export default function CampaignBasedHanabiPage() {
               Submission
             </div>
             <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 mb-16">
-              <ArtworkListItem />
-              <ArtworkListItem />
-              <ArtworkListItem />
-              <ArtworkListItem />
+              {records.map((record, i) => {
+                return (
+                  <div key={i}>
+                    <ArtworkListItem
+                      tokenId={record.tokenId}
+                      creator={record.creator}
+                      image={record.image}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
