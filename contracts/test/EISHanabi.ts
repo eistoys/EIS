@@ -1,3 +1,5 @@
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+
 import hre from "hardhat";
 import { Hex, parseEther, getContract, formatEther } from "viem";
 import { expect } from "chai";
@@ -89,7 +91,8 @@ describe.only("EISHanabi", function () {
 
   describe("Create", function () {
     it("Should create a new token", async function () {
-      const { publicClient, creator, eisHanabi } = await getFixture();
+      const { publicClient, creator, eisHanabi } =
+        await loadFixture(getFixture);
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
       await publicClient.waitForTransactionReceipt({
@@ -152,7 +155,8 @@ describe.only("EISHanabi", function () {
 
   describe("Mint", function () {
     it("Should mint a token", async function () {
-      const { publicClient, creator, minter, eisHanabi } = await getFixture();
+      const { publicClient, creator, minter, eisHanabi } =
+        await loadFixture(getFixture);
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
       await publicClient.waitForTransactionReceipt({
@@ -185,7 +189,7 @@ describe.only("EISHanabi", function () {
   });
 
   describe("Fee Distribution", function () {
-    it.skip("Should distribute fees correctly and allow withdrawal", async function () {
+    it("Should distribute fees correctly and allow withdrawal", async function () {
       const {
         publicClient,
         protocolTreasury,
@@ -195,7 +199,7 @@ describe.only("EISHanabi", function () {
         minter,
         eisHanabi,
         splitsWarehouse,
-      } = await getFixture();
+      } = await loadFixture(getFixture);
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
       await publicClient.waitForTransactionReceipt({
@@ -302,7 +306,7 @@ describe.only("EISHanabi", function () {
       );
     });
 
-    it.skip("Should correctly distribute fees for remixed NFTs", async function () {
+    it("Should correctly distribute fees for remixed NFTs", async function () {
       const {
         publicClient,
         protocolTreasury,
@@ -313,7 +317,7 @@ describe.only("EISHanabi", function () {
         minter,
         eisHanabi,
         splitsWarehouse,
-      } = await getFixture();
+      } = await loadFixture(getFixture);
 
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
@@ -468,7 +472,7 @@ describe.only("EISHanabi", function () {
       );
     });
 
-    it.skip("Should correctly distribute fees for NFT with multiple references", async function () {
+    it("Should correctly distribute fees for NFT with multiple references", async function () {
       const {
         publicClient,
         protocolTreasury,
@@ -482,7 +486,7 @@ describe.only("EISHanabi", function () {
         minter,
         eisHanabi,
         splitsWarehouse,
-      } = await getFixture();
+      } = await loadFixture(getFixture);
 
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
 
