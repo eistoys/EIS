@@ -6,33 +6,58 @@ import { ArtworkListItemRankingHeader } from "./_components/ArtworkListItemRanki
 import { Record } from "./_types/Record";
 import { gql, useQuery } from "@apollo/client";
 
-const GET_RECORDS = gql`
-  query GetRecords {
+const GET_LATEST_RECORDS = gql`
+  query GetLatestRecords {
     hanabiRecords(first: 21, orderBy: tokenId, orderDirection: desc) {
       tokenId
       creator
-      split
       uri
-      referTo
+    }
+  }
+`;
+
+const GET_LEADERBOARD_RECORDS = gql`
+  query GetLeaderboardRecords {
+    hanabiRecords(first: 100, orderBy: minted, orderDirection: desc) {
+      tokenId
+      creator
+      uri
       referedFrom
+      minted
+      name
     }
   }
 `;
 
 export default function CampaignBasedHanabiPage() {
-  const { data } = useQuery(GET_RECORDS);
-  const records = useMemo<Record[]>(() => {
-    if (!data) {
+  const { data: latestData } = useQuery(GET_LATEST_RECORDS);
+  const { data: leaderboardData } = useQuery(GET_LEADERBOARD_RECORDS);
+  const latestRecords = useMemo<Record[]>(() => {
+    if (!latestData) {
       return [];
     }
-    return data.hanabiRecords.map((record: any) => {
+    return latestData.hanabiRecords.map((record: any) => {
       return {
         image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
           .image,
         ...record,
       };
     });
-  }, [data]);
+  }, [latestData]);
+
+  const leaderboardRecords = useMemo<Record[]>(() => {
+    if (!leaderboardData) {
+      return [];
+    }
+    console.log("leaderboardData", leaderboardData);
+    return leaderboardData.hanabiRecords.map((record: any) => {
+      return {
+        image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
+          .image,
+        ...record,
+      };
+    });
+  }, [leaderboardData]);
 
   const [mode, setMode] = useState<"overview" | "leaderBoard">("overview");
 
@@ -166,7 +191,7 @@ export default function CampaignBasedHanabiPage() {
               Submission
             </div>
             <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 mb-16">
-              {records.map((record, i) => {
+              {latestRecords.map((record, i) => {
                 return (
                   <div key={i}>
                     <ArtworkListItem
@@ -184,15 +209,22 @@ export default function CampaignBasedHanabiPage() {
       {mode === "leaderBoard" && (
         <div>
           <div className="w-full max-w-xl mx-auto space-y-16 px-4">
-            {Array.from({ length: 9 }, (_, i) => (
-              <div>
-                <ArtworkListItemRankingHeader
-                  ranking={i + 1}
-                  title={"Title Title Title Title Title"}
-                />
-                <ArtworkListItem />
-              </div>
-            ))}
+            {leaderboardRecords.map((record, i) => {
+              return (
+                <div key={i}>
+                  <ArtworkListItemRankingHeader
+                    ranking={i + 1}
+                    title={record.name}
+                    minted={record.minted}
+                  />
+                  <ArtworkListItem
+                    tokenId={record.tokenId}
+                    creator={record.creator}
+                    image={record.image}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

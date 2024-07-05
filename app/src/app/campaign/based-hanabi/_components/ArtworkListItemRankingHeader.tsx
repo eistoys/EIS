@@ -1,10 +1,12 @@
-export const ArtworkListItemRankingHeader = ({
-  ranking,
-  title,
-}: {
+export interface ArtworkListItemRankingHeaderProps {
   ranking: number;
   title: string;
-}) => {
+  minted: number;
+}
+
+export const ArtworkListItemRankingHeader: React.FC<
+  ArtworkListItemRankingHeaderProps
+> = ({ ranking, title, minted }) => {
   return (
     <div>
       <div className="text-2xl font-bold text-white mb-2">
@@ -17,7 +19,7 @@ export const ArtworkListItemRankingHeader = ({
           className="w-4 h-4"
         />
         <div className="text-white font-bold">
-          <span className="mr-2">2930</span>Minted
+          <span className="mr-2">{minted}</span>Minted
         </div>
       </div>
     </div>
