@@ -67,7 +67,7 @@ const getFixture = async () => {
   return { creator, distributor, eis };
 };
 
-describe("EIP", function () {
+describe("EIS", function () {
   describe("Deployment", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();

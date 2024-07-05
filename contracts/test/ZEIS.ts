@@ -81,7 +81,7 @@ const getFixture = async () => {
   return { publicClient, creator, buyer, eis, zoraCreator1155 };
 };
 
-describe("EIP", function () {
+describe("ZEIS", function () {
   describe("Deployment", function () {
     it("Should work", async function () {
       const { eis } = await getFixture();

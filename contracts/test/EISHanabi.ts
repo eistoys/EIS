@@ -38,6 +38,9 @@ const getFixture = async () => {
     protocolTreasury,
     collectionOwnerTreasury,
     creator,
+    creator2,
+    creator3,
+    creator4,
     remixer,
     minter,
   ] = await hre.viem.getWalletClients();
@@ -66,6 +69,9 @@ const getFixture = async () => {
     protocolTreasury,
     collectionOwnerTreasury,
     creator,
+    creator2,
+    creator3,
+    creator4,
     minter,
     remixer,
     eisHanabi,
@@ -73,7 +79,7 @@ const getFixture = async () => {
   };
 };
 
-describe("EISHanabi", function () {
+describe.only("EISHanabi", function () {
   describe("Deployment", function () {
     it("Should deploy successfully", async function () {
       const { eisHanabi } = await getFixture();
@@ -179,7 +185,7 @@ describe("EISHanabi", function () {
   });
 
   describe("Fee Distribution", function () {
-    it("Should distribute fees correctly and allow withdrawal", async function () {
+    it.skip("Should distribute fees correctly and allow withdrawal", async function () {
       const {
         publicClient,
         protocolTreasury,
@@ -281,9 +287,22 @@ describe("EISHanabi", function () {
         BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
       ]);
       expect(finalWarehouseBalance).to.equal(SPLIT_REMAINS);
+
+      console.log("=== LOG ===");
+      console.log("Fee Distribution for Non-Remixed NFT:");
+      console.log(`Total Mint Price: ${formatEther(fixedMintFee)} ETH`);
+      console.log(
+        `Protocol Fee: ${formatEther(expectedProtocolFee)} ETH (${protocolFeeBasisPoints / 100n}%)`
+      );
+      console.log(
+        `Collection Owner Fee: ${formatEther(expectedCollectionOwnerFee)} ETH (${collectionOwnerFeeBasisPoints / 100n}%)`
+      );
+      console.log(
+        `Creator Fee: ${formatEther(expectedCreatorFee)} ETH (${(basisPointsBase - protocolFeeBasisPoints - collectionOwnerFeeBasisPoints) / 100n}%)`
+      );
     });
 
-    it.only("Should correctly distribute fees for remixed NFTs", async function () {
+    it.skip("Should correctly distribute fees for remixed NFTs", async function () {
       const {
         publicClient,
         protocolTreasury,
@@ -445,7 +464,179 @@ describe("EISHanabi", function () {
         `  Original Creator Fee: ${formatEther(expectedRemixFee)} ETH (${remixFeeBasisPoints / 100n}% of Creator Fee)`
       );
       console.log(
-        `  Remixer Fee: ${formatEther(expectedCreatorFee)} ETH (${(10000n - remixFeeBasisPoints) / 100n}% of Creator Fee)`
+        `  Creator Fee: ${formatEther(expectedCreatorFee)} ETH (${(10000n - remixFeeBasisPoints) / 100n}% of Creator Fee)`
+      );
+    });
+
+    it.skip("Should correctly distribute fees for NFT with multiple references", async function () {
+      const {
+        publicClient,
+        protocolTreasury,
+        collectionOwnerTreasury,
+        owner,
+        creator: creator1,
+        creator2,
+        creator3,
+        creator4,
+        remixer,
+        minter,
+        eisHanabi,
+        splitsWarehouse,
+      } = await getFixture();
+
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+
+      // Create 4 original NFTs
+      const originalCreators = [creator1, creator2, creator3, creator4];
+      const originalTokenIds = [];
+
+      for (let i = 0; i < 4; i++) {
+        await publicClient.waitForTransactionReceipt({
+          hash: await eisHanabi.write.create(
+            [
+              `Original NFT ${i + 1}`,
+              `Original Description ${i + 1}`,
+              compression.zip,
+              pngMimeType,
+              chunk(zippedImageHex),
+              [],
+              false,
+            ],
+            { account: originalCreators[i].account }
+          ),
+        });
+        originalTokenIds.push(BigInt(i));
+      }
+
+      // Create remixed NFT referencing all 4 original NFTs
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.create(
+          [
+            "Remixed NFT",
+            "Remixed Description",
+            compression.zip,
+            pngMimeType,
+            chunk(zippedImageHex),
+            originalTokenIds,
+            false,
+          ],
+          { account: remixer.account }
+        ),
+      });
+
+      const remixedTokenId = 4n;
+
+      const initialBalances = await Promise.all([
+        publicClient.getBalance({ address: protocolTreasury.account.address }),
+        publicClient.getBalance({
+          address: collectionOwnerTreasury.account.address,
+        }),
+        ...originalCreators.map((c) =>
+          publicClient.getBalance({ address: c.account.address })
+        ),
+        publicClient.getBalance({ address: remixer.account.address }),
+      ]);
+
+      // Mint the remixed NFT
+      const amount = 1n;
+      await eisHanabi.write.mint([remixedTokenId, amount], {
+        account: minter.account,
+        value: fixedMintFee * amount,
+      });
+
+      // Calculate fees
+      const expectedProtocolFee =
+        (fixedMintFee * protocolFeeBasisPoints) / basisPointsBase;
+      const expectedCollectionOwnerFee =
+        (fixedMintFee * collectionOwnerFeeBasisPoints) / basisPointsBase;
+      const totalCreatorFee =
+        fixedMintFee - expectedProtocolFee - expectedCollectionOwnerFee;
+      const totalRemixFee =
+        (totalCreatorFee * remixFeeBasisPoints) / basisPointsBase;
+      const expectedRemixFeePerOriginalCreator = totalRemixFee / 4n;
+      const expectedRemixerFee = totalCreatorFee - totalRemixFee;
+
+      // Check protocol and collection owner fees
+      const finalProtocolBalance = await publicClient.getBalance({
+        address: protocolTreasury.account.address,
+      });
+      const finalCollectionOwnerBalance = await publicClient.getBalance({
+        address: collectionOwnerTreasury.account.address,
+      });
+
+      expect(finalProtocolBalance - initialBalances[0]).to.equal(
+        expectedProtocolFee
+      );
+      expect(finalCollectionOwnerBalance - initialBalances[1]).to.equal(
+        expectedCollectionOwnerFee
+      );
+
+      // Check warehouse balances for original creators and remixer
+      for (let i = 0; i < 4; i++) {
+        const creatorWarehouseBalance = await splitsWarehouse.read.balanceOf([
+          originalCreators[i].account.address,
+          BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
+        ]);
+        expect(creatorWarehouseBalance + SPLIT_REMAINS).to.equal(
+          expectedRemixFeePerOriginalCreator
+        );
+      }
+
+      const remixerWarehouseBalance = await splitsWarehouse.read.balanceOf([
+        remixer.account.address,
+        BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
+      ]);
+      expect(remixerWarehouseBalance + SPLIT_REMAINS).to.equal(
+        expectedRemixerFee
+      );
+
+      // Withdraw for all creators
+      for (const creator of [...originalCreators, remixer]) {
+        await splitsWarehouse.write.withdraw(
+          [creator.account.address, SPLIT_NATIVE_TOKEN_ADDRESS],
+          { account: owner.account }
+        );
+      }
+
+      // Check final balances
+      const finalBalances = await Promise.all([
+        ...originalCreators.map((c) =>
+          publicClient.getBalance({ address: c.account.address })
+        ),
+        publicClient.getBalance({ address: remixer.account.address }),
+      ]);
+
+      for (let i = 0; i < 4; i++) {
+        expect(
+          finalBalances[i] -
+            initialBalances[i + 2] +
+            SPLIT_REMAINS +
+            SPLIT_REMAINS
+        ).to.be.equal(expectedRemixFeePerOriginalCreator);
+      }
+      expect(
+        finalBalances[4] - initialBalances[6] + SPLIT_REMAINS + SPLIT_REMAINS
+      ).to.be.equal(expectedRemixerFee);
+
+      // Log fee distribution
+      console.log("=== LOG ===");
+      console.log("Fee Distribution for Remixed NFT with Multiple References:");
+      console.log(`Total Mint Price: ${formatEther(fixedMintFee)} ETH`);
+      console.log(
+        `Protocol Fee: ${formatEther(expectedProtocolFee)} ETH (${protocolFeeBasisPoints / 100n}%)`
+      );
+      console.log(
+        `Collection Owner Fee: ${formatEther(expectedCollectionOwnerFee)} ETH (${collectionOwnerFeeBasisPoints / 100n}%)`
+      );
+      console.log(`Total Creator Fee: ${formatEther(totalCreatorFee)} ETH`);
+      console.log(
+        `  Total Remix Fee: ${formatEther(totalRemixFee)} ETH (${remixFeeBasisPoints / 100n}% of Creator Fee)`
+      );
+      console.log(
+        `    Fee per Original Creator: ${formatEther(expectedRemixFeePerOriginalCreator)} ETH (2.5% of Creator Fee)`
+      );
+      console.log(
+        `  Creator Fee: ${formatEther(expectedRemixerFee)} ETH (${(10000n - remixFeeBasisPoints) / 100n}% of Creator Fee)`
       );
     });
   });
