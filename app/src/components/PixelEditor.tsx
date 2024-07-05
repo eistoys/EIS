@@ -77,7 +77,7 @@ export const PixelEditor = forwardRef<PixelEditorRef>((props, ref) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [mode, setMode] = useState<"pen" | "eraser" | "fill" | "search">("pen");
 
-  const [gridCount, setGridCount] = useState<number>(16);
+  const [gridCount, setGridCount] = useState<number>(64);
   const [pixelSize, setPixelSize] = useState<number>(1);
   const [penSize, setPenSize] = useState<number>(1);
   const [showGrid, setShowGrid] = useState(true);
@@ -587,46 +587,78 @@ export const PixelEditor = forwardRef<PixelEditorRef>((props, ref) => {
               canvasPixelCount / img.width,
               canvasPixelCount / img.height
             );
-            const scaledWidth = img.width * scale;
-            const scaledHeight = img.height * scale;
-            const offsetX = (canvasPixelCount - scaledWidth) / 2;
-            const offsetY = (canvasPixelCount - scaledHeight) / 2;
 
-            ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
+            const scaledWidth = Math.floor(img.width * scale);
+            const scaledHeight = Math.floor(img.height * scale);
+            const offsetX = Math.floor((canvasPixelCount - scaledWidth) / 2);
+            const offsetY = Math.floor((canvasPixelCount - scaledHeight) / 2);
 
-            const imageData = ctx.getImageData(
-              0,
-              0,
-              canvasPixelCount,
-              canvasPixelCount
-            );
-            const newPixels: Pixel[] = [];
+            // Create a temporary canvas to hold the original image
+            const tempCanvas = document.createElement("canvas");
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            const tempCtx = tempCanvas.getContext("2d");
 
-            for (let y = 0; y < canvasPixelCount; y++) {
-              for (let x = 0; x < canvasPixelCount; x++) {
-                const index = (y * canvasPixelCount + x) * 4;
-                const r = imageData.data[index];
-                const g = imageData.data[index + 1];
-                const b = imageData.data[index + 2];
-                const a = imageData.data[index + 3];
+            if (tempCtx) {
+              tempCtx.drawImage(img, 0, 0, img.width, img.height);
+              const originalImageData = tempCtx.getImageData(
+                0,
+                0,
+                img.width,
+                img.height
+              );
 
-                if (a > 0) {
-                  const color = `rgba(${r},${g},${b},${a / 255})`;
-                  newPixels.push({ x, y, color });
+              // Draw pixel by pixel with scaling
+              for (let y = 0; y < scaledHeight; y++) {
+                for (let x = 0; x < scaledWidth; x++) {
+                  const sourceX = Math.floor(x / scale);
+                  const sourceY = Math.floor(y / scale);
+                  const sourceIndex = (sourceY * img.width + sourceX) * 4;
+
+                  const r = originalImageData.data[sourceIndex];
+                  const g = originalImageData.data[sourceIndex + 1];
+                  const b = originalImageData.data[sourceIndex + 2];
+                  const a = originalImageData.data[sourceIndex + 3];
+
+                  ctx.fillStyle = `rgba(${r},${g},${b},${a / 255})`;
+                  ctx.fillRect(x + offsetX, y + offsetY, 1, 1);
                 }
               }
-            }
 
-            setLayers((prevLayers) => {
-              return prevLayers.map((layer) => {
-                if (layer.id === activeLayerId) {
-                  return { ...layer, pixels: newPixels };
+              const imageData = ctx.getImageData(
+                0,
+                0,
+                canvasPixelCount,
+                canvasPixelCount
+              );
+              const newPixels: Pixel[] = [];
+
+              for (let y = 0; y < canvasPixelCount; y++) {
+                for (let x = 0; x < canvasPixelCount; x++) {
+                  const index = (y * canvasPixelCount + x) * 4;
+                  const r = imageData.data[index];
+                  const g = imageData.data[index + 1];
+                  const b = imageData.data[index + 2];
+                  const a = imageData.data[index + 3];
+
+                  if (a > 0) {
+                    const color = `rgba(${r},${g},${b},${a / 255})`;
+                    newPixels.push({ x, y, color });
+                  }
                 }
-                return layer;
-              });
-            });
+              }
 
-            addToHistory();
+              setLayers((prevLayers) => {
+                return prevLayers.map((layer) => {
+                  if (layer.id === activeLayerId) {
+                    return { ...layer, pixels: newPixels };
+                  }
+                  return layer;
+                });
+              });
+
+              addToHistory();
+            }
           }
         };
         img.src = imageData;
