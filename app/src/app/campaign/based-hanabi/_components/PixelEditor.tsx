@@ -29,9 +29,12 @@ import {
   Palette,
   Dices,
 } from "lucide-react";
+import { gql, useQuery } from "@apollo/client";
+import { SpinnerLoader } from "@/components/SpinnerLoader";
 
 interface PixelEditorProps {
   referenceTokenImage?: string;
+  onRemixTokenSelected: (tokenId: BigInt, image: string) => void;
 }
 
 export interface PixelEditorRef {
@@ -64,8 +67,43 @@ const maxZoomFactor = 8;
 const maxLayerCount = 6;
 const maxColorCount = 12;
 
+const GET_LATEST_RECORDS = gql`
+  query GetLatestRecords {
+    hanabiRecords(first: 9, orderBy: tokenId, orderDirection: desc) {
+      tokenId
+      creator
+      uri
+    }
+  }
+`;
+
 export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
-  ({ referenceTokenImage }, ref) => {
+  ({ referenceTokenImage, onRemixTokenSelected }, ref) => {
+    const { data: latestData } = useQuery(GET_LATEST_RECORDS);
+
+    const [references, setReferences] = useState<
+      {
+        tokenId: BigInt;
+        image: string;
+      }[]
+    >([]);
+
+    useEffect(() => {
+      if (!latestData) {
+        return;
+      }
+      setReferences(
+        latestData.hanabiRecords.map((record: any) => {
+          return {
+            tokenId: BigInt(record.tokenId),
+            image: JSON.parse(
+              record.uri.split("data:application/json;utf8,")[1]
+            ).image,
+          };
+        })
+      );
+    }, [latestData]);
+
     const canvasRef = useCallback((node: HTMLCanvasElement) => {
       if (node !== null) {
         setCanvas(node);
@@ -119,6 +157,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
     const [showMenu, setShowMenu] = useState(false);
     const [showSizeModal, setShowSizeModal] = useState(false);
+    const [showRemixModal, setShowRemixModal] = useState(false);
 
     const [shouldAddToHistory, setShouldAddToHistory] = useState(false);
 
@@ -326,6 +365,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         ctx.save();
         ctx.translate(camera.x, camera.y);
         ctx.scale(camera.zoom, camera.zoom);
+
+        // Draw grid lines
         ctx.beginPath();
         for (let x = 0; x <= gridCount; x++) {
           ctx.moveTo(x * cellSize * pixelSize, 0);
@@ -335,8 +376,26 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
           ctx.moveTo(0, y * cellSize * pixelSize);
           ctx.lineTo(canvasLength, y * cellSize * pixelSize);
         }
-        ctx.strokeStyle = "#ddd";
+        ctx.strokeStyle = "#ccc";
         ctx.stroke();
+
+        // Draw dots
+        const dotInterval = gridCount / 4; // Adjust this value to change the spacing of dots
+        ctx.fillStyle = "#bbb"; // Color of the dots
+        for (let x = 0; x <= gridCount; x += dotInterval) {
+          for (let y = 0; y <= gridCount; y += dotInterval) {
+            ctx.beginPath();
+            ctx.arc(
+              x * cellSize * pixelSize,
+              y * cellSize * pixelSize,
+              2,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+          }
+        }
+
         ctx.restore();
       }
     }, [gridCanvas, showGrid, pixelSize, cellSize, camera]);
@@ -999,6 +1058,12 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                       >
                         <FileDown className="text-white" size={24} />
                       </button>
+                      <button
+                        className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
+                        onClick={() => setShowRemixModal(true)}
+                      >
+                        REMIX
+                      </button>
                     </div>
                   </>
                 )}
@@ -1325,6 +1390,43 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 >
                   64 × 64
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {showRemixModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white">REMIX</h2>
+                <button
+                  onClick={() => setShowRemixModal(false)}
+                  className="text-white hover:text-gray-400 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+              <div className="text-white tracking-wider text-sm font-bold mb-6">
+                Only the latest 9 images are displayed. Stay tuned for updates!
+              </div>
+              {references.length === 0 && <SpinnerLoader />}
+              <div className="grid grid-cols-3 gap-4">
+                {references.map((reference, i) => {
+                  return (
+                    <img
+                      key={`remix_${i}`}
+                      src={reference.image}
+                      className="bg-white rounded-xl cursor-pointer"
+                      onClick={() => {
+                        loadImageSrc(reference.image);
+                        onRemixTokenSelected(
+                          reference.tokenId,
+                          reference.image
+                        );
+                      }}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>

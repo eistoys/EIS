@@ -34,14 +34,18 @@ function CampaignBasedHanabiArtworkCreatePage() {
   });
 
   useEffect(() => {
-    if (!recordQueryData) {
+    if (!referenceTokenId || !recordQueryData) {
       return;
     }
     const metadata = JSON.parse(
       recordQueryData.hanabiRecord.uri.split("data:application/json;utf8,")[1]
     );
     setReferenceTokenImage(metadata.image);
-  }, [recordQueryData]);
+    setUsedReferences((prev) => [
+      ...prev,
+      { tokenId: BigInt(referenceTokenId), image: metadata.image },
+    ]);
+  }, [referenceTokenId, recordQueryData]);
 
   const [mode, setMode] = useState<"create" | "info">("create");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,11 +64,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
 
   const [usedReferences, setUsedReferences] = useState<
     { tokenId: BigInt; image: string }[]
-  >([
-    { tokenId: BigInt(1), image: "https://placehold.co/500" },
-    { tokenId: BigInt(2), image: "https://placehold.co/500" },
-    { tokenId: BigInt(3), image: "https://placehold.co/500" },
-  ]);
+  >([]);
 
   const { data: hash, writeContract, reset, error } = useWriteContract();
 
@@ -89,6 +89,19 @@ function CampaignBasedHanabiArtworkCreatePage() {
     setModalMode("created");
   }, [data]);
 
+  const onRemixTokenSelected = (tokenId: BigInt, image: string) => {
+    const newReference = {
+      tokenId: tokenId,
+      image: image,
+    };
+    setUsedReferences((prevReferences) => {
+      if (prevReferences.some((ref) => ref.tokenId === tokenId)) {
+        return prevReferences;
+      }
+      return [...prevReferences, newReference];
+    });
+  };
+
   return (
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
       {mode == "create" && (
@@ -96,6 +109,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
           <PixelEditor
             ref={editorRef}
             referenceTokenImage={referenceTokenImage}
+            onRemixTokenSelected={onRemixTokenSelected}
           />
         </div>
       )}
@@ -251,7 +265,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
                   1,
                   "image/png",
                   chunk(zippedHexImage),
-                  [],
+                  usedReferences.map((val) => BigInt(val.tokenId.toString())),
                   true,
                 ],
               });

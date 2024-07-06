@@ -49,6 +49,7 @@ function ViewPage({ params }: { params: { id: string } }) {
     const metadata = JSON.parse(
       recordQueryData.hanabiRecord.uri.split("data:application/json;utf8,")[1]
     );
+    console.log("metadata", metadata.image);
     return {
       tokenId: recordQueryData.hanabiRecord.tokenId,
       creator: recordQueryData.hanabiRecord.creator,
