@@ -928,4 +928,4 @@ export const eisHanabiAbi = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
