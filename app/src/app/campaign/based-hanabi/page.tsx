@@ -32,6 +32,7 @@ const GET_LEADERBOARD_RECORDS = gql`
 export default function CampaignBasedHanabiPage() {
   const { data: latestData } = useQuery(GET_LATEST_RECORDS);
   const { data: leaderboardData } = useQuery(GET_LEADERBOARD_RECORDS);
+
   const latestRecords = useMemo<Record[]>(() => {
     if (!latestData) {
       return [];
@@ -102,10 +103,10 @@ export default function CampaignBasedHanabiPage() {
       {mode === "overview" && (
         <div>
           <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 mb-16">
-            <ArtworkListItem />
-            <ArtworkListItem />
-            <ArtworkListItem />
-            <ArtworkListItem />
+            <ArtworkListItem tokenId="0" image="" creator="" />
+            <ArtworkListItem tokenId="0" image="" creator="" />
+            <ArtworkListItem tokenId="0" image="" creator="" />
+            <ArtworkListItem tokenId="0" image="" creator="" />
           </div>
           <div className="text-center font-bold text-white mb-24">
             *All mint fees will be used for this irl

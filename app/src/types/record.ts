@@ -6,4 +6,5 @@ export interface Record {
   description: string;
   referTo: string[];
   referedFrom: string[];
+  minted: number;
 }

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { truncateString } from "@/lib/utils";
 
 export interface ArtworkListItemProps {
-  tokenId?: string;
-  creator?: string;
-  image?: string;
+  tokenId: string;
+  creator: string;
+  image: string;
 }
 
 export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
@@ -70,6 +70,8 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
       <MintModal
         isOpen={isMintModalOpen}
         close={() => setIsMintModalOpen(false)}
+        tokenId={tokenId}
+        image={image}
       />
     </div>
   );
