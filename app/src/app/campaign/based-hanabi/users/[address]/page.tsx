@@ -9,6 +9,7 @@ import Link from "next/link";
 import CreatorIdentity from "@/components/CreatorIdentity";
 
 import {
+  useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
@@ -32,6 +33,8 @@ const GET_RECORDS = gql`
 `;
 
 function UserPage({ params }: { params: { address: string } }) {
+  const { address: connectedAddress } = useAccount();
+
   const address = useMemo(() => {
     if (!params.address) {
       return "" as Address;
@@ -90,22 +93,24 @@ function UserPage({ params }: { params: { address: string } }) {
         <div className="w-full">
           <CreatorIdentity address={address} />
         </div>
-        <div className="w-full md:max-w-60">
-          <button
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300"
-            onClick={() => {
-              reset();
-              writeContract({
-                abi: splitsWarehouseAbi,
-                address: SPLIT_WAREHOUSE_ADDRESS,
-                functionName: "withdraw",
-                args: [address, SPLIT_NATIVE_TOKEN_ADDRESS],
-              });
-            }}
-          >
-            CLAIM {displayBalance} ETH
-          </button>
-        </div>
+        {connectedAddress && connectedAddress.toLowerCase() == address && (
+          <div className="w-full md:max-w-60">
+            <button
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300"
+              onClick={() => {
+                reset();
+                writeContract({
+                  abi: splitsWarehouseAbi,
+                  address: SPLIT_WAREHOUSE_ADDRESS,
+                  functionName: "withdraw",
+                  args: [address, SPLIT_NATIVE_TOKEN_ADDRESS],
+                });
+              }}
+            >
+              CLAIM {displayBalance} ETH
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="w-full pb-12 max-w-5xl mx-auto">
