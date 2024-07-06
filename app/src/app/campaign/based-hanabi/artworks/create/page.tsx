@@ -34,14 +34,18 @@ function CampaignBasedHanabiArtworkCreatePage() {
   });
 
   useEffect(() => {
-    if (!recordQueryData) {
+    if (!referenceTokenId || !recordQueryData) {
       return;
     }
     const metadata = JSON.parse(
       recordQueryData.hanabiRecord.uri.split("data:application/json;utf8,")[1]
     );
     setReferenceTokenImage(metadata.image);
-  }, [recordQueryData]);
+    setUsedReferences((prev) => [
+      ...prev,
+      { tokenId: BigInt(referenceTokenId), image: metadata.image },
+    ]);
+  }, [referenceTokenId, recordQueryData]);
 
   const [mode, setMode] = useState<"create" | "info">("create");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,17 +64,17 @@ function CampaignBasedHanabiArtworkCreatePage() {
 
   const [usedReferences, setUsedReferences] = useState<
     { tokenId: BigInt; image: string }[]
-  >([
-    { tokenId: BigInt(1), image: "https://placehold.co/500" },
-    { tokenId: BigInt(2), image: "https://placehold.co/500" },
-    { tokenId: BigInt(3), image: "https://placehold.co/500" },
-  ]);
+  >([]);
 
   const { data: hash, writeContract, reset, error } = useWriteContract();
 
   const { data } = useWaitForTransactionReceipt({
     hash,
   });
+
+  // { tokenId: BigInt(1), image: "https://placehold.co/500" },
+  // { tokenId: BigInt(2), image: "https://placehold.co/500" },
+  // { tokenId: BigInt(3), image: "https://placehold.co/500" },
 
   const editorRef = useRef<PixelEditorRef>(null);
 
