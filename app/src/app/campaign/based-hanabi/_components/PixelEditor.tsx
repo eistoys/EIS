@@ -326,6 +326,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         ctx.save();
         ctx.translate(camera.x, camera.y);
         ctx.scale(camera.zoom, camera.zoom);
+
+        // Draw grid lines
         ctx.beginPath();
         for (let x = 0; x <= gridCount; x++) {
           ctx.moveTo(x * cellSize * pixelSize, 0);
@@ -335,8 +337,26 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
           ctx.moveTo(0, y * cellSize * pixelSize);
           ctx.lineTo(canvasLength, y * cellSize * pixelSize);
         }
-        ctx.strokeStyle = "#ddd";
+        ctx.strokeStyle = "#ccc";
         ctx.stroke();
+
+        // Draw dots
+        const dotInterval = gridCount / 4; // Adjust this value to change the spacing of dots
+        ctx.fillStyle = "#bbb"; // Color of the dots
+        for (let x = 0; x <= gridCount; x += dotInterval) {
+          for (let y = 0; y <= gridCount; y += dotInterval) {
+            ctx.beginPath();
+            ctx.arc(
+              x * cellSize * pixelSize,
+              y * cellSize * pixelSize,
+              2,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+          }
+        }
+
         ctx.restore();
       }
     }, [gridCanvas, showGrid, pixelSize, cellSize, camera]);
