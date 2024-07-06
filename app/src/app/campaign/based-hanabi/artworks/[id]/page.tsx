@@ -6,6 +6,8 @@ import { gql, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MintModal } from "../../_components/MintModal";
+import { formatEther } from "viem";
+import { MINT_PRICE } from "../../_lib/eis/constants";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -15,6 +17,7 @@ const GET_RECORD = gql`
       uri
       referTo
       referedFrom
+      minted
     }
   }
 `;
@@ -54,6 +57,7 @@ function ViewPage({ params }: { params: { id: string } }) {
       description: metadata.description,
       referTo: recordQueryData.hanabiRecord.referTo,
       referedFrom: recordQueryData.hanabiRecord.referedFrom,
+      minted: recordQueryData.hanabiRecord.minted,
     } as Record;
   }, [recordQueryData]);
 
@@ -85,7 +89,7 @@ function ViewPage({ params }: { params: { id: string } }) {
     <>
       {record && (
         <div className="flex flex-col flex-grow">
-          <div className="flex border-b border-solid border-zinc-600 px-4 flex-grow">
+          <div className="flex border-b border-solid border-[#888888] px-4 flex-grow">
             <div className="flex flex-col md:flex-row w-full">
               <div className="w-full md:w-2/3 py-12">
                 <img
@@ -114,7 +118,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                   </>
                 )}
               </div>
-              <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-zinc-600">
+              <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
                 <div className="text-2xl font-bold tracking-wider text-white mb-2">
                   {record.name}
                 </div>
@@ -130,7 +134,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <div className="text-white text-3xl w-full tracking-wider font-bold">
-                        0.006 ETH
+                        {formatEther(MINT_PRICE)}
                       </div>
                     </div>
                     <button
@@ -144,7 +148,9 @@ function ViewPage({ params }: { params: { id: string } }) {
                       />
                       <div>MINT</div>
                     </button>
-                    <div className="text-white text-sm">4009 Minted</div>
+                    <div className="text-white text-sm">
+                      {record.minted} Minted
+                    </div>
                   </div>
 
                   <Link
@@ -159,7 +165,10 @@ function ViewPage({ params }: { params: { id: string } }) {
                       />
                       <div>REMIX</div>
                     </button>
-                    <div className="text-white text-sm">36 Minted</div>
+                    <div className="text-white text-sm">
+                      {" "}
+                      {record.referedFrom.length} Remixed
+                    </div>
                   </Link>
                   <button
                     className="w-full font-bold bg-violet-800 px-4 py-3 rounded-xl text-white flex justify-center items-center text-center flex space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
@@ -201,10 +210,14 @@ function ViewPage({ params }: { params: { id: string } }) {
           )}
         </div>
       )}
-      <MintModal
-        isOpen={isMintModalOpen}
-        close={() => setIsMintModalOpen(false)}
-      />
+      {record && (
+        <MintModal
+          isOpen={isMintModalOpen}
+          close={() => setIsMintModalOpen(false)}
+          tokenId={params.id}
+          image={record.image}
+        />
+      )}
     </>
   );
 }

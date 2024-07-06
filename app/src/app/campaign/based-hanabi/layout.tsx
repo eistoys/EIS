@@ -3,7 +3,7 @@ import { Header } from "./_components/Header";
 import { Providers } from "./providers";
 
 const montserrat = Montserrat({
-  weight: ["400", "700", "900"],
+  weight: ["400", "600", "700", "900"],
   subsets: ["latin"],
 });
 

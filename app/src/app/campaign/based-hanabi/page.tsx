@@ -32,6 +32,7 @@ const GET_LEADERBOARD_RECORDS = gql`
 export default function CampaignBasedHanabiPage() {
   const { data: latestData } = useQuery(GET_LATEST_RECORDS);
   const { data: leaderboardData } = useQuery(GET_LEADERBOARD_RECORDS);
+
   const latestRecords = useMemo<Record[]>(() => {
     if (!latestData) {
       return [];
