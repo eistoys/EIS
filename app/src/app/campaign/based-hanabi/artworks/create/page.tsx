@@ -92,7 +92,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
   return (
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
       {mode == "create" && (
-        <div className="flex flex-col flex-grow py-4">
+        <div className="flex flex-col flex-grow pt-3">
           <PixelEditor
             ref={editorRef}
             referenceTokenImage={referenceTokenImage}
@@ -100,7 +100,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
         </div>
       )}
       {mode == "info" && (
-        <div className="flex border-b border-solid border-[#888888] px-4 flex-grow">
+        <div className="flex border-b border-solid border-[#888888] px-3 flex-grow">
           <div className="flex flex-col md:flex-row w-full">
             <div className="w-full md:w-2/3 py-12">
               <img
@@ -210,14 +210,14 @@ function CampaignBasedHanabiArtworkCreatePage() {
           </div>
         </div>
       )}
-      <div className="fixed bottom-0 left-0 w-full flex justify-between p-4">
+      <div className="fixed bottom-0 left-0 w-full flex justify-between px-3 h-10 mb-3">
         {mode == "info" ? (
           <button
             type="button"
-            className="px-4 py-1.5 font-bold border border-gray-500 text-gray-500 rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wide"
+            className="px-4 font-bold border border-gray-500 text-gray-500 rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wide"
             onClick={() => setMode("create")}
           >
-            Back
+            BACK
           </button>
         ) : (
           <div />
@@ -258,7 +258,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
             }
           }}
         >
-          Complete
+          COMPLETE
         </button>
       </div>
       {isModalOpen && (
