@@ -1,8 +1,8 @@
-import { Roboto } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import { Header } from "./_components/Header";
 import { Providers } from "./providers";
 
-const roboto = Roboto({
+const montserrat = Montserrat({
   weight: ["400", "700", "900"],
   subsets: ["latin"],
 });
@@ -15,7 +15,7 @@ export default function CampaignBasedHanabLayout({
   return (
     <Providers>
       <div
-        className={`${roboto.className} bg-[#191D88] min-h-screen flex flex-col`}
+        className={`${montserrat.className} bg-[#191D88] min-h-screen flex flex-col`}
       >
         <Header />
         <div className="flex flex-col flex-grow">{children}</div>

@@ -1,23 +1,19 @@
 "use client";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
+import { ConnectWalletButton } from "./ConnectWalletButton";
 
 export const Header = () => {
   return (
-    <div className="w-full flex justify-between items-center py-4 px-4 border-b border-[#888888]">
+    <div className="w-full flex justify-between items-center p-3 border-b border-[#888888] h-12 md:h-[60px]">
       <Link href="/campaign/based-hanabi">
         <img
           loading="lazy"
           src="/assets/logo.svg"
-          className="w-28 cursor-pointer"
+          className="h-6 md:h-10 cursor-pointer"
         />
       </Link>
-      <ConnectButton
-        accountStatus="full"
-        chainStatus="name"
-        showBalance={false}
-      />
+      <ConnectWalletButton />
     </div>
   );
 };
