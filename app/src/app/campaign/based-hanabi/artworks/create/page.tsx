@@ -72,10 +72,6 @@ function CampaignBasedHanabiArtworkCreatePage() {
     hash,
   });
 
-  // { tokenId: BigInt(1), image: "https://placehold.co/500" },
-  // { tokenId: BigInt(2), image: "https://placehold.co/500" },
-  // { tokenId: BigInt(3), image: "https://placehold.co/500" },
-
   const editorRef = useRef<PixelEditorRef>(null);
 
   useEffect(() => {
@@ -93,6 +89,19 @@ function CampaignBasedHanabiArtworkCreatePage() {
     setModalMode("created");
   }, [data]);
 
+  const onRemixTokenSelected = (tokenId: BigInt, image: string) => {
+    const newReference = {
+      tokenId: tokenId,
+      image: image,
+    };
+    setUsedReferences((prevReferences) => {
+      if (prevReferences.some((ref) => ref.tokenId === tokenId)) {
+        return prevReferences;
+      }
+      return [...prevReferences, newReference];
+    });
+  };
+
   return (
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
       {mode == "create" && (
@@ -100,6 +109,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
           <PixelEditor
             ref={editorRef}
             referenceTokenImage={referenceTokenImage}
+            onRemixTokenSelected={onRemixTokenSelected}
           />
         </div>
       )}
@@ -255,7 +265,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
                   1,
                   "image/png",
                   chunk(zippedHexImage),
-                  [],
+                  usedReferences.map((val) => BigInt(val.tokenId.toString())),
                   true,
                 ],
               });
