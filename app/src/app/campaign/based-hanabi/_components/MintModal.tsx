@@ -4,6 +4,8 @@ import { formatEther } from "viem";
 import { EIS_HANABI_ADDRESS, MINT_PRICE } from "../_lib/eis/constants";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { eisHanabiAbi } from "../_lib/eis/abi";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 const defaultMode = "ask";
 const defaultAmount = 1;
@@ -54,10 +56,13 @@ export const MintModal = ({
     setMode("confirmed");
   }, [data]);
 
+  const { width, height } = useWindowSize();
+
   return (
     <>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
+          {mode == "confirmed" && <Confetti width={width} height={height} />}
           <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-xl shadow-2xl bg-[#191D88] m-4">
             <>
               <div className="flex mb-8">
