@@ -38,7 +38,7 @@ export const ConnectWalletButton = () => {
                   <button
                     onClick={openConnectModal}
                     type="button"
-                    className="flex justify-center items-center text-center px-[10px] h-6 md:h-8 text-white font-bold border border-2 rounded-full hover:opacity-75 tracking-wider"
+                    className="flex justify-center items-center text-center px-4 h-6 md:h-8 text-white font-bold border border-2 rounded-full hover:opacity-75 tracking-wider"
                   >
                     CONNECT
                   </button>
@@ -50,7 +50,7 @@ export const ConnectWalletButton = () => {
                   <button
                     onClick={openChainModal}
                     type="button"
-                    className="flex justify-center items-center text-center px-[10px] h-6 md:h-8 text-white font-bold border border-2 rounded-full hover:opacity-75 tracking-wider"
+                    className="flex justify-center items-center text-center px-4 h-6 md:h-8 text-white font-bold border border-2 rounded-full hover:opacity-75 tracking-wider"
                   >
                     SWITCH NETWORK
                   </button>
@@ -62,7 +62,7 @@ export const ConnectWalletButton = () => {
                   <button
                     onClick={openAccountModal}
                     type="button"
-                    className="flex justify-center items-center text-center px-[10px] h-6 md:h-8 text-white border border-2 rounded-full hover:opacity-75 tracking-wider"
+                    className="flex justify-center items-center text-center px-4 h-6 md:h-8 text-white border border-2 rounded-full hover:opacity-75 tracking-wider"
                   >
                     {account.displayName}
                   </button>

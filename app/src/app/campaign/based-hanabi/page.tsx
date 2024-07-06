@@ -72,7 +72,7 @@ export default function CampaignBasedHanabiPage() {
             src="/assets/campaign/based-hanabi/hero-text.svg"
             className="w-full max-w-4xl mx-auto"
           />
-          <div className="text-white text-4xl md:text-6xl font-bold text-center tracking-wider">
+          <div className="text-white text-4xl md:text-6xl font-bold text-center">
             Remix Contest
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function CampaignBasedHanabiPage() {
           <div className="text-center font-bold text-white mb-24">
             *All mint fees will be used for this irl
           </div>
-          <div className="flex flex-col w-full text-2xl tracking-wide leading-7 text-white max-w-4xl mx-auto px-4 mb-24">
+          <div className="flex flex-col w-full text-2xl tracking-wide leading-7 text-white max-w-4xl mx-auto px-4 mb-24 tracking-wider">
             <div className="text-4xl font-extrabold text-center">
               Description
             </div>
@@ -185,7 +185,7 @@ export default function CampaignBasedHanabiPage() {
               and the culture of Base even more!
             </div>
           </div>
-          <div>
+          <div className="tracking-wider">
             <div className="text-4xl font-extrabold text-center text-white mb-16">
               Submission
             </div>

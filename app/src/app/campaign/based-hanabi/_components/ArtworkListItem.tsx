@@ -35,7 +35,7 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
           <div className="rounded-full bg-zinc-500 h-[30px] w-[30px]" />
 
           <div className="text-md">
-            {creator ? truncateString(creator, 20) : "consome.eth"}
+            {creator ? truncateString(creator, 16) : "consome.eth"}
           </div>
         </div>
       </Link>
