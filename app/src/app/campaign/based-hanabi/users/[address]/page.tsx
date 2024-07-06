@@ -9,7 +9,7 @@ import CreatorIdentity from "@/components/CreatorIdentity";
 
 const GET_RECORDS = gql`
   query GetRecords($address: String!) {
-    records(where: { creator: $address }) {
+    hanabiRecords(where: { creator: $address }) {
       tokenId
       creator
       uri
@@ -35,7 +35,7 @@ function UserPage({ params }: { params: { address: string } }) {
     if (!data) {
       return [];
     }
-    return data.records.map((record: any) => {
+    return data.hanabiRecords.map((record: any) => {
       return {
         tokenId: record.tokenId,
         creator: record.creator,
