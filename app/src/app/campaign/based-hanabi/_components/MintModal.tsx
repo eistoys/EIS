@@ -128,7 +128,7 @@ export const MintModal = ({
                         address: EIS_HANABI_ADDRESS,
                         abi: eisHanabiAbi,
                         functionName: "mint",
-                        args: [tokenId, amount],
+                        args: [BigInt(tokenId), BigInt(amount)],
                         value: MINT_PRICE * BigInt(amount),
                       });
                     }}
