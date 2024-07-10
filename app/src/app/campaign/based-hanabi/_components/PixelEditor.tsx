@@ -679,12 +679,16 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     };
 
     const handleImportImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+      console.log("handleImportImage");
       const file = event.target.files?.[0];
       if (file) {
+        console.log("file", file);
         const reader = new FileReader();
         reader.onload = (e) => {
           const imageData = e.target?.result as string;
+          console.log("imageData", imageData);
           loadImageSrc(imageData);
+          event.target.value = "";
         };
         reader.readAsDataURL(file);
       }
