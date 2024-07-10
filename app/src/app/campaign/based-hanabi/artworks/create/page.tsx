@@ -105,7 +105,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
   return (
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
       {mode == "create" && (
-        <div className="flex flex-col flex-grow pt-3">
+        <div className="flex flex-col flex-grow mt-5">
           <PixelEditor
             ref={editorRef}
             referenceTokenImage={referenceTokenImage}

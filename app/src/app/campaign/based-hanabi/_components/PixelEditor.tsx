@@ -245,14 +245,30 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
     useEffect(() => {
       const handleResize = () => {
-        let width = Math.min(window.innerWidth, window.innerHeight - 300);
-        const newPixelSize = Math.max(1, Math.floor(width / canvasPixelCount));
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const verticlePaddingWidth = 12 * 2;
+        const headerHeight = windowWidth < 768 ? 48 : 60;
+        const marginHeight = 20 * 5;
+        const toolBar1Height = 36;
+        const toolBar2Height = 36;
+        const toolBar3Height = 52;
+        const footerHeight = 40;
+        const availableWidth = windowWidth - verticlePaddingWidth;
+        const availableHeight =
+          windowHeight -
+          headerHeight -
+          marginHeight -
+          toolBar1Height -
+          toolBar2Height -
+          toolBar3Height -
+          footerHeight;
+        const size = Math.min(availableWidth, availableHeight);
+        const newPixelSize = Math.max(1, Math.floor(size / canvasPixelCount));
         setPixelSize(newPixelSize);
       };
-
       window.addEventListener("resize", handleResize);
       handleResize();
-
       return () => {
         window.removeEventListener("resize", handleResize);
       };
@@ -947,8 +963,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       <>
         {pixelSize > 1 && (
           <div className="flex flex-col items-center">
-            <div className="flex justify-center items-center w-full max-w-md space-x-4 px-4 mb-4">
-              <div className="space-x-2">
+            <div
+              className={`flex justify-between items-center space-x-4 h-9 mb-5 w-[${canvasLength}px]`}
+            >
+              <div className="space-x-4 flex">
                 <button
                   onClick={handleUndo}
                   className="p-1 border border-gray-200 rounded-md"
@@ -962,7 +980,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   <Redo className="text-white" size={24} />
                 </button>
               </div>
-              <div className="space-x-2">
+              <div className="space-x-4 flex">
                 <button
                   onClick={handleZoomIn}
                   className={`p-1 border border-gray-200 rounded-md ${
@@ -982,7 +1000,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   <ZoomOut className="text-white" size={24} />
                 </button>
               </div>
-              <div className="space-x-2">
+              <div className="space-x-4 flex">
                 <button
                   onClick={() => setShowGrid(!showGrid)}
                   className={`p-1 border border-gray-200 rounded-md ${
@@ -1001,76 +1019,76 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 >
                   <Layers3 className="text-white" size={24} />
                 </button>
-              </div>
-              <div className="relative">
-                <button
-                  onClick={() => setShowMenu(true)}
-                  onMouseLeave={() => setShowMenu(false)}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    showMenu && "bg-[#FFD582]"
-                  }`}
-                >
-                  <ChevronDown
-                    className="text-white"
-                    size={24}
-                    color={showMenu ? "#191D88" : "white"}
-                  />
-                </button>
-                {showMenu && (
-                  <>
-                    <div
-                      className="absolute inset-0 h-20 cursor-pointer"
-                      onClick={() => setShowMenu(false)}
-                      onMouseEnter={() => setShowMenu(true)}
-                      onMouseLeave={() => setShowMenu(false)}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMenu(true)}
+                    onMouseLeave={() => setShowMenu(false)}
+                    className={`p-1 border border-gray-200 rounded-md ${
+                      showMenu && "bg-[#FFD582]"
+                    }`}
+                  >
+                    <ChevronDown
+                      className="text-white"
+                      size={24}
+                      color={showMenu ? "#191D88" : "white"}
                     />
-                    <div
-                      className="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-10"
-                      onMouseEnter={() => setShowMenu(true)}
-                      onMouseLeave={() => setShowMenu(false)}
-                    >
-                      <button
-                        className="block w-full py-3 hover:bg-gray-700 flex justify-center"
-                        onClick={() => {
-                          setShowMenu(false);
-                          setShowSizeModal(true);
-                        }}
-                      >
-                        <Proportions className="text-white" size={24} />
-                      </button>
-                      <label
-                        htmlFor="file-upload"
-                        className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
-                      >
-                        <FileUp className="text-white" size={24} />
-                      </label>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImportImage}
-                        className="hidden"
+                  </button>
+                  {showMenu && (
+                    <>
+                      <div
+                        className="absolute inset-0 h-20 cursor-pointer"
+                        onClick={() => setShowMenu(false)}
+                        onMouseEnter={() => setShowMenu(true)}
+                        onMouseLeave={() => setShowMenu(false)}
                       />
+                      <div
+                        className="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-10"
+                        onMouseEnter={() => setShowMenu(true)}
+                        onMouseLeave={() => setShowMenu(false)}
+                      >
+                        <button
+                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                          onClick={() => {
+                            setShowMenu(false);
+                            setShowSizeModal(true);
+                          }}
+                        >
+                          <Proportions className="text-white" size={24} />
+                        </button>
+                        <label
+                          htmlFor="file-upload"
+                          className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
+                        >
+                          <FileUp className="text-white" size={24} />
+                        </label>
+                        <input
+                          id="file-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImportImage}
+                          className="hidden"
+                        />
 
-                      <button
-                        onClick={handleDownload}
-                        className="block w-full py-3 hover:bg-gray-700 flex justify-center"
-                      >
-                        <FileDown className="text-white" size={24} />
-                      </button>
-                      <button
-                        className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
-                        onClick={() => setShowRemixModal(true)}
-                      >
-                        REMIX
-                      </button>
-                    </div>
-                  </>
-                )}
+                        <button
+                          onClick={handleDownload}
+                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                        >
+                          <FileDown className="text-white" size={24} />
+                        </button>
+                        <button
+                          className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
+                          onClick={() => setShowRemixModal(true)}
+                        >
+                          REMIX
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="relative mb-4">
+            <div className="relative mb-5">
               <canvas
                 ref={canvasRef}
                 width={canvasLength}
@@ -1089,8 +1107,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               />
             </div>
 
-            <div className="flex justify-center items-center w-full max-w-md space-x-8 px-4 mb-4">
-              <div className="space-x-2">
+            <div
+              className={`flex justify-between items-center space-x-8 h-9 mb-5 w-[${canvasLength}px]`}
+            >
+              <div className="space-x-4">
                 <button
                   onClick={() => setMode("pen")}
                   className={`p-1 border border-gray-200 rounded-md ${
@@ -1147,7 +1167,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   />
                 </button>
               </div>
-              <div className="space-x-2">
+              <div className="space-x-4">
                 <input
                   type="color"
                   value={currentColor}
@@ -1177,7 +1197,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </div>
             </div>
 
-            <div className="w-full max-w-sm flex px-4">
+            <div className="w-full max-w-sm flex">
               <select
                 value={penSize}
                 onChange={(e) => setPenSize(Number(e.target.value))}
