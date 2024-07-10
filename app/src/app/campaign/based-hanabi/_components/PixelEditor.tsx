@@ -244,9 +244,12 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       });
     };
 
+    const [windowWidth, setWindowWidth] = useState(0);
+
     useEffect(() => {
       const handleResize = () => {
         const windowWidth = window.innerWidth;
+        setWindowWidth(windowWidth);
         const windowHeight = window.innerHeight;
         const verticlePaddingWidth = 12 * 2;
         const headerHeight = windowWidth < 768 ? 48 : 60;
@@ -1000,7 +1003,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         {pixelSize > 1 && (
           <div className="flex flex-col items-center">
             <div
-              className={`flex justify-between items-center h-9 mb-5 w-full max-w-sm px-3 md:px-0`}
+              className={`flex justify-between items-center h-9 mb-5 w-full px-3 md:px-0`}
+              style={{
+                maxWidth: `${windowWidth > 728 ? canvasLength : windowWidth}px`,
+              }}
             >
               <div className="space-x-4 flex">
                 <button
@@ -1137,7 +1143,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
             </div>
 
             <div
-              className={`flex justify-between items-center h-9 mb-5 w-full max-w-sm px-3 md:px-0`}
+              className={`flex justify-between items-center h-9 mb-5 w-full px-3 md:px-0`}
+              style={{
+                maxWidth: `${windowWidth > 728 ? canvasLength : windowWidth}px`,
+              }}
             >
               <div className="space-x-4 flex">
                 <button
@@ -1230,12 +1239,15 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
             </div>
 
             <div
-              className={`flex items-center justify-between w-full max-w-sm px-3 md:px-0`}
+              className={`flex items-center justify-between w-full px-3 md:px-0`}
+              style={{
+                maxWidth: `${windowWidth > 728 ? canvasLength : windowWidth}px`,
+              }}
             >
               <select
                 value={penSize}
                 onChange={(e) => setPenSize(Number(e.target.value))}
-                className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px]"
+                className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] cursor-pointer"
               >
                 <option value={1}>1x1</option>
                 <option value={2}>2x2</option>
@@ -1244,7 +1256,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </select>
               <div className="space-x-3 flex">
                 <select
-                  className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] w-[88px] break-all"
+                  className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] w-[88px] cursor-pointer"
                   value={selectedPalette}
                   onChange={(e) =>
                     setSelectedPalette(e.target.value as keyof typeof palettes)
