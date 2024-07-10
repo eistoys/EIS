@@ -1,21 +1,18 @@
 "use client";
 
-import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { baseSepolia, base } from "viem/chains";
-import { connectors } from "@/lib/connectors";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
 import { COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID } from "@/config/const";
 import { rainbowKitCustomTheme } from "./_config/rainbow-kit";
 
-export const wagmiConfigWithConnecter = createConfig({
-  connectors,
+const config = getDefaultConfig({
+  appName: "EIS",
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || "",
   chains: [baseSepolia],
-  transports: {
-    [baseSepolia.id]: http(),
-  },
   ssr: true,
 });
 
@@ -28,7 +25,7 @@ const apolloClient = new ApolloClient({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <WagmiProvider config={wagmiConfigWithConnecter}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={rainbowKitCustomTheme}>
           <ApolloProvider client={apolloClient}>
