@@ -840,7 +840,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
       if (!context) return "";
-      const cursorSize = pixelSize * cellSize * penSize;
+      const cursorSize = pixelSize * cellSize * penSize * cameraZoomFactor;
       canvas.width = cursorSize;
       canvas.height = cursorSize;
 
@@ -872,9 +872,9 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
     const getCursorStyle = () => {
       if (mode === "pen" || mode === "eraser") {
-        return `url(${createSquareCursor()}) ${pixelSize / 2} ${
-          pixelSize / 2
-        }, auto`;
+        return `url(${createSquareCursor()}) ${
+          (pixelSize * cameraZoomFactor) / 2
+        } ${(pixelSize * cameraZoomFactor) / 2}, auto`;
       } else {
         return "pointer";
       }
@@ -885,7 +885,15 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         return;
       }
       canvas.style.cursor = getCursorStyle();
-    }, [canvas, mode, pixelSize, cellSize, penSize, currentColor]);
+    }, [
+      canvas,
+      mode,
+      pixelSize,
+      cellSize,
+      penSize,
+      currentColor,
+      cameraZoomFactor,
+    ]);
 
     const handleDragEnd = (result: any) => {
       if (!result.destination) {
