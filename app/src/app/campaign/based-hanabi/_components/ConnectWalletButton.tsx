@@ -1,4 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ArrowRightLeft } from "lucide-react";
 
 export const ConnectWalletButton = () => {
   return (
@@ -50,12 +51,17 @@ export const ConnectWalletButton = () => {
                   <button
                     onClick={openChainModal}
                     type="button"
-                    className="flex justify-center items-center text-center px-4 h-6 md:h-8 text-white font-bold border border-2 rounded-full hover:opacity-75 tracking-wider"
+                    className="flex justify-center items-center text-center px-4 h-6 md:h-8 text-white bg-red-500 rounded-full hover:opacity-75 tracking-wider"
                   >
-                    SWITCH NETWORK
+                    <div className="mr-[6px]">
+                      <ArrowRightLeft size={12} fontWeight={600} />
+                    </div>
+                    NETWORK
                   </button>
                 );
               }
+
+              console.log(account.displayName);
 
               return (
                 <div style={{ display: "flex", gap: 12 }}>
