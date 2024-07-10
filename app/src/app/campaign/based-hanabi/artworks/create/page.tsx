@@ -104,15 +104,17 @@ function CampaignBasedHanabiArtworkCreatePage() {
 
   return (
     <div className={`flex flex-col flex-grow ${mode == "info" && "pb-[70px]"}`}>
-      {mode == "create" && (
-        <div className="flex flex-col flex-grow mt-5">
-          <PixelEditor
-            ref={editorRef}
-            referenceTokenImage={referenceTokenImage}
-            onRemixTokenSelected={onRemixTokenSelected}
-          />
-        </div>
-      )}
+      <div
+        className={`flex flex-col flex-grow mt-5 ${
+          mode !== "create" ? "hidden" : ""
+        }`}
+      >
+        <PixelEditor
+          ref={editorRef}
+          referenceTokenImage={referenceTokenImage}
+          onRemixTokenSelected={onRemixTokenSelected}
+        />
+      </div>
       {mode == "info" && (
         <div className="flex border-b border-solid border-[#888888] px-3 flex-grow">
           <div className="flex flex-col md:flex-row w-full">
