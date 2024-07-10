@@ -1180,7 +1180,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                       palettes[selectedPalette].includes(currentColor)) &&
                     "opacity-25 cursor-not-allowed h-9 w-9"
                   }`}
-                  onClick={() => randomizeColor()}
+                  disabled={
+                    palettes[selectedPalette].length === maxColorCount ||
+                    palettes[selectedPalette].includes(currentColor)
+                  }
                 >
                   <Palette
                     className="text-white"
