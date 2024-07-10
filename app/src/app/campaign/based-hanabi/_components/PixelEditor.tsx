@@ -66,6 +66,7 @@ const minZoomFactor = 1;
 const maxZoomFactor = 8;
 const maxLayerCount = 6;
 const maxColorCount = 14;
+const minimumLength = 320;
 
 const GET_LATEST_RECORDS = gql`
   query GetLatestRecords {
@@ -254,17 +255,35 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         const toolBar2Height = 36;
         const toolBar3Height = 52;
         const footerHeight = 40;
+
         const availableWidth = windowWidth - verticlePaddingWidth;
-        const availableHeight =
-          windowHeight -
-          headerHeight -
-          marginHeight -
-          toolBar1Height -
-          toolBar2Height -
-          toolBar3Height -
-          footerHeight;
-        const size = Math.min(availableWidth, availableHeight);
-        const newPixelSize = Math.max(1, Math.floor(size / canvasPixelCount));
+
+        let availableHeight = 0;
+
+        if (windowWidth < 768) {
+          availableHeight =
+            windowHeight -
+            headerHeight -
+            marginHeight -
+            toolBar1Height -
+            toolBar2Height -
+            toolBar3Height -
+            footerHeight;
+        } else {
+          availableHeight =
+            windowHeight -
+            headerHeight -
+            marginHeight -
+            toolBar1Height -
+            toolBar2Height -
+            toolBar3Height;
+        }
+
+        let length = Math.min(availableWidth, availableHeight);
+        if (length < minimumLength) {
+          length = minimumLength;
+        }
+        const newPixelSize = Math.max(1, Math.floor(length / canvasPixelCount));
         setPixelSize(newPixelSize);
       };
       window.addEventListener("resize", handleResize);
@@ -1474,6 +1493,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
           onChange={handleImportImage}
           className="hidden"
         />
+        <div className="h-[60px] md:h-0" />
       </>
     );
   }
