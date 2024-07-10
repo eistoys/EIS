@@ -65,7 +65,7 @@ const downloadSize = 256;
 const minZoomFactor = 1;
 const maxZoomFactor = 8;
 const maxLayerCount = 6;
-const maxColorCount = 12;
+const maxColorCount = 14;
 
 const GET_LATEST_RECORDS = gql`
   query GetLatestRecords {
@@ -245,14 +245,30 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
     useEffect(() => {
       const handleResize = () => {
-        let width = Math.min(window.innerWidth, window.innerHeight - 300);
-        const newPixelSize = Math.max(1, Math.floor(width / canvasPixelCount));
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const verticlePaddingWidth = 12 * 2;
+        const headerHeight = windowWidth < 768 ? 48 : 60;
+        const marginHeight = 20 * 5;
+        const toolBar1Height = 36;
+        const toolBar2Height = 36;
+        const toolBar3Height = 52;
+        const footerHeight = 40;
+        const availableWidth = windowWidth - verticlePaddingWidth;
+        const availableHeight =
+          windowHeight -
+          headerHeight -
+          marginHeight -
+          toolBar1Height -
+          toolBar2Height -
+          toolBar3Height -
+          footerHeight;
+        const size = Math.min(availableWidth, availableHeight);
+        const newPixelSize = Math.max(1, Math.floor(size / canvasPixelCount));
         setPixelSize(newPixelSize);
       };
-
       window.addEventListener("resize", handleResize);
       handleResize();
-
       return () => {
         window.removeEventListener("resize", handleResize);
       };
@@ -411,19 +427,19 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
           lastEntry &&
           JSON.stringify(lastEntry) === JSON.stringify(newHistoryEntry);
         if (!isDuplicate) {
-          return [...prevHistory, newHistoryEntry];
+          return [...prevHistory, JSON.parse(JSON.stringify(newHistoryEntry))];
         }
         return prevHistory;
       });
       setRedoStack([]);
-    }, [layers, activeLayerId]);
+    }, [history, layers, activeLayerId]);
 
     useEffect(() => {
       if (shouldAddToHistory) {
         addToHistory();
         setShouldAddToHistory(false);
       }
-    }, [layers, shouldAddToHistory, addToHistory]);
+    }, [layers, shouldAddToHistory]);
 
     const clearCanvas = (ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -630,18 +646,23 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         const currentState = newHistory.pop();
         const previousState = newHistory[newHistory.length - 1];
         if (currentState) {
-          setRedoStack((prevRedoStack) => [...prevRedoStack, currentState]);
+          setRedoStack((prevRedoStack) => [
+            ...prevRedoStack,
+            JSON.parse(JSON.stringify(currentState)),
+          ]);
           const layerId = Date.now();
           setLayers(
-            previousState?.layers || [
-              {
-                id: layerId,
-                name: "Layer 1",
-                pixels: [],
-                visible: true,
-                opacity: 100,
-              },
-            ]
+            previousState?.layers
+              ? JSON.parse(JSON.stringify(previousState?.layers))
+              : [
+                  {
+                    id: layerId,
+                    name: "Layer 1",
+                    pixels: [],
+                    visible: true,
+                    opacity: 100,
+                  },
+                ]
           );
           setActiveLayerId(previousState?.activeLayerId || layerId);
           setHistory(newHistory);
@@ -654,7 +675,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         const newRedoStack = [...redoStack];
         const nextState = newRedoStack.pop();
         if (nextState) {
-          setHistory((prevHistory) => [...prevHistory, nextState]);
+          setHistory((prevHistory) => [
+            ...prevHistory,
+            JSON.parse(JSON.stringify(nextState)),
+          ]);
           setLayers(nextState.layers);
           setActiveLayerId(nextState.activeLayerId);
           setRedoStack(newRedoStack);
@@ -669,6 +693,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         reader.onload = (e) => {
           const imageData = e.target?.result as string;
           loadImageSrc(imageData);
+          event.target.value = "";
         };
         reader.readAsDataURL(file);
       }
@@ -815,7 +840,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
       if (!context) return "";
-      const cursorSize = pixelSize * cellSize * penSize;
+      const cursorSize = pixelSize * cellSize * penSize * cameraZoomFactor;
       canvas.width = cursorSize;
       canvas.height = cursorSize;
 
@@ -847,9 +872,9 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
     const getCursorStyle = () => {
       if (mode === "pen" || mode === "eraser") {
-        return `url(${createSquareCursor()}) ${pixelSize / 2} ${
-          pixelSize / 2
-        }, auto`;
+        return `url(${createSquareCursor()}) ${
+          (pixelSize * cameraZoomFactor) / 2
+        } ${(pixelSize * cameraZoomFactor) / 2}, auto`;
       } else {
         return "pointer";
       }
@@ -860,7 +885,15 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         return;
       }
       canvas.style.cursor = getCursorStyle();
-    }, [canvas, mode, pixelSize, cellSize, penSize, currentColor]);
+    }, [
+      canvas,
+      mode,
+      pixelSize,
+      cellSize,
+      penSize,
+      currentColor,
+      cameraZoomFactor,
+    ]);
 
     const handleDragEnd = (result: any) => {
       if (!result.destination) {
@@ -947,25 +980,27 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       <>
         {pixelSize > 1 && (
           <div className="flex flex-col items-center">
-            <div className="flex justify-center items-center w-full max-w-md space-x-4 px-4 mb-4">
-              <div className="space-x-2">
+            <div
+              className={`flex justify-between items-center h-9 mb-5 w-full max-w-sm px-3 md:px-0`}
+            >
+              <div className="space-x-4 flex">
                 <button
                   onClick={handleUndo}
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
                   <Undo className="text-white" size={24} />
                 </button>
                 <button
                   onClick={handleRedo}
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
                   <Redo className="text-white" size={24} />
                 </button>
               </div>
-              <div className="space-x-2">
+              <div className="space-x-4 flex">
                 <button
                   onClick={handleZoomIn}
-                  className={`p-1 border border-gray-200 rounded-md ${
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === maxZoomFactor &&
                     "opacity-25 cursor-not-allowed"
                   }`}
@@ -974,7 +1009,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={handleZoomOut}
-                  className={`p-1 border border-gray-200 rounded-md ${
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === minZoomFactor &&
                     "opacity-25 cursor-not-allowed"
                   }`}
@@ -982,11 +1017,11 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   <ZoomOut className="text-white" size={24} />
                 </button>
               </div>
-              <div className="space-x-2">
+              <div className="space-x-4 flex">
                 <button
                   onClick={() => setShowGrid(!showGrid)}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    showGrid && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    showGrid && "bg-white"
                   }`}
                 >
                   <Grid
@@ -997,80 +1032,73 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setShowLayerModal(true)}
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
                   <Layers3 className="text-white" size={24} />
                 </button>
-              </div>
-              <div className="relative">
-                <button
-                  onClick={() => setShowMenu(true)}
-                  onMouseLeave={() => setShowMenu(false)}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    showMenu && "bg-[#FFD582]"
-                  }`}
-                >
-                  <ChevronDown
-                    className="text-white"
-                    size={24}
-                    color={showMenu ? "#191D88" : "white"}
-                  />
-                </button>
-                {showMenu && (
-                  <>
-                    <div
-                      className="absolute inset-0 h-20 cursor-pointer"
-                      onClick={() => setShowMenu(false)}
-                      onMouseEnter={() => setShowMenu(true)}
-                      onMouseLeave={() => setShowMenu(false)}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMenu(true)}
+                    onMouseLeave={() => setShowMenu(false)}
+                    className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                      showMenu && "bg-white"
+                    }`}
+                  >
+                    <ChevronDown
+                      className="text-white"
+                      size={24}
+                      color={showMenu ? "#191D88" : "white"}
                     />
-                    <div
-                      className="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-10"
-                      onMouseEnter={() => setShowMenu(true)}
-                      onMouseLeave={() => setShowMenu(false)}
-                    >
-                      <button
-                        className="block w-full py-3 hover:bg-gray-700 flex justify-center"
-                        onClick={() => {
-                          setShowMenu(false);
-                          setShowSizeModal(true);
-                        }}
-                      >
-                        <Proportions className="text-white" size={24} />
-                      </button>
-                      <label
-                        htmlFor="file-upload"
-                        className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
-                      >
-                        <FileUp className="text-white" size={24} />
-                      </label>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImportImage}
-                        className="hidden"
+                  </button>
+                  {showMenu && (
+                    <>
+                      <div
+                        className="absolute inset-0 h-20 cursor-pointer"
+                        onClick={() => setShowMenu(false)}
+                        onMouseEnter={() => setShowMenu(true)}
+                        onMouseLeave={() => setShowMenu(false)}
                       />
+                      <div
+                        className="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-10"
+                        onMouseEnter={() => setShowMenu(true)}
+                        onMouseLeave={() => setShowMenu(false)}
+                      >
+                        <button
+                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                          onClick={() => {
+                            setShowMenu(false);
+                            setShowSizeModal(true);
+                          }}
+                        >
+                          <Proportions className="text-white" size={24} />
+                        </button>
+                        <label
+                          htmlFor="file-upload"
+                          className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
+                        >
+                          <FileUp className="text-white" size={24} />
+                        </label>
 
-                      <button
-                        onClick={handleDownload}
-                        className="block w-full py-3 hover:bg-gray-700 flex justify-center"
-                      >
-                        <FileDown className="text-white" size={24} />
-                      </button>
-                      <button
-                        className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
-                        onClick={() => setShowRemixModal(true)}
-                      >
-                        REMIX
-                      </button>
-                    </div>
-                  </>
-                )}
+                        <button
+                          onClick={handleDownload}
+                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                        >
+                          <FileDown className="text-white" size={24} />
+                        </button>
+                        <button
+                          className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
+                          onClick={() => setShowRemixModal(true)}
+                        >
+                          REMIX
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="relative mb-4">
+            <div className="relative mb-5">
               <canvas
                 ref={canvasRef}
                 width={canvasLength}
@@ -1089,12 +1117,14 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               />
             </div>
 
-            <div className="flex justify-center items-center w-full max-w-md space-x-8 px-4 mb-4">
-              <div className="space-x-2">
+            <div
+              className={`flex justify-between items-center h-9 mb-5 w-full max-w-sm px-3 md:px-0`}
+            >
+              <div className="space-x-4 flex">
                 <button
                   onClick={() => setMode("pen")}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    mode === "pen" && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "pen" && "bg-white"
                   }`}
                 >
                   <Pen
@@ -1105,8 +1135,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setMode("fill")}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    mode === "fill" && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "fill" && "bg-white"
                   }`}
                 >
                   <PaintBucket
@@ -1117,8 +1147,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setMode("eraser")}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    mode === "eraser" && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "eraser" && "bg-white"
                   }`}
                 >
                   <Eraser
@@ -1130,10 +1160,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 <button
                   onClick={() => setMode("search")}
                   disabled={cameraZoomFactor === minZoomFactor}
-                  className={`p-1 border border-gray-200 rounded-md ${
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === minZoomFactor
                       ? "opacity-25 cursor-not-allowed"
-                      : mode === "search" && "bg-[#FFD582]"
+                      : mode === "search" && "bg-white"
                   }`}
                 >
                   <ScanSearch
@@ -1147,20 +1177,23 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   />
                 </button>
               </div>
-              <div className="space-x-2">
+              <div className="space-x-4 flex">
                 <input
                   type="color"
                   value={currentColor}
                   onChange={(e) => setCurrentColor(e.target.value)}
-                  className="border-none"
+                  className="border-none w-9 h-9"
                 />
                 <button
                   className={`p-1 border border-gray-200 rounded-md ${
                     (palettes[selectedPalette].length === maxColorCount ||
                       palettes[selectedPalette].includes(currentColor)) &&
-                    "opacity-25 cursor-not-allowed"
+                    "opacity-25 cursor-not-allowed h-9 w-9"
                   }`}
-                  onClick={() => randomizeColor()}
+                  disabled={
+                    palettes[selectedPalette].length === maxColorCount ||
+                    palettes[selectedPalette].includes(currentColor)
+                  }
                 >
                   <Palette
                     className="text-white"
@@ -1169,7 +1202,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   />
                 </button>
                 <button
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                   onClick={() => randomizeColor()}
                 >
                   <Dices className="text-white" size={24} />
@@ -1177,53 +1210,56 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </div>
             </div>
 
-            <div className="w-full max-w-sm flex px-4">
+            <div
+              className={`flex items-center justify-between w-full max-w-sm px-3 md:px-0`}
+            >
               <select
                 value={penSize}
                 onChange={(e) => setPenSize(Number(e.target.value))}
-                className="px-2 py-3 rounded-md text-sm mr-4 bg-blue-600 text-white font-bold"
+                className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px]"
               >
                 <option value={1}>1x1</option>
                 <option value={2}>2x2</option>
                 <option value={3}>3x3</option>
                 <option value={4}>4x4</option>
               </select>
-              <select
-                className="px-2 py-3 border rounded-md text-sm mr-4 bg-blue-600 text-white font-bold"
-                value={selectedPalette}
-                onChange={(e) =>
-                  setSelectedPalette(e.target.value as keyof typeof palettes)
-                }
-              >
-                {Object.keys(palettes).map((palette) => (
-                  <option key={palette} value={palette}>
-                    {palette}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex flex-wrap">
-                {Array.from({
-                  length: Math.ceil(
-                    palettes[selectedPalette].length / (maxColorCount / 2)
-                  ),
-                }).map((_, rowIndex) => (
-                  <div className="flex" key={rowIndex}>
-                    {palettes[selectedPalette]
-                      .slice(
-                        rowIndex * (maxColorCount / 2),
-                        rowIndex * (maxColorCount / 2) + maxColorCount / 2
-                      )
-                      .map((color, index) => (
-                        <button
-                          key={index}
-                          className="w-5 h-5"
-                          style={{ backgroundColor: color }}
-                          onClick={() => setCurrentColor(color)}
-                        />
-                      ))}
-                  </div>
-                ))}
+              <div className="space-x-3 flex">
+                <select
+                  className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] w-[88px] break-all"
+                  value={selectedPalette}
+                  onChange={(e) =>
+                    setSelectedPalette(e.target.value as keyof typeof palettes)
+                  }
+                >
+                  {Object.keys(palettes).map((palette) => (
+                    <option key={palette} value={palette}>
+                      {palette}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex flex-col flex-wrap h-[52px] w-[182px]">
+                  {Array.from({
+                    length: Math.ceil(
+                      palettes[selectedPalette].length / (maxColorCount / 2)
+                    ),
+                  }).map((_, rowIndex) => (
+                    <div className="flex" key={rowIndex}>
+                      {palettes[selectedPalette]
+                        .slice(
+                          rowIndex * (maxColorCount / 2),
+                          rowIndex * (maxColorCount / 2) + maxColorCount / 2
+                        )
+                        .map((color, index) => (
+                          <button
+                            key={index}
+                            className="h-[26px] w-[26px]"
+                            style={{ backgroundColor: color }}
+                            onClick={() => setCurrentColor(color)}
+                          />
+                        ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1431,6 +1467,13 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
             </div>
           </div>
         )}
+        <input
+          id="file-upload"
+          type="file"
+          accept="image/*"
+          onChange={handleImportImage}
+          className="hidden"
+        />
       </>
     );
   }
