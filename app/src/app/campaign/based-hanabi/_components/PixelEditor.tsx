@@ -7,6 +7,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 
+import equal from "deep-equal";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
   Eye,
@@ -423,23 +424,29 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
           activeLayerId,
         };
         const lastEntry = prevHistory[prevHistory.length - 1];
+
+        console.log("lastEntry", lastEntry);
+        console.log("newHistoryEntry", newHistoryEntry);
+
         const isDuplicate =
           lastEntry &&
           JSON.stringify(lastEntry) === JSON.stringify(newHistoryEntry);
+
+        console.log("isDuplicate", isDuplicate);
         if (!isDuplicate) {
-          return [...prevHistory, newHistoryEntry];
+          return [...prevHistory, JSON.parse(JSON.stringify(newHistoryEntry))];
         }
         return prevHistory;
       });
       setRedoStack([]);
-    }, [layers, activeLayerId]);
+    }, [history, layers, activeLayerId]);
 
     useEffect(() => {
       if (shouldAddToHistory) {
         addToHistory();
         setShouldAddToHistory(false);
       }
-    }, [layers, shouldAddToHistory, addToHistory]);
+    }, [layers, shouldAddToHistory]);
 
     const clearCanvas = (ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -646,18 +653,23 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         const currentState = newHistory.pop();
         const previousState = newHistory[newHistory.length - 1];
         if (currentState) {
-          setRedoStack((prevRedoStack) => [...prevRedoStack, currentState]);
+          setRedoStack((prevRedoStack) => [
+            ...prevRedoStack,
+            JSON.parse(JSON.stringify(currentState)),
+          ]);
           const layerId = Date.now();
           setLayers(
-            previousState?.layers || [
-              {
-                id: layerId,
-                name: "Layer 1",
-                pixels: [],
-                visible: true,
-                opacity: 100,
-              },
-            ]
+            previousState?.layers
+              ? JSON.parse(JSON.stringify(previousState?.layers))
+              : [
+                  {
+                    id: layerId,
+                    name: "Layer 1",
+                    pixels: [],
+                    visible: true,
+                    opacity: 100,
+                  },
+                ]
           );
           setActiveLayerId(previousState?.activeLayerId || layerId);
           setHistory(newHistory);
@@ -670,7 +682,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         const newRedoStack = [...redoStack];
         const nextState = newRedoStack.pop();
         if (nextState) {
-          setHistory((prevHistory) => [...prevHistory, nextState]);
+          setHistory((prevHistory) => [
+            ...prevHistory,
+            JSON.parse(JSON.stringify(nextState)),
+          ]);
           setLayers(nextState.layers);
           setActiveLayerId(nextState.activeLayerId);
           setRedoStack(newRedoStack);
@@ -1065,13 +1080,6 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                         >
                           <FileUp className="text-white" size={24} />
                         </label>
-                        <input
-                          id="file-upload"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImportImage}
-                          className="hidden"
-                        />
 
                         <button
                           onClick={handleDownload}
@@ -1461,6 +1469,13 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
             </div>
           </div>
         )}
+        <input
+          id="file-upload"
+          type="file"
+          accept="image/*"
+          onChange={handleImportImage}
+          className="hidden"
+        />
       </>
     );
   }
