@@ -65,7 +65,7 @@ const downloadSize = 256;
 const minZoomFactor = 1;
 const maxZoomFactor = 8;
 const maxLayerCount = 6;
-const maxColorCount = 12;
+const maxColorCount = 14;
 
 const GET_LATEST_RECORDS = gql`
   query GetLatestRecords {
@@ -964,18 +964,18 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         {pixelSize > 1 && (
           <div className="flex flex-col items-center">
             <div
-              className={`flex justify-between items-center space-x-4 h-9 mb-5 w-[${canvasLength}px]`}
+              className={`flex justify-between items-center h-9 mb-5 w-full max-w-sm px-3 md:px-0`}
             >
               <div className="space-x-4 flex">
                 <button
                   onClick={handleUndo}
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
                   <Undo className="text-white" size={24} />
                 </button>
                 <button
                   onClick={handleRedo}
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
                   <Redo className="text-white" size={24} />
                 </button>
@@ -983,7 +983,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               <div className="space-x-4 flex">
                 <button
                   onClick={handleZoomIn}
-                  className={`p-1 border border-gray-200 rounded-md ${
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === maxZoomFactor &&
                     "opacity-25 cursor-not-allowed"
                   }`}
@@ -992,7 +992,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={handleZoomOut}
-                  className={`p-1 border border-gray-200 rounded-md ${
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === minZoomFactor &&
                     "opacity-25 cursor-not-allowed"
                   }`}
@@ -1003,8 +1003,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               <div className="space-x-4 flex">
                 <button
                   onClick={() => setShowGrid(!showGrid)}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    showGrid && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    showGrid && "bg-white"
                   }`}
                 >
                   <Grid
@@ -1015,7 +1015,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setShowLayerModal(true)}
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
                   <Layers3 className="text-white" size={24} />
                 </button>
@@ -1023,8 +1023,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   <button
                     onClick={() => setShowMenu(true)}
                     onMouseLeave={() => setShowMenu(false)}
-                    className={`p-1 border border-gray-200 rounded-md ${
-                      showMenu && "bg-[#FFD582]"
+                    className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                      showMenu && "bg-white"
                     }`}
                   >
                     <ChevronDown
@@ -1108,13 +1108,13 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
             </div>
 
             <div
-              className={`flex justify-between items-center space-x-8 h-9 mb-5 w-[${canvasLength}px]`}
+              className={`flex justify-between items-center h-9 mb-5 w-full max-w-sm px-3 md:px-0`}
             >
-              <div className="space-x-4">
+              <div className="space-x-4 flex">
                 <button
                   onClick={() => setMode("pen")}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    mode === "pen" && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "pen" && "bg-white"
                   }`}
                 >
                   <Pen
@@ -1125,8 +1125,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setMode("fill")}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    mode === "fill" && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "fill" && "bg-white"
                   }`}
                 >
                   <PaintBucket
@@ -1137,8 +1137,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setMode("eraser")}
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    mode === "eraser" && "bg-[#FFD582]"
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "eraser" && "bg-white"
                   }`}
                 >
                   <Eraser
@@ -1150,10 +1150,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 <button
                   onClick={() => setMode("search")}
                   disabled={cameraZoomFactor === minZoomFactor}
-                  className={`p-1 border border-gray-200 rounded-md ${
+                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === minZoomFactor
                       ? "opacity-25 cursor-not-allowed"
-                      : mode === "search" && "bg-[#FFD582]"
+                      : mode === "search" && "bg-white"
                   }`}
                 >
                   <ScanSearch
@@ -1167,18 +1167,18 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   />
                 </button>
               </div>
-              <div className="space-x-4">
+              <div className="space-x-4 flex">
                 <input
                   type="color"
                   value={currentColor}
                   onChange={(e) => setCurrentColor(e.target.value)}
-                  className="border-none"
+                  className="border-none w-9 h-9"
                 />
                 <button
                   className={`p-1 border border-gray-200 rounded-md ${
                     (palettes[selectedPalette].length === maxColorCount ||
                       palettes[selectedPalette].includes(currentColor)) &&
-                    "opacity-25 cursor-not-allowed"
+                    "opacity-25 cursor-not-allowed h-9 w-9"
                   }`}
                   onClick={() => randomizeColor()}
                 >
@@ -1189,7 +1189,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   />
                 </button>
                 <button
-                  className="p-1 border border-gray-200 rounded-md"
+                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
                   onClick={() => randomizeColor()}
                 >
                   <Dices className="text-white" size={24} />
@@ -1197,53 +1197,56 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </div>
             </div>
 
-            <div className="w-full max-w-sm flex">
+            <div
+              className={`flex items-center justify-between w-full max-w-sm px-3 md:px-0`}
+            >
               <select
                 value={penSize}
                 onChange={(e) => setPenSize(Number(e.target.value))}
-                className="px-2 py-3 rounded-md text-sm mr-4 bg-blue-600 text-white font-bold"
+                className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px]"
               >
                 <option value={1}>1x1</option>
                 <option value={2}>2x2</option>
                 <option value={3}>3x3</option>
                 <option value={4}>4x4</option>
               </select>
-              <select
-                className="px-2 py-3 border rounded-md text-sm mr-4 bg-blue-600 text-white font-bold"
-                value={selectedPalette}
-                onChange={(e) =>
-                  setSelectedPalette(e.target.value as keyof typeof palettes)
-                }
-              >
-                {Object.keys(palettes).map((palette) => (
-                  <option key={palette} value={palette}>
-                    {palette}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex flex-wrap">
-                {Array.from({
-                  length: Math.ceil(
-                    palettes[selectedPalette].length / (maxColorCount / 2)
-                  ),
-                }).map((_, rowIndex) => (
-                  <div className="flex" key={rowIndex}>
-                    {palettes[selectedPalette]
-                      .slice(
-                        rowIndex * (maxColorCount / 2),
-                        rowIndex * (maxColorCount / 2) + maxColorCount / 2
-                      )
-                      .map((color, index) => (
-                        <button
-                          key={index}
-                          className="w-5 h-5"
-                          style={{ backgroundColor: color }}
-                          onClick={() => setCurrentColor(color)}
-                        />
-                      ))}
-                  </div>
-                ))}
+              <div className="space-x-3 flex">
+                <select
+                  className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] w-[88px] break-all"
+                  value={selectedPalette}
+                  onChange={(e) =>
+                    setSelectedPalette(e.target.value as keyof typeof palettes)
+                  }
+                >
+                  {Object.keys(palettes).map((palette) => (
+                    <option key={palette} value={palette}>
+                      {palette}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex flex-col flex-wrap h-[52px] w-[182px]">
+                  {Array.from({
+                    length: Math.ceil(
+                      palettes[selectedPalette].length / (maxColorCount / 2)
+                    ),
+                  }).map((_, rowIndex) => (
+                    <div className="flex" key={rowIndex}>
+                      {palettes[selectedPalette]
+                        .slice(
+                          rowIndex * (maxColorCount / 2),
+                          rowIndex * (maxColorCount / 2) + maxColorCount / 2
+                        )
+                        .map((color, index) => (
+                          <button
+                            key={index}
+                            className="h-[26px] w-[26px]"
+                            style={{ backgroundColor: color }}
+                            onClick={() => setCurrentColor(color)}
+                          />
+                        ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
