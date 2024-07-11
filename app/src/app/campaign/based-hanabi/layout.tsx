@@ -1,3 +1,5 @@
+import "./markdown.css";
+
 import { Montserrat } from "next/font/google";
 import { Header } from "./_components/Header";
 import { Providers } from "./providers";
