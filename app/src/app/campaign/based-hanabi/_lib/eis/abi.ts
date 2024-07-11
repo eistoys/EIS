@@ -3,16 +3,6 @@ export const eisHanabiAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "pullSplitFactoryAddress",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "splitNativeToken_",
-        type: "address",
-      },
-      {
-        internalType: "address",
         name: "protocolTreasuryAddress_",
         type: "address",
       },
@@ -44,6 +34,11 @@ export const eisHanabiAbi = [
       {
         internalType: "uint256",
         name: "remixFeeBasisPoints_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "maxSupply_",
         type: "uint256",
       },
     ],
@@ -182,6 +177,25 @@ export const eisHanabiAbi = [
     inputs: [
       {
         indexed: true,
+        internalType: "address",
+        name: "oldAddress",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+    ],
+    name: "CollectionOwnerTreasuryTransferred",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",
@@ -235,48 +249,27 @@ export const eisHanabiAbi = [
         name: "record",
         type: "tuple",
       },
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "address_",
-            type: "address",
-          },
-          {
-            components: [
-              {
-                internalType: "address[]",
-                name: "recipients",
-                type: "address[]",
-              },
-              {
-                internalType: "uint256[]",
-                name: "allocations",
-                type: "uint256[]",
-              },
-              {
-                internalType: "uint256",
-                name: "totalAllocation",
-                type: "uint256",
-              },
-              {
-                internalType: "uint16",
-                name: "distributionIncentive",
-                type: "uint16",
-              },
-            ],
-            internalType: "struct SplitV2Lib.Split",
-            name: "params",
-            type: "tuple",
-          },
-        ],
-        indexed: false,
-        internalType: "struct EISHanabi.Split",
-        name: "split",
-        type: "tuple",
-      },
     ],
     name: "Created",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "oldAddress",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+    ],
+    name: "ProtocolTreasuryTransferred",
     type: "event",
   },
   {
@@ -423,6 +416,32 @@ export const eisHanabiAbi = [
   {
     inputs: [],
     name: "basisPointsBase",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "claimFees",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "claimableFees",
     outputs: [
       {
         internalType: "uint256",
@@ -607,6 +626,19 @@ export const eisHanabiAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "maxSupply",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -643,19 +675,6 @@ export const eisHanabiAbi = [
     outputs: [
       {
         internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "pullSplitFactory",
-    outputs: [
-      {
-        internalType: "contract ISplitFactoryV2",
         name: "",
         type: "address",
       },
@@ -800,65 +819,6 @@ export const eisHanabiAbi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "splitNativeToken",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "splits",
-    outputs: [
-      {
-        internalType: "address",
-        name: "address_",
-        type: "address",
-      },
-      {
-        components: [
-          {
-            internalType: "address[]",
-            name: "recipients",
-            type: "address[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "allocations",
-            type: "uint256[]",
-          },
-          {
-            internalType: "uint256",
-            name: "totalAllocation",
-            type: "uint256",
-          },
-          {
-            internalType: "uint16",
-            name: "distributionIncentive",
-            type: "uint16",
-          },
-        ],
-        internalType: "struct SplitV2Lib.Split",
-        name: "params",
-        type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "bytes4",
@@ -888,6 +848,51 @@ export const eisHanabiAbi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "totalMinted",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+    ],
+    name: "transferCollectionOwnerTreasury",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+    ],
+    name: "transferProtocolTreasury",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
