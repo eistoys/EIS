@@ -63,7 +63,7 @@ export const MintModal = ({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
           {mode == "confirmed" && <Confetti width={width} height={height} />}
-          <div className="relative flex flex-col py-10 px-6 w-full max-w-sm rounded-xl shadow-xl bg-[#191D88] m-3">
+          <div className="relative flex flex-col py-10 px-3 md:px-6 w-full max-w-sm rounded-xl shadow-xl bg-[#191D88] m-3">
             <button
               className="absolute text-white right-2.5 top-3"
               onClick={() => close()}

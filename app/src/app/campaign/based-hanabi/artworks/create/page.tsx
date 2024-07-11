@@ -282,7 +282,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
                 className="shrink-0 aspect-[1.41] fill-white h-4"
               />
             </button>
-            <div className="py-10 px-6">
+            <div className="py-10 px-3 md:px-6">
               {modalMode == "loading" && (
                 <>
                   <div className="flex mb-6 justify-between items-center">
