@@ -12,25 +12,27 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  ChevronDown,
-  Layers3,
-  Proportions,
-  FileUp,
-  FileDown,
-  Grid,
-  ScanSearch,
-  ZoomOut,
-  ZoomIn,
   Pen,
   PaintBucket,
   Eraser,
-  Undo,
-  Redo,
   Palette,
   Dices,
 } from "lucide-react";
 import { gql, useQuery } from "@apollo/client";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
+
+import GridIcon from "./icons/grid.svg";
+import UndoIcon from "./icons/undo.svg";
+import RedoIcon from "./icons/redo.svg";
+import ZoomInIcon from "./icons/zoom-in.svg";
+import ZoomOutIcon from "./icons/zoom-out.svg";
+import LayerIcon from "./icons/layer.svg";
+import DropIcon from "./icons/drop.svg";
+import CanvasIcon from "./icons/canvas.svg";
+import FileUpIcon from "./icons/file-up.svg";
+import FileDownIcon from "./icons/file-down.svg";
+import RemixIcon from "./icons/remix.svg";
+import MoveIcon from "./icons/move.svg";
 
 interface PixelEditorProps {
   referenceTokenImage?: string;
@@ -1011,69 +1013,61 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               <div className="space-x-4 flex">
                 <button
                   onClick={handleUndo}
-                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
+                  className="flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
-                  <Undo className="text-white" size={24} />
+                  <UndoIcon stroke="white" />
                 </button>
                 <button
                   onClick={handleRedo}
-                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
+                  className="flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
-                  <Redo className="text-white" size={24} />
+                  <RedoIcon stroke="white" />
                 </button>
               </div>
               <div className="space-x-4 flex">
                 <button
                   onClick={handleZoomIn}
-                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === maxZoomFactor &&
                     "opacity-25 cursor-not-allowed"
                   }`}
                 >
-                  <ZoomIn className="text-white" size={24} />
+                  <ZoomInIcon stroke="white" />
                 </button>
                 <button
                   onClick={handleZoomOut}
-                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === minZoomFactor &&
                     "opacity-25 cursor-not-allowed"
                   }`}
                 >
-                  <ZoomOut className="text-white" size={24} />
+                  <ZoomOutIcon stroke="white" />
                 </button>
               </div>
               <div className="space-x-4 flex">
                 <button
                   onClick={() => setShowGrid(!showGrid)}
-                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     showGrid && "bg-white"
                   }`}
                 >
-                  <Grid
-                    className="text-white"
-                    size={24}
-                    color={showGrid ? "#191D88" : "white"}
-                  />
+                  <GridIcon stroke={showGrid ? "#191D88" : "white"} />
                 </button>
                 <button
                   onClick={() => setShowLayerModal(true)}
-                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
+                  className="flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9"
                 >
-                  <Layers3 className="text-white" size={24} />
+                  <LayerIcon stroke="white" />
                 </button>
                 <div className="relative">
                   <button
                     onClick={() => setShowMenu(true)}
                     onMouseLeave={() => setShowMenu(false)}
-                    className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
-                      showMenu && "bg-white"
+                    className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                      showMenu && "bg-[#337CCF]"
                     }`}
                   >
-                    <ChevronDown
-                      className="text-white"
-                      size={24}
-                      color={showMenu ? "#191D88" : "white"}
-                    />
+                    <DropIcon fill="white" />
                   </button>
                   {showMenu && (
                     <>
@@ -1095,26 +1089,26 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                             setShowSizeModal(true);
                           }}
                         >
-                          <Proportions className="text-white" size={24} />
+                          <CanvasIcon stroke="white" />
                         </button>
                         <label
                           htmlFor="file-upload"
                           className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
                         >
-                          <FileUp className="text-white" size={24} />
+                          <FileUpIcon stroke="white" />
                         </label>
 
                         <button
                           onClick={handleDownload}
                           className="block w-full py-3 hover:bg-gray-700 flex justify-center"
                         >
-                          <FileDown className="text-white" size={24} />
+                          <FileDownIcon stroke="white" />
                         </button>
                         <button
                           className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
                           onClick={() => setShowRemixModal(true)}
                         >
-                          REMIX
+                          <RemixIcon stroke="#34ED17" />
                         </button>
                       </div>
                     </>
@@ -1151,7 +1145,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               <div className="space-x-4 flex">
                 <button
                   onClick={() => setMode("pen")}
-                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     mode === "pen" && "bg-white"
                   }`}
                 >
@@ -1163,7 +1157,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setMode("fill")}
-                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     mode === "fill" && "bg-white"
                   }`}
                 >
@@ -1175,7 +1169,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 </button>
                 <button
                   onClick={() => setMode("eraser")}
-                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     mode === "eraser" && "bg-white"
                   }`}
                 >
@@ -1188,16 +1182,14 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 <button
                   onClick={() => setMode("search")}
                   disabled={cameraZoomFactor === minZoomFactor}
-                  className={`p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
                     cameraZoomFactor === minZoomFactor
                       ? "opacity-25 cursor-not-allowed"
                       : mode === "search" && "bg-white"
                   }`}
                 >
-                  <ScanSearch
-                    className="text-white"
-                    size={24}
-                    color={
+                  <MoveIcon
+                    stroke={
                       cameraZoomFactor !== minZoomFactor && mode === "search"
                         ? "#191D88"
                         : "white"
