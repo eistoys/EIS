@@ -58,7 +58,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("0.00069");
-  const [supply, setSupply] = useState("∞");
+  const [supply, setSupply] = useState("10000");
   const [isLicenseChecked, setIsLicenseChecked] = useState(false);
   const [createdTokenId, setCreatedTokenId] = useState("");
 
@@ -187,12 +187,6 @@ function CampaignBasedHanabiArtworkCreatePage() {
                 SUPPLY
               </div>
               <div className="relative flex items-center mb-4">
-                <button
-                  type="button"
-                  className="absolute left-0 text-white w-12 h-12"
-                >
-                  -
-                </button>
                 <input
                   type="text"
                   className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white w-full text-center px-12"
@@ -200,12 +194,6 @@ function CampaignBasedHanabiArtworkCreatePage() {
                   disabled
                   value={supply}
                 />
-                <button
-                  type="button"
-                  className="absolute right-0 text-white w-12 h-12"
-                >
-                  +
-                </button>
               </div>
 
               <div className="flex gap-2.5 px-px mt-5 text-lg font-bold tracking-wide leading-5 text-red-600 mb-2">

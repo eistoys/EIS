@@ -28,9 +28,9 @@ dataSources:
     name: EISHanabi
     network: base-sepolia
     source:
-      address: "0xe226c930d6b7b19f8377a48430a6edf2a5b01b28"
+      address: "0x4e1c2d80b924d300e902f06b198a7645c94162cd"
       abi: EISHanabi
-      startBlock: 12198220
+      startBlock: 12451169
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -41,7 +41,7 @@ dataSources:
         - name: EISHanabi
           file: ./abis/EISHanabi.json
       eventHandlers:
-        - event: Created(indexed uint256,indexed address,(address,string,string,uint8,string,address[],uint256[]),(address,(address[],uint256[],uint256,uint16)))
+        - event: Created(indexed uint256,indexed address,(address,string,string,uint8,string,address[],uint256[]))
           handler: handleCreated
         - event: TransferSingle(indexed address,indexed address,indexed
             address,uint256,uint256)

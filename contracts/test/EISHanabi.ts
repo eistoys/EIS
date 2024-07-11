@@ -1,21 +1,13 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import hre from "hardhat";
-import { Hex, parseEther, getContract, formatEther } from "viem";
+import { Hex, parseEther, formatEther, checksumAddress } from "viem";
 import { expect } from "chai";
 
 import solady from "solady";
 
 import { chunk } from "./utils";
-import { splitsWarehouseAbi } from "./abis/SplitsWarehouse";
-
 import { smallPngImageHex } from "./data";
-import {
-  SPLIT_NATIVE_TOKEN_ADDRESS,
-  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-  SPLIT_WAREHOUSE_ADDRESS,
-  SPLIT_REMAINS,
-} from "../config";
 
 const name = "name";
 const description = "description";
@@ -32,6 +24,7 @@ const basisPointsBase = 10000n;
 const protocolFeeBasisPoints = 1000n;
 const collectionOwnerFeeBasisPoints = 4500n;
 const remixFeeBasisPoints = 1000n;
+const maxSupply = 10000n;
 
 const getFixture = async () => {
   const publicClient = await hre.viem.getPublicClient();
@@ -39,6 +32,8 @@ const getFixture = async () => {
     owner,
     protocolTreasury,
     collectionOwnerTreasury,
+    newProtocolTreasury,
+    newCollectionOwnerTreasury,
     creator,
     creator2,
     creator3,
@@ -48,8 +43,6 @@ const getFixture = async () => {
   ] = await hre.viem.getWalletClients();
 
   const eisHanabi = await hre.viem.deployContract("EISHanabi", [
-    SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-    SPLIT_NATIVE_TOKEN_ADDRESS,
     protocolTreasury.account.address,
     collectionOwnerTreasury.account.address,
     fixedMintFee,
@@ -57,19 +50,16 @@ const getFixture = async () => {
     protocolFeeBasisPoints,
     collectionOwnerFeeBasisPoints,
     remixFeeBasisPoints,
+    maxSupply,
   ]);
-
-  const splitsWarehouse = getContract({
-    address: SPLIT_WAREHOUSE_ADDRESS,
-    abi: splitsWarehouseAbi,
-    client: publicClient,
-  });
 
   return {
     publicClient,
     owner,
     protocolTreasury,
     collectionOwnerTreasury,
+    newProtocolTreasury,
+    newCollectionOwnerTreasury,
     creator,
     creator2,
     creator3,
@@ -77,7 +67,6 @@ const getFixture = async () => {
     minter,
     remixer,
     eisHanabi,
-    splitsWarehouse,
   };
 };
 
@@ -89,11 +78,86 @@ describe.only("EISHanabi", function () {
     });
   });
 
+  describe("Treasury Transfers", function () {
+    it("Should transfer protocol treasury address correctly", async function () {
+      const { publicClient, protocolTreasury, newProtocolTreasury, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // Transfer protocol treasury address
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.transferProtocolTreasury(
+          [newProtocolTreasury.account.address],
+          { account: protocolTreasury.account }
+        ),
+      });
+
+      // Verify the protocol treasury address has been updated
+      const updatedProtocolTreasuryAddress =
+        await eisHanabi.read.protocolTreasuryAddress();
+      expect(updatedProtocolTreasuryAddress).to.equal(
+        checksumAddress(newProtocolTreasury.account.address)
+      );
+    });
+
+    it("Should transfer collection owner treasury address correctly", async function () {
+      const {
+        publicClient,
+        collectionOwnerTreasury,
+        newCollectionOwnerTreasury,
+        eisHanabi,
+      } = await loadFixture(getFixture);
+
+      // Transfer collection owner treasury address
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.transferCollectionOwnerTreasury(
+          [newCollectionOwnerTreasury.account.address],
+          { account: collectionOwnerTreasury.account }
+        ),
+      });
+
+      // Verify the collection owner treasury address has been updated
+      const updatedCollectionOwnerTreasuryAddress =
+        await eisHanabi.read.collectionOwnerTreasuryAddress();
+      expect(updatedCollectionOwnerTreasuryAddress).to.equal(
+        checksumAddress(newCollectionOwnerTreasury.account.address)
+      );
+    });
+
+    it("Should fail to transfer protocol treasury address by non-treasury address", async function () {
+      const { collectionOwnerTreasury, newProtocolTreasury, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // Attempt to transfer protocol treasury address by non-treasury address
+      await expect(
+        eisHanabi.write.transferProtocolTreasury(
+          [newProtocolTreasury.account.address],
+          { account: collectionOwnerTreasury.account }
+        )
+      ).to.be.rejectedWith("EIS: only current protocol treasury can transfer");
+    });
+
+    it("Should fail to transfer collection owner treasury address by non-treasury address", async function () {
+      const { protocolTreasury, newCollectionOwnerTreasury, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // Attempt to transfer collection owner treasury address by non-treasury address
+      await expect(
+        eisHanabi.write.transferCollectionOwnerTreasury(
+          [newCollectionOwnerTreasury.account.address],
+          { account: protocolTreasury.account }
+        )
+      ).to.be.rejectedWith(
+        "EIS: only current collection owner treasury can transfer"
+      );
+    });
+  });
+
   describe("Create", function () {
     it("Should create a new token", async function () {
       const { publicClient, creator, eisHanabi } =
         await loadFixture(getFixture);
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
 
       await publicClient.waitForTransactionReceipt({
         hash: await eisHanabi.write.create(
@@ -102,7 +166,7 @@ describe.only("EISHanabi", function () {
             description,
             compression.zip,
             pngMimeType,
-            chunk(zippedImageHex),
+            imageChunks,
             [],
             true,
           ],
@@ -129,6 +193,7 @@ describe.only("EISHanabi", function () {
     it("Should return correct URI", async function () {
       const { publicClient, creator, eisHanabi } = await getFixture();
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
 
       await publicClient.waitForTransactionReceipt({
         hash: await eisHanabi.write.create(
@@ -137,7 +202,7 @@ describe.only("EISHanabi", function () {
             description,
             compression.zip,
             pngMimeType,
-            chunk(zippedImageHex),
+            imageChunks,
             [],
             true,
           ],
@@ -158,6 +223,7 @@ describe.only("EISHanabi", function () {
       const { publicClient, creator, minter, eisHanabi } =
         await loadFixture(getFixture);
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
 
       await publicClient.waitForTransactionReceipt({
         hash: await eisHanabi.write.create(
@@ -166,7 +232,7 @@ describe.only("EISHanabi", function () {
             description,
             compression.zip,
             pngMimeType,
-            chunk(zippedImageHex),
+            imageChunks,
             [],
             false, // isInitialMintEnabled set to false for this test
           ],
@@ -188,19 +254,12 @@ describe.only("EISHanabi", function () {
     });
   });
 
-  describe("Fee Distribution", function () {
-    it("Should distribute fees correctly and allow withdrawal", async function () {
-      const {
-        publicClient,
-        protocolTreasury,
-        collectionOwnerTreasury,
-        owner,
-        creator,
-        minter,
-        eisHanabi,
-        splitsWarehouse,
-      } = await loadFixture(getFixture);
+  describe("Max Supply", function () {
+    it("Should fail to mint tokens exceeding max supply", async function () {
+      const { publicClient, creator, minter, eisHanabi } =
+        await loadFixture(getFixture);
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
 
       await publicClient.waitForTransactionReceipt({
         hash: await eisHanabi.write.create(
@@ -209,7 +268,50 @@ describe.only("EISHanabi", function () {
             description,
             compression.zip,
             pngMimeType,
-            chunk(zippedImageHex),
+            imageChunks,
+            [],
+            false,
+          ],
+          { account: creator.account }
+        ),
+      });
+
+      const tokenId = 0n;
+      await eisHanabi.write.mint([tokenId, maxSupply], {
+        account: minter.account,
+        value: fixedMintFee * maxSupply,
+      });
+
+      await expect(
+        eisHanabi.write.mint([tokenId, 1n], {
+          account: minter.account,
+          value: fixedMintFee,
+        })
+      ).to.be.rejectedWith("EIS: max supply exceeded");
+    });
+  });
+
+  describe("Fee Distribution", function () {
+    it("Should distribute fees correctly and allow withdrawal", async function () {
+      const {
+        publicClient,
+        protocolTreasury,
+        collectionOwnerTreasury,
+        creator,
+        minter,
+        eisHanabi,
+      } = await loadFixture(getFixture);
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
+
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.create(
+          [
+            name,
+            description,
+            compression.zip,
+            pngMimeType,
+            imageChunks,
             [],
             false,
           ],
@@ -225,10 +327,7 @@ describe.only("EISHanabi", function () {
         publicClient.getBalance({
           address: collectionOwnerTreasury.account.address,
         }),
-        splitsWarehouse.read.balanceOf([
-          creator.account.address,
-          BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
-        ]),
+        publicClient.getBalance({ address: creator.account.address }),
       ]);
 
       await eisHanabi.write.mint([tokenId, amount], {
@@ -257,40 +356,34 @@ describe.only("EISHanabi", function () {
         expectedCollectionOwnerFee
       );
 
-      const warehouseBalance = await splitsWarehouse.read.balanceOf([
+      const creatorClaimableFees = await eisHanabi.read.claimableFees([
         creator.account.address,
-        BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
       ]);
 
-      // adjust remains in split + SPLIT_REMAINS
-      expect(warehouseBalance - initialBalances[2] + SPLIT_REMAINS).to.equal(
-        expectedCreatorFee
-      );
+      expect(creatorClaimableFees).to.equal(expectedCreatorFee);
 
       const initialCreatorBalance = await publicClient.getBalance({
         address: creator.account.address,
       });
-      await splitsWarehouse.write.withdraw(
-        [creator.account.address, SPLIT_NATIVE_TOKEN_ADDRESS],
-        { account: owner.account }
-      );
+
+      const claimTxHash = await eisHanabi.write.claimFees({
+        account: creator.account,
+      });
+      const claimReceipt = await publicClient.waitForTransactionReceipt({
+        hash: claimTxHash,
+      });
+
+      const gasUsed = claimReceipt.gasUsed;
+      const gasPrice = claimReceipt.effectiveGasPrice;
+      const claimGasCost = gasUsed * gasPrice;
 
       const finalCreatorBalance = await publicClient.getBalance({
         address: creator.account.address,
       });
 
-      // adjust remains in split and warehouse by SPLIT_REMAINS + SPLIT_REMAINS
       const creatorBalanceIncrease =
-        finalCreatorBalance - initialCreatorBalance;
-      expect(
-        creatorBalanceIncrease + SPLIT_REMAINS + SPLIT_REMAINS
-      ).to.be.equal(expectedCreatorFee);
-
-      const finalWarehouseBalance = await splitsWarehouse.read.balanceOf([
-        creator.account.address,
-        BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
-      ]);
-      expect(finalWarehouseBalance).to.equal(SPLIT_REMAINS);
+        finalCreatorBalance - initialCreatorBalance + claimGasCost;
+      expect(creatorBalanceIncrease).to.be.equal(expectedCreatorFee);
 
       console.log("=== LOG ===");
       console.log("Fee Distribution for Non-Remixed NFT:");
@@ -311,15 +404,14 @@ describe.only("EISHanabi", function () {
         publicClient,
         protocolTreasury,
         collectionOwnerTreasury,
-        owner,
-        remixer,
         creator,
+        remixer,
         minter,
         eisHanabi,
-        splitsWarehouse,
       } = await loadFixture(getFixture);
 
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
 
       await publicClient.waitForTransactionReceipt({
         hash: await eisHanabi.write.create(
@@ -328,7 +420,7 @@ describe.only("EISHanabi", function () {
             "Original Description",
             compression.zip,
             pngMimeType,
-            chunk(zippedImageHex),
+            imageChunks,
             [],
             false,
           ],
@@ -345,7 +437,7 @@ describe.only("EISHanabi", function () {
             "Remixed Description",
             compression.zip,
             pngMimeType,
-            chunk(zippedImageHex),
+            imageChunks,
             [tokenId1],
             false,
           ],
@@ -360,12 +452,8 @@ describe.only("EISHanabi", function () {
         publicClient.getBalance({
           address: collectionOwnerTreasury.account.address,
         }),
-        publicClient.getBalance({
-          address: creator.account.address,
-        }),
-        publicClient.getBalance({
-          address: remixer.account.address,
-        }),
+        publicClient.getBalance({ address: creator.account.address }),
+        publicClient.getBalance({ address: remixer.account.address }),
       ]);
 
       const amount = 1n;
@@ -398,61 +486,59 @@ describe.only("EISHanabi", function () {
         expectedCollectionOwnerFee
       );
 
-      const originalCreatorWarehouseBalance =
-        await splitsWarehouse.read.balanceOf([
-          creator.account.address,
-          BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
-        ]);
-      const remixerWarehouseBalance = await splitsWarehouse.read.balanceOf([
+      const creatorClaimableFees = await eisHanabi.read.claimableFees([
+        creator.account.address,
+      ]);
+      const remixerClaimableFees = await eisHanabi.read.claimableFees([
         remixer.account.address,
-        BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
       ]);
 
-      expect(originalCreatorWarehouseBalance + SPLIT_REMAINS).to.equal(
-        expectedRemixFee
-      );
-      expect(remixerWarehouseBalance + SPLIT_REMAINS).to.equal(
-        expectedCreatorFee
-      );
+      expect(creatorClaimableFees).to.equal(expectedRemixFee);
+      expect(remixerClaimableFees).to.equal(expectedCreatorFee);
 
-      await splitsWarehouse.write.withdraw(
-        [creator.account.address, SPLIT_NATIVE_TOKEN_ADDRESS],
-        { account: owner.account }
-      );
-      await splitsWarehouse.write.withdraw(
-        [remixer.account.address, SPLIT_NATIVE_TOKEN_ADDRESS],
-        { account: owner.account }
-      );
+      const initialCreatorBalance = await publicClient.getBalance({
+        address: creator.account.address,
+      });
+      const initialRemixerBalance = await publicClient.getBalance({
+        address: remixer.account.address,
+      });
 
-      const finalOriginalCreatorBalance = await publicClient.getBalance({
+      const claimCreatorTxHash = await eisHanabi.write.claimFees({
+        account: creator.account,
+      });
+      const claimCreatorReceipt = await publicClient.waitForTransactionReceipt({
+        hash: claimCreatorTxHash,
+      });
+
+      const claimRemixerTxHash = await eisHanabi.write.claimFees({
+        account: remixer.account,
+      });
+      const claimRemixerReceipt = await publicClient.waitForTransactionReceipt({
+        hash: claimRemixerTxHash,
+      });
+
+      const creatorGasUsed = claimCreatorReceipt.gasUsed;
+      const creatorGasPrice = claimCreatorReceipt.effectiveGasPrice;
+      const creatorGasCost = creatorGasUsed * creatorGasPrice;
+
+      const remixerGasUsed = claimRemixerReceipt.gasUsed;
+      const remixerGasPrice = claimRemixerReceipt.effectiveGasPrice;
+      const remixerGasCost = remixerGasUsed * remixerGasPrice;
+
+      const finalCreatorBalance = await publicClient.getBalance({
         address: creator.account.address,
       });
       const finalRemixerBalance = await publicClient.getBalance({
         address: remixer.account.address,
       });
 
-      expect(
-        finalOriginalCreatorBalance -
-          initialBalances[2] +
-          SPLIT_REMAINS +
-          SPLIT_REMAINS
-      ).to.be.equal(expectedRemixFee);
+      const creatorBalanceIncrease =
+        finalCreatorBalance - initialCreatorBalance + creatorGasCost;
+      const remixerBalanceIncrease =
+        finalRemixerBalance - initialRemixerBalance + remixerGasCost;
 
-      expect(
-        finalRemixerBalance - initialBalances[3] + SPLIT_REMAINS + SPLIT_REMAINS
-      ).to.be.equal(expectedCreatorFee);
-
-      const finalOriginalCreatorWarehouseBalance =
-        await splitsWarehouse.read.balanceOf([
-          creator.account.address,
-          BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
-        ]);
-      const finalRemixerWarehouseBalance = await splitsWarehouse.read.balanceOf(
-        [remixer.account.address, BigInt(SPLIT_NATIVE_TOKEN_ADDRESS)]
-      );
-
-      expect(finalOriginalCreatorWarehouseBalance).to.equal(SPLIT_REMAINS);
-      expect(finalRemixerWarehouseBalance).to.equal(SPLIT_REMAINS);
+      expect(creatorBalanceIncrease).to.be.equal(expectedRemixFee);
+      expect(remixerBalanceIncrease).to.be.equal(expectedCreatorFee);
 
       console.log("=== LOG ===");
       console.log("Fee Distribution for Remixed NFT:");
@@ -477,7 +563,6 @@ describe.only("EISHanabi", function () {
         publicClient,
         protocolTreasury,
         collectionOwnerTreasury,
-        owner,
         creator: creator1,
         creator2,
         creator3,
@@ -485,10 +570,10 @@ describe.only("EISHanabi", function () {
         remixer,
         minter,
         eisHanabi,
-        splitsWarehouse,
       } = await loadFixture(getFixture);
 
       const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
 
       // Create 4 original NFTs
       const originalCreators = [creator1, creator2, creator3, creator4];
@@ -502,7 +587,7 @@ describe.only("EISHanabi", function () {
               `Original Description ${i + 1}`,
               compression.zip,
               pngMimeType,
-              chunk(zippedImageHex),
+              imageChunks,
               [],
               false,
             ],
@@ -520,7 +605,7 @@ describe.only("EISHanabi", function () {
             "Remixed Description",
             compression.zip,
             pngMimeType,
-            chunk(zippedImageHex),
+            imageChunks,
             originalTokenIds,
             false,
           ],
@@ -530,16 +615,25 @@ describe.only("EISHanabi", function () {
 
       const remixedTokenId = 4n;
 
-      const initialBalances = await Promise.all([
-        publicClient.getBalance({ address: protocolTreasury.account.address }),
-        publicClient.getBalance({
-          address: collectionOwnerTreasury.account.address,
-        }),
-        ...originalCreators.map((c) =>
-          publicClient.getBalance({ address: c.account.address })
-        ),
-        publicClient.getBalance({ address: remixer.account.address }),
-      ]);
+      const initialProtocolBalance = await publicClient.getBalance({
+        address: protocolTreasury.account.address,
+      });
+      const initialCollectionOwnerBalance = await publicClient.getBalance({
+        address: collectionOwnerTreasury.account.address,
+      });
+
+      const initialCreatorBalances = [];
+      for (let i = 0; i < originalCreators.length; i++) {
+        initialCreatorBalances.push(
+          await publicClient.getBalance({
+            address: originalCreators[i].account.address,
+          })
+        );
+      }
+
+      const initialRemixerBalance = await publicClient.getBalance({
+        address: remixer.account.address,
+      });
 
       // Mint the remixed NFT
       const amount = 1n;
@@ -568,59 +662,75 @@ describe.only("EISHanabi", function () {
         address: collectionOwnerTreasury.account.address,
       });
 
-      expect(finalProtocolBalance - initialBalances[0]).to.equal(
+      expect(finalProtocolBalance - initialProtocolBalance).to.equal(
         expectedProtocolFee
       );
-      expect(finalCollectionOwnerBalance - initialBalances[1]).to.equal(
-        expectedCollectionOwnerFee
-      );
+      expect(
+        finalCollectionOwnerBalance - initialCollectionOwnerBalance
+      ).to.equal(expectedCollectionOwnerFee);
 
-      // Check warehouse balances for original creators and remixer
-      for (let i = 0; i < 4; i++) {
-        const creatorWarehouseBalance = await splitsWarehouse.read.balanceOf([
+      for (let i = 0; i < originalCreators.length; i++) {
+        const creatorClaimableFees = await eisHanabi.read.claimableFees([
           originalCreators[i].account.address,
-          BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
         ]);
-        expect(creatorWarehouseBalance + SPLIT_REMAINS).to.equal(
+        expect(creatorClaimableFees).to.equal(
           expectedRemixFeePerOriginalCreator
         );
       }
 
-      const remixerWarehouseBalance = await splitsWarehouse.read.balanceOf([
+      const remixerClaimableFees = await eisHanabi.read.claimableFees([
         remixer.account.address,
-        BigInt(SPLIT_NATIVE_TOKEN_ADDRESS),
       ]);
-      expect(remixerWarehouseBalance + SPLIT_REMAINS).to.equal(
-        expectedRemixerFee
-      );
+      expect(remixerClaimableFees).to.equal(expectedRemixerFee);
 
-      // Withdraw for all creators
-      for (const creator of [...originalCreators, remixer]) {
-        await splitsWarehouse.write.withdraw(
-          [creator.account.address, SPLIT_NATIVE_TOKEN_ADDRESS],
-          { account: owner.account }
+      // Calculate gas costs and net balance increase for each creator
+      const gasCosts = [];
+      for (let i = 0; i < originalCreators.length; i++) {
+        const claimTxHash = await eisHanabi.write.claimFees({
+          account: originalCreators[i].account,
+        });
+        const claimReceipt = await publicClient.waitForTransactionReceipt({
+          hash: claimTxHash,
+        });
+        const gasUsed = claimReceipt.gasUsed;
+        const gasPrice = claimReceipt.effectiveGasPrice;
+        gasCosts.push(gasUsed * gasPrice);
+      }
+
+      const claimRemixerTxHash = await eisHanabi.write.claimFees({
+        account: remixer.account,
+      });
+      const claimRemixerReceipt = await publicClient.waitForTransactionReceipt({
+        hash: claimRemixerTxHash,
+      });
+      const remixerGasUsed = claimRemixerReceipt.gasUsed;
+      const remixerGasPrice = claimRemixerReceipt.effectiveGasPrice;
+      const remixerGasCost = remixerGasUsed * remixerGasPrice;
+
+      const finalCreatorBalances = [];
+      for (let i = 0; i < originalCreators.length; i++) {
+        finalCreatorBalances.push(
+          await publicClient.getBalance({
+            address: originalCreators[i].account.address,
+          })
         );
       }
 
-      // Check final balances
-      const finalBalances = await Promise.all([
-        ...originalCreators.map((c) =>
-          publicClient.getBalance({ address: c.account.address })
-        ),
-        publicClient.getBalance({ address: remixer.account.address }),
-      ]);
+      const finalRemixerBalance = await publicClient.getBalance({
+        address: remixer.account.address,
+      });
 
-      for (let i = 0; i < 4; i++) {
-        expect(
-          finalBalances[i] -
-            initialBalances[i + 2] +
-            SPLIT_REMAINS +
-            SPLIT_REMAINS
-        ).to.be.equal(expectedRemixFeePerOriginalCreator);
+      for (let i = 0; i < originalCreators.length; i++) {
+        const netBalanceIncrease =
+          finalCreatorBalances[i] - initialCreatorBalances[i] + gasCosts[i];
+        expect(netBalanceIncrease).to.be.equal(
+          expectedRemixFeePerOriginalCreator
+        );
       }
-      expect(
-        finalBalances[4] - initialBalances[6] + SPLIT_REMAINS + SPLIT_REMAINS
-      ).to.be.equal(expectedRemixerFee);
+
+      const netRemixerBalanceIncrease =
+        finalRemixerBalance - initialRemixerBalance + remixerGasCost;
+      expect(netRemixerBalanceIncrease).to.be.equal(expectedRemixerFee);
 
       // Log fee distribution
       console.log("=== LOG ===");

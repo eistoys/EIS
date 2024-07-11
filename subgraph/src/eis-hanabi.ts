@@ -15,7 +15,6 @@ export function handleCreated(event: CreatedEvent): void {
   let contract = ESIHanabiContract.bind(event.address);
   entity.tokenId = event.params.tokenId;
   entity.creator = event.params.creator;
-  entity.split = event.params.split.address_;
   entity.uri = contract.uri(event.params.tokenId);
   entity.referTo = event.params.record.referenceTokenIds.map<string>((value) =>
     value.toString()
