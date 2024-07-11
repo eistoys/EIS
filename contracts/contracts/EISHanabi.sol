@@ -8,10 +8,6 @@ import "solady/src/utils/SSTORE2.sol";
 import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/Base64.sol";
 
-import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
-import {IPullSplit} from "./interfaces/IPullSplit.sol";
-import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
-
 contract EISHanabi is ERC1155 {
     enum Compression {
         None,
@@ -28,23 +24,15 @@ contract EISHanabi is ERC1155 {
         uint256[] referenceTokenIds;
     }
 
-    struct Split {
-        address address_;
-        SplitV2Lib.Split params;
-    }
-
     event Created(
         uint256 indexed tokenId,
         address indexed creator,
-        Record record,
-        Split split
+        Record record
     );
 
     mapping(uint256 => Record) public records;
-    mapping(uint256 => Split) public splits;
+    mapping(address => uint256) public claimableFees;
 
-    ISplitFactoryV2 public pullSplitFactory;
-    address public splitNativeToken;
     address public protocolTreasuryAddress;
     address public collectionOwnerTreasuryAddress;
 
@@ -56,8 +44,6 @@ contract EISHanabi is ERC1155 {
     uint256 public remixFeeBasisPoints;
 
     constructor(
-        address pullSplitFactoryAddress,
-        address splitNativeToken_,
         address protocolTreasuryAddress_,
         address collectionOwnerTreasuryAddress_,
         uint256 fixedMintFee_,
@@ -66,8 +52,6 @@ contract EISHanabi is ERC1155 {
         uint256 collectionOwnerFeeBasisPoints_,
         uint256 remixFeeBasisPoints_
     ) ERC1155("") {
-        pullSplitFactory = ISplitFactoryV2(pullSplitFactoryAddress);
-        splitNativeToken = splitNativeToken_;
         protocolTreasuryAddress = protocolTreasuryAddress_;
         collectionOwnerTreasuryAddress = collectionOwnerTreasuryAddress_;
         fixedMintFee = fixedMintFee_;
@@ -88,43 +72,27 @@ contract EISHanabi is ERC1155 {
     ) public {
         uint256 tokenId = tokenIdCounter++;
         address creator = _msgSender();
-        uint256 totalAllocation = basisPointsBase;
 
-        address[] memory recipients;
-        uint256[] memory allocations;
+        // Check for valid reference token IDs and duplication
+        for (uint256 i = 0; i < referenceTokenIds.length; i++) {
+            uint256 refTokenId = referenceTokenIds[i];
+            require(
+                records[refTokenId].creator != address(0),
+                "EIS: invalid reference token ID"
+            );
 
-        if (referenceTokenIds.length == 0) {
-            recipients = new address[](1);
-            allocations = new uint256[](1);
-            recipients[0] = creator;
-            allocations[0] = totalAllocation;
-        } else {
-            recipients = new address[](1 + referenceTokenIds.length);
-            allocations = new uint256[](1 + referenceTokenIds.length);
-
-            uint256 referencedTokensAllocation = (totalAllocation *
-                remixFeeBasisPoints) / basisPointsBase;
-            uint256 allocationPerReference = referencedTokensAllocation /
-                referenceTokenIds.length;
-            uint256 allocationTotal = allocationPerReference *
-                referenceTokenIds.length;
-
-            recipients[0] = creator;
-            allocations[0] = totalAllocation - allocationTotal;
-
-            for (uint256 i = 0; i < referenceTokenIds.length; i++) {
-                // TODO: check if referenceTokenIds[i] exists
-                recipients[i + 1] = records[referenceTokenIds[i]].creator;
-                allocations[i + 1] = allocationPerReference;
+            for (uint256 j = i + 1; j < referenceTokenIds.length; j++) {
+                require(
+                    referenceTokenIds[i] != referenceTokenIds[j],
+                    "EIS: duplicate reference token ID"
+                );
             }
         }
 
-        SplitV2Lib.Split memory splitParams = SplitV2Lib.Split({
-            recipients: recipients,
-            allocations: allocations,
-            totalAllocation: totalAllocation,
-            distributionIncentive: 0
-        });
+        address[] memory imageStorages = new address[](imageChunks.length);
+        for (uint256 i = 0; i < imageChunks.length; i++) {
+            imageStorages[i] = SSTORE2.write(imageChunks[i]);
+        }
 
         records[tokenId] = Record({
             creator: creator,
@@ -132,19 +100,11 @@ contract EISHanabi is ERC1155 {
             description: description,
             imageCompression: imageCompression,
             imageMimeType: imageMimeType,
-            imageStorages: _setImage(imageChunks),
+            imageStorages: imageStorages,
             referenceTokenIds: referenceTokenIds
         });
 
-        address splitAddress = pullSplitFactory.createSplit(
-            splitParams,
-            address(this),
-            creator
-        );
-
-        splits[tokenId] = Split({address_: splitAddress, params: splitParams});
-
-        emit Created(tokenId, _msgSender(), records[tokenId], splits[tokenId]);
+        emit Created(tokenId, _msgSender(), records[tokenId]);
 
         if (isInitialMintEnabled) {
             _mint(creator, tokenId, 1, "");
@@ -162,13 +122,39 @@ contract EISHanabi is ERC1155 {
 
         payable(protocolTreasuryAddress).transfer(protocolFee);
         payable(collectionOwnerTreasuryAddress).transfer(collectionOwnerFee);
-        payable(splits[tokenId].address_).transfer(creatorFee);
-        IPullSplit(splits[tokenId].address_).distribute(
-            splits[tokenId].params,
-            splitNativeToken,
-            address(this)
-        );
+
+        if (records[tokenId].referenceTokenIds.length > 0) {
+            uint256 originalCreatorFee = (creatorFee * remixFeeBasisPoints) /
+                basisPointsBase;
+            uint256 dividedOriginalCreatorFee = originalCreatorFee /
+                records[tokenId].referenceTokenIds.length;
+            creatorFee =
+                creatorFee -
+                dividedOriginalCreatorFee *
+                records[tokenId].referenceTokenIds.length;
+            for (
+                uint256 i = 0;
+                i < records[tokenId].referenceTokenIds.length;
+                i++
+            ) {
+                uint256 referenceTokenId = records[tokenId].referenceTokenIds[
+                    i
+                ];
+                address remixCreator = records[referenceTokenId].creator;
+                claimableFees[remixCreator] += dividedOriginalCreatorFee;
+            }
+        }
+
+        claimableFees[records[tokenId].creator] += creatorFee;
         _mint(_msgSender(), tokenId, amount, "");
+    }
+
+    function claimFees() public {
+        address creator = _msgSender();
+        uint256 amount = claimableFees[creator];
+        require(amount > 0, "EIS: no fees to claim");
+        claimableFees[creator] = 0;
+        payable(creator).transfer(amount);
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
@@ -207,7 +193,7 @@ contract EISHanabi is ERC1155 {
     function loadRawImage(uint256 tokenId) public view returns (bytes memory) {
         bytes memory data;
         address[] memory imageStorages = records[tokenId].imageStorages;
-        for (uint8 i = 0; i < imageStorages.length; i++) {
+        for (uint256 i = 0; i < imageStorages.length; i++) {
             data = abi.encodePacked(data, SSTORE2.read(imageStorages[i]));
         }
         if (records[tokenId].imageCompression == Compression.ZIP) {
@@ -229,15 +215,5 @@ contract EISHanabi is ERC1155 {
                     Base64.encode(data)
                 )
             );
-    }
-
-    function _setImage(
-        bytes[] memory imageChunks
-    ) internal returns (address[] memory) {
-        address[] memory imageStorages = new address[](imageChunks.length);
-        for (uint8 i = 0; i < imageChunks.length; i++) {
-            imageStorages[i] = (SSTORE2.write(imageChunks[i]));
-        }
-        return imageStorages;
     }
 }
