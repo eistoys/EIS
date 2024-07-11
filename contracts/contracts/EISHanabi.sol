@@ -22,6 +22,7 @@ contract EISHanabi is ERC1155 {
         string imageMimeType;
         address[] imageStorages;
         uint256[] referenceTokenIds;
+        uint256 maxSupply;
     }
 
     event Created(
@@ -42,6 +43,7 @@ contract EISHanabi is ERC1155 {
 
     mapping(uint256 => Record) public records;
     mapping(address => uint256) public claimableFees;
+    mapping(uint256 => uint256) public totalMinted;
 
     address public protocolTreasuryAddress;
     address public collectionOwnerTreasuryAddress;
@@ -78,8 +80,11 @@ contract EISHanabi is ERC1155 {
         string memory imageMimeType,
         bytes[] memory imageChunks,
         uint256[] memory referenceTokenIds,
-        bool isInitialMintEnabled
+        bool isInitialMintEnabled,
+        uint256 maxSupply
     ) public {
+        require(maxSupply > 0, "EIS: max supply must be greater than 0");
+
         uint256 tokenId = tokenIdCounter++;
         address creator = _msgSender();
 
@@ -111,17 +116,24 @@ contract EISHanabi is ERC1155 {
             imageCompression: imageCompression,
             imageMimeType: imageMimeType,
             imageStorages: imageStorages,
-            referenceTokenIds: referenceTokenIds
+            referenceTokenIds: referenceTokenIds,
+            maxSupply: maxSupply
         });
 
         emit Created(tokenId, _msgSender(), records[tokenId]);
 
         if (isInitialMintEnabled) {
+            totalMinted[tokenId] += 1;
             _mint(creator, tokenId, 1, "");
         }
     }
 
     function mint(uint256 tokenId, uint256 amount) public payable {
+        require(
+            totalMinted[tokenId] + amount <= records[tokenId].maxSupply,
+            "EIS: max supply exceeded"
+        );
+
         uint256 totalMintFee = fixedMintFee * amount;
         require(msg.value >= totalMintFee, "EIS: insufficient total mint fee");
         (
@@ -156,6 +168,7 @@ contract EISHanabi is ERC1155 {
         }
 
         claimableFees[records[tokenId].creator] += creatorFee;
+        totalMinted[tokenId] += amount;
         _mint(_msgSender(), tokenId, amount, "");
     }
 

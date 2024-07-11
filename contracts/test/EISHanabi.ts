@@ -24,6 +24,7 @@ const basisPointsBase = 10000n;
 const protocolFeeBasisPoints = 1000n;
 const collectionOwnerFeeBasisPoints = 4500n;
 const remixFeeBasisPoints = 1000n;
+const maxSupply = 10000n;
 
 const getFixture = async () => {
   const publicClient = await hre.viem.getPublicClient();
@@ -167,6 +168,7 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             true,
+            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -203,6 +205,7 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             true,
+            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -233,6 +236,7 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             false, // isInitialMintEnabled set to false for this test
+            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -249,6 +253,67 @@ describe.only("EISHanabi", function () {
         tokenId,
       ]);
       expect(balance).to.equal(1n);
+    });
+  });
+
+  describe("Max Supply", function () {
+    it("Should fail to create a token with max supply of 0", async function () {
+      const { publicClient, creator, eisHanabi } =
+        await loadFixture(getFixture);
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
+
+      await expect(
+        eisHanabi.write.create(
+          [
+            name,
+            description,
+            compression.zip,
+            pngMimeType,
+            imageChunks,
+            [],
+            false,
+            0n, // maxSupply set to 0 for this test
+          ],
+          { account: creator.account }
+        )
+      ).to.be.rejectedWith("EIS: max supply must be greater than 0");
+    });
+
+    it("Should fail to mint tokens exceeding max supply", async function () {
+      const { publicClient, creator, minter, eisHanabi } =
+        await loadFixture(getFixture);
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
+
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.create(
+          [
+            name,
+            description,
+            compression.zip,
+            pngMimeType,
+            imageChunks,
+            [],
+            false,
+            5n, // maxSupply set to 5 for this test
+          ],
+          { account: creator.account }
+        ),
+      });
+
+      const tokenId = 0n;
+      await eisHanabi.write.mint([tokenId, 5n], {
+        account: minter.account,
+        value: fixedMintFee * 5n,
+      });
+
+      await expect(
+        eisHanabi.write.mint([tokenId, 1n], {
+          account: minter.account,
+          value: fixedMintFee,
+        })
+      ).to.be.rejectedWith("EIS: max supply exceeded");
     });
   });
 
@@ -275,6 +340,7 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             false,
+            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -384,6 +450,7 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             false,
+            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -401,6 +468,7 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [tokenId1],
             false,
+            maxSupply,
           ],
           { account: remixer.account }
         ),
@@ -551,6 +619,7 @@ describe.only("EISHanabi", function () {
               imageChunks,
               [],
               false,
+              maxSupply,
             ],
             { account: originalCreators[i].account }
           ),
@@ -569,6 +638,7 @@ describe.only("EISHanabi", function () {
             imageChunks,
             originalTokenIds,
             false,
+            maxSupply,
           ],
           { account: remixer.account }
         ),
