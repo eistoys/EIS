@@ -215,8 +215,8 @@ function CampaignBasedHanabiArtworkCreatePage() {
         </div>
       )}
       <div
-        className={`fixed bottom-0 right-0 w-full flex justify-between px-3 h-10 mb-3 ${
-          mode == "create" && "w-48"
+        className={`fixed bottom-0 right-0 flex justify-between px-3 h-10 mb-3 ${
+          mode == "create" ? "w-48" : "w-full"
         }`}
       >
         {mode == "info" ? (
