@@ -11,6 +11,7 @@ const BASIS_POINTS_BASE = BigInt("10000");
 const PROTOCOL_FEE_BASIS_POINTS = BigInt("1000");
 const COLLECTION_OWNER_FEE_BASIS_POINTS = BigInt("4500");
 const REMIX_FEE_BASIS_POINTS = BigInt("1000");
+const MAX_SUPPLY = BigInt("10000");
 
 async function main() {
   const [deployer] = await hre.viem.getWalletClients();
@@ -24,6 +25,7 @@ async function main() {
     PROTOCOL_FEE_BASIS_POINTS,
     COLLECTION_OWNER_FEE_BASIS_POINTS,
     REMIX_FEE_BASIS_POINTS,
+    MAX_SUPPLY,
   ]);
   console.log("EIS Hanabi deployed to:", eis.address);
 }

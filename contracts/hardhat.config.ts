@@ -20,6 +20,7 @@ const config: HardhatUserConfig = {
       forking: {
         url: "https://sepolia.base.org",
         blockNumber: 11591880, // Jun-21-2024 06:40:48 AM +UTC
+        enabled: false,
       },
     },
     sepolia: {

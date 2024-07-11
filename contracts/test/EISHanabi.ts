@@ -50,6 +50,7 @@ const getFixture = async () => {
     protocolFeeBasisPoints,
     collectionOwnerFeeBasisPoints,
     remixFeeBasisPoints,
+    maxSupply,
   ]);
 
   return {
@@ -168,7 +169,6 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             true,
-            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -205,7 +205,6 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             true,
-            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -236,7 +235,6 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             false, // isInitialMintEnabled set to false for this test
-            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -257,29 +255,6 @@ describe.only("EISHanabi", function () {
   });
 
   describe("Max Supply", function () {
-    it("Should fail to create a token with max supply of 0", async function () {
-      const { publicClient, creator, eisHanabi } =
-        await loadFixture(getFixture);
-      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
-      const imageChunks = chunk(zippedImageHex);
-
-      await expect(
-        eisHanabi.write.create(
-          [
-            name,
-            description,
-            compression.zip,
-            pngMimeType,
-            imageChunks,
-            [],
-            false,
-            0n, // maxSupply set to 0 for this test
-          ],
-          { account: creator.account }
-        )
-      ).to.be.rejectedWith("EIS: max supply must be greater than 0");
-    });
-
     it("Should fail to mint tokens exceeding max supply", async function () {
       const { publicClient, creator, minter, eisHanabi } =
         await loadFixture(getFixture);
@@ -296,16 +271,15 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             false,
-            5n, // maxSupply set to 5 for this test
           ],
           { account: creator.account }
         ),
       });
 
       const tokenId = 0n;
-      await eisHanabi.write.mint([tokenId, 5n], {
+      await eisHanabi.write.mint([tokenId, maxSupply], {
         account: minter.account,
-        value: fixedMintFee * 5n,
+        value: fixedMintFee * maxSupply,
       });
 
       await expect(
@@ -340,7 +314,6 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             false,
-            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -450,7 +423,6 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [],
             false,
-            maxSupply,
           ],
           { account: creator.account }
         ),
@@ -468,7 +440,6 @@ describe.only("EISHanabi", function () {
             imageChunks,
             [tokenId1],
             false,
-            maxSupply,
           ],
           { account: remixer.account }
         ),
@@ -619,7 +590,6 @@ describe.only("EISHanabi", function () {
               imageChunks,
               [],
               false,
-              maxSupply,
             ],
             { account: originalCreators[i].account }
           ),
@@ -638,7 +608,6 @@ describe.only("EISHanabi", function () {
             imageChunks,
             originalTokenIds,
             false,
-            maxSupply,
           ],
           { account: remixer.account }
         ),
@@ -646,16 +615,25 @@ describe.only("EISHanabi", function () {
 
       const remixedTokenId = 4n;
 
-      const initialBalances = await Promise.all([
-        publicClient.getBalance({ address: protocolTreasury.account.address }),
-        publicClient.getBalance({
-          address: collectionOwnerTreasury.account.address,
-        }),
-        ...originalCreators.map((c) =>
-          publicClient.getBalance({ address: c.account.address })
-        ),
-        publicClient.getBalance({ address: remixer.account.address }),
-      ]);
+      const initialProtocolBalance = await publicClient.getBalance({
+        address: protocolTreasury.account.address,
+      });
+      const initialCollectionOwnerBalance = await publicClient.getBalance({
+        address: collectionOwnerTreasury.account.address,
+      });
+
+      const initialCreatorBalances = [];
+      for (let i = 0; i < originalCreators.length; i++) {
+        initialCreatorBalances.push(
+          await publicClient.getBalance({
+            address: originalCreators[i].account.address,
+          })
+        );
+      }
+
+      const initialRemixerBalance = await publicClient.getBalance({
+        address: remixer.account.address,
+      });
 
       // Mint the remixed NFT
       const amount = 1n;
@@ -684,14 +662,14 @@ describe.only("EISHanabi", function () {
         address: collectionOwnerTreasury.account.address,
       });
 
-      expect(finalProtocolBalance - initialBalances[0]).to.equal(
+      expect(finalProtocolBalance - initialProtocolBalance).to.equal(
         expectedProtocolFee
       );
-      expect(finalCollectionOwnerBalance - initialBalances[1]).to.equal(
-        expectedCollectionOwnerFee
-      );
+      expect(
+        finalCollectionOwnerBalance - initialCollectionOwnerBalance
+      ).to.equal(expectedCollectionOwnerFee);
 
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < originalCreators.length; i++) {
         const creatorClaimableFees = await eisHanabi.read.claimableFees([
           originalCreators[i].account.address,
         ]);
@@ -705,40 +683,44 @@ describe.only("EISHanabi", function () {
       ]);
       expect(remixerClaimableFees).to.equal(expectedRemixerFee);
 
-      const initialCreatorBalances = await Promise.all(
-        originalCreators.map((c) =>
-          publicClient.getBalance({ address: c.account.address })
-        )
-      );
-      const initialRemixerBalance = await publicClient.getBalance({
-        address: remixer.account.address,
-      });
-
       // Calculate gas costs and net balance increase for each creator
-      const gasCosts = await Promise.all(
-        [...originalCreators, remixer].map(async (creator) => {
-          const claimTxHash = await eisHanabi.write.claimFees({
-            account: creator.account,
-          });
-          const claimReceipt = await publicClient.waitForTransactionReceipt({
-            hash: claimTxHash,
-          });
-          const gasUsed = claimReceipt.gasUsed;
-          const gasPrice = claimReceipt.effectiveGasPrice;
-          return gasUsed * gasPrice;
-        })
-      );
+      const gasCosts = [];
+      for (let i = 0; i < originalCreators.length; i++) {
+        const claimTxHash = await eisHanabi.write.claimFees({
+          account: originalCreators[i].account,
+        });
+        const claimReceipt = await publicClient.waitForTransactionReceipt({
+          hash: claimTxHash,
+        });
+        const gasUsed = claimReceipt.gasUsed;
+        const gasPrice = claimReceipt.effectiveGasPrice;
+        gasCosts.push(gasUsed * gasPrice);
+      }
 
-      const finalCreatorBalances = await Promise.all(
-        originalCreators.map((c) =>
-          publicClient.getBalance({ address: c.account.address })
-        )
-      );
+      const claimRemixerTxHash = await eisHanabi.write.claimFees({
+        account: remixer.account,
+      });
+      const claimRemixerReceipt = await publicClient.waitForTransactionReceipt({
+        hash: claimRemixerTxHash,
+      });
+      const remixerGasUsed = claimRemixerReceipt.gasUsed;
+      const remixerGasPrice = claimRemixerReceipt.effectiveGasPrice;
+      const remixerGasCost = remixerGasUsed * remixerGasPrice;
+
+      const finalCreatorBalances = [];
+      for (let i = 0; i < originalCreators.length; i++) {
+        finalCreatorBalances.push(
+          await publicClient.getBalance({
+            address: originalCreators[i].account.address,
+          })
+        );
+      }
+
       const finalRemixerBalance = await publicClient.getBalance({
         address: remixer.account.address,
       });
 
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < originalCreators.length; i++) {
         const netBalanceIncrease =
           finalCreatorBalances[i] - initialCreatorBalances[i] + gasCosts[i];
         expect(netBalanceIncrease).to.be.equal(
@@ -747,7 +729,7 @@ describe.only("EISHanabi", function () {
       }
 
       const netRemixerBalanceIncrease =
-        finalRemixerBalance - initialRemixerBalance + gasCosts[4];
+        finalRemixerBalance - initialRemixerBalance + remixerGasCost;
       expect(netRemixerBalanceIncrease).to.be.equal(expectedRemixerFee);
 
       // Log fee distribution

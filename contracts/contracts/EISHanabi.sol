@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-
 import "solady/src/utils/SSTORE2.sol";
 import "solady/src/utils/LibZip.sol";
 import "solady/src/utils/Base64.sol";
@@ -22,7 +21,6 @@ contract EISHanabi is ERC1155 {
         string imageMimeType;
         address[] imageStorages;
         uint256[] referenceTokenIds;
-        uint256 maxSupply;
     }
 
     event Created(
@@ -54,6 +52,7 @@ contract EISHanabi is ERC1155 {
     uint256 public protocolFeeBasisPoints;
     uint256 public collectionOwnerFeeBasisPoints;
     uint256 public remixFeeBasisPoints;
+    uint256 public maxSupply;
 
     constructor(
         address protocolTreasuryAddress_,
@@ -62,7 +61,8 @@ contract EISHanabi is ERC1155 {
         uint256 basisPointsBase_,
         uint256 protocolFeeBasisPoints_,
         uint256 collectionOwnerFeeBasisPoints_,
-        uint256 remixFeeBasisPoints_
+        uint256 remixFeeBasisPoints_,
+        uint256 maxSupply_
     ) ERC1155("") {
         protocolTreasuryAddress = protocolTreasuryAddress_;
         collectionOwnerTreasuryAddress = collectionOwnerTreasuryAddress_;
@@ -71,6 +71,7 @@ contract EISHanabi is ERC1155 {
         protocolFeeBasisPoints = protocolFeeBasisPoints_;
         collectionOwnerFeeBasisPoints = collectionOwnerFeeBasisPoints_;
         remixFeeBasisPoints = remixFeeBasisPoints_;
+        maxSupply = maxSupply_;
     }
 
     function create(
@@ -80,11 +81,8 @@ contract EISHanabi is ERC1155 {
         string memory imageMimeType,
         bytes[] memory imageChunks,
         uint256[] memory referenceTokenIds,
-        bool isInitialMintEnabled,
-        uint256 maxSupply
+        bool isInitialMintEnabled
     ) public {
-        require(maxSupply > 0, "EIS: max supply must be greater than 0");
-
         uint256 tokenId = tokenIdCounter++;
         address creator = _msgSender();
 
@@ -116,8 +114,7 @@ contract EISHanabi is ERC1155 {
             imageCompression: imageCompression,
             imageMimeType: imageMimeType,
             imageStorages: imageStorages,
-            referenceTokenIds: referenceTokenIds,
-            maxSupply: maxSupply
+            referenceTokenIds: referenceTokenIds
         });
 
         emit Created(tokenId, _msgSender(), records[tokenId]);
@@ -130,7 +127,7 @@ contract EISHanabi is ERC1155 {
 
     function mint(uint256 tokenId, uint256 amount) public payable {
         require(
-            totalMinted[tokenId] + amount <= records[tokenId].maxSupply,
+            totalMinted[tokenId] + amount <= maxSupply,
             "EIS: max supply exceeded"
         );
 
