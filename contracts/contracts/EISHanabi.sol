@@ -30,6 +30,16 @@ contract EISHanabi is ERC1155 {
         Record record
     );
 
+    event ProtocolTreasuryTransferred(
+        address indexed oldAddress,
+        address indexed newAddress
+    );
+
+    event CollectionOwnerTreasuryTransferred(
+        address indexed oldAddress,
+        address indexed newAddress
+    );
+
     mapping(uint256 => Record) public records;
     mapping(address => uint256) public claimableFees;
 
@@ -155,6 +165,35 @@ contract EISHanabi is ERC1155 {
         require(amount > 0, "EIS: no fees to claim");
         claimableFees[creator] = 0;
         payable(creator).transfer(amount);
+    }
+
+    function transferProtocolTreasury(address newAddress) public {
+        require(
+            _msgSender() == protocolTreasuryAddress,
+            "EIS: only current protocol treasury can transfer"
+        );
+        require(
+            newAddress != address(0),
+            "EIS: new address cannot be zero address"
+        );
+        emit ProtocolTreasuryTransferred(protocolTreasuryAddress, newAddress);
+        protocolTreasuryAddress = newAddress;
+    }
+
+    function transferCollectionOwnerTreasury(address newAddress) public {
+        require(
+            _msgSender() == collectionOwnerTreasuryAddress,
+            "EIS: only current collection owner treasury can transfer"
+        );
+        require(
+            newAddress != address(0),
+            "EIS: new address cannot be zero address"
+        );
+        emit CollectionOwnerTreasuryTransferred(
+            collectionOwnerTreasuryAddress,
+            newAddress
+        );
+        collectionOwnerTreasuryAddress = newAddress;
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {

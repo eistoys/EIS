@@ -1,7 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import hre from "hardhat";
-import { Hex, parseEther, formatEther } from "viem";
+import { Hex, parseEther, formatEther, checksumAddress } from "viem";
 import { expect } from "chai";
 
 import solady from "solady";
@@ -31,6 +31,8 @@ const getFixture = async () => {
     owner,
     protocolTreasury,
     collectionOwnerTreasury,
+    newProtocolTreasury,
+    newCollectionOwnerTreasury,
     creator,
     creator2,
     creator3,
@@ -54,6 +56,8 @@ const getFixture = async () => {
     owner,
     protocolTreasury,
     collectionOwnerTreasury,
+    newProtocolTreasury,
+    newCollectionOwnerTreasury,
     creator,
     creator2,
     creator3,
@@ -69,6 +73,80 @@ describe.only("EISHanabi", function () {
     it("Should deploy successfully", async function () {
       const { eisHanabi } = await getFixture();
       expect(eisHanabi.address).not.to.be.undefined;
+    });
+  });
+
+  describe("Treasury Transfers", function () {
+    it("Should transfer protocol treasury address correctly", async function () {
+      const { publicClient, protocolTreasury, newProtocolTreasury, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // Transfer protocol treasury address
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.transferProtocolTreasury(
+          [newProtocolTreasury.account.address],
+          { account: protocolTreasury.account }
+        ),
+      });
+
+      // Verify the protocol treasury address has been updated
+      const updatedProtocolTreasuryAddress =
+        await eisHanabi.read.protocolTreasuryAddress();
+      expect(updatedProtocolTreasuryAddress).to.equal(
+        checksumAddress(newProtocolTreasury.account.address)
+      );
+    });
+
+    it("Should transfer collection owner treasury address correctly", async function () {
+      const {
+        publicClient,
+        collectionOwnerTreasury,
+        newCollectionOwnerTreasury,
+        eisHanabi,
+      } = await loadFixture(getFixture);
+
+      // Transfer collection owner treasury address
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.transferCollectionOwnerTreasury(
+          [newCollectionOwnerTreasury.account.address],
+          { account: collectionOwnerTreasury.account }
+        ),
+      });
+
+      // Verify the collection owner treasury address has been updated
+      const updatedCollectionOwnerTreasuryAddress =
+        await eisHanabi.read.collectionOwnerTreasuryAddress();
+      expect(updatedCollectionOwnerTreasuryAddress).to.equal(
+        checksumAddress(newCollectionOwnerTreasury.account.address)
+      );
+    });
+
+    it("Should fail to transfer protocol treasury address by non-treasury address", async function () {
+      const { collectionOwnerTreasury, newProtocolTreasury, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // Attempt to transfer protocol treasury address by non-treasury address
+      await expect(
+        eisHanabi.write.transferProtocolTreasury(
+          [newProtocolTreasury.account.address],
+          { account: collectionOwnerTreasury.account }
+        )
+      ).to.be.rejectedWith("EIS: only current protocol treasury can transfer");
+    });
+
+    it("Should fail to transfer collection owner treasury address by non-treasury address", async function () {
+      const { protocolTreasury, newCollectionOwnerTreasury, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // Attempt to transfer collection owner treasury address by non-treasury address
+      await expect(
+        eisHanabi.write.transferCollectionOwnerTreasury(
+          [newCollectionOwnerTreasury.account.address],
+          { account: protocolTreasury.account }
+        )
+      ).to.be.rejectedWith(
+        "EIS: only current collection owner treasury can transfer"
+      );
     });
   });
 
