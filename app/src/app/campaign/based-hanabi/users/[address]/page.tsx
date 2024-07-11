@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useQuery } from "@apollo/client";
-import { use, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Address, formatEther } from "viem";
 
 import { Record } from "@/types/record";
@@ -14,11 +14,9 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import { splitsWarehouseAbi } from "../../_lib/splits/abi";
-import {
-  SPLIT_NATIVE_TOKEN_ADDRESS,
-  SPLIT_WAREHOUSE_ADDRESS,
-} from "../../_lib/splits/constants";
+
+import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
+import { eisHanabiAbi } from "../../_lib/eis/abi";
 
 const GET_RECORDS = gql`
   query GetRecords($address: String!) {
@@ -47,10 +45,10 @@ function UserPage({ params }: { params: { address: string } }) {
   });
 
   const { data: balance, refetch } = useReadContract({
-    abi: splitsWarehouseAbi,
-    address: SPLIT_WAREHOUSE_ADDRESS,
-    functionName: "balanceOf",
-    args: [address, BigInt(SPLIT_NATIVE_TOKEN_ADDRESS)],
+    abi: eisHanabiAbi,
+    address: EIS_HANABI_ADDRESS,
+    functionName: "claimableFees",
+    args: [address],
   });
 
   const { writeContract, data: hash, reset } = useWriteContract();
@@ -100,10 +98,10 @@ function UserPage({ params }: { params: { address: string } }) {
               onClick={() => {
                 reset();
                 writeContract({
-                  abi: splitsWarehouseAbi,
-                  address: SPLIT_WAREHOUSE_ADDRESS,
-                  functionName: "withdraw",
-                  args: [address, SPLIT_NATIVE_TOKEN_ADDRESS],
+                  abi: eisHanabiAbi,
+                  address: EIS_HANABI_ADDRESS,
+                  functionName: "claimFees",
+                  args: [],
                 });
               }}
             >
