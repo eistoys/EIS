@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useQuery } from "@apollo/client";
-import { use, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Address, formatEther } from "viem";
 
 import { Record } from "@/types/record";
@@ -14,11 +14,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import { splitsWarehouseAbi } from "../../_lib/splits/abi";
-import {
-  SPLIT_NATIVE_TOKEN_ADDRESS,
-  SPLIT_WAREHOUSE_ADDRESS,
-} from "../../_lib/splits/constants";
+
 import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
 import { eisHanabiAbi } from "../../_lib/eis/abi";
 
