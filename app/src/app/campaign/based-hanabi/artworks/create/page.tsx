@@ -48,9 +48,9 @@ function CampaignBasedHanabiArtworkCreatePage() {
   }, [referenceTokenId, recordQueryData]);
 
   const [mode, setMode] = useState<"create" | "info">("create");
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"remix" | "loading" | "created">(
-    "created"
+    "remix"
   );
   const { width, height } = useWindowSize();
 
