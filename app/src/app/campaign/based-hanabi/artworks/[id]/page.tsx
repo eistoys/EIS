@@ -139,7 +139,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                       </div>
                     </div>
                     <button
-                      className="font-bold w-full flex justify-center items-center px-3 h-14 text-2xl text-white bg-blue-600 rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2"
+                      className="font-bold w-full flex justify-center items-center px-3 h-14 text-2xl text-white bg-[#337CCF] rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2"
                       onClick={() => setIsMintModalOpen(true)}
                     >
                       <img
@@ -191,7 +191,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                       className="font-bold bg-[#6944BA] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                       onClick={() => {
                         window.open(
-                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${params.id}?ver=testnet-2`,
+                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys%20%23basedhanabi&embeds[]=https://eis.toys/campaign/based-hanabi/artworks/${params.id}?ver=testnet-1`,
                           "_blank"
                         );
                       }}
