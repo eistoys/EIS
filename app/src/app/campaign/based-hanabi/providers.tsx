@@ -19,7 +19,7 @@ const config = getDefaultConfig({
 const queryClient = new QueryClient();
 
 const apolloClient = new ApolloClient({
-  uri: "https://api.studio.thegraph.com/query/70647/eis/10",
+  uri: "https://api.studio.thegraph.com/query/70647/eis/12",
   cache: new InMemoryCache(),
 });
 

@@ -27,13 +27,15 @@ const apolloClient = new ApolloClient({
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-
   useEffect(() => {
     const interval = setInterval(() => {
-      const elements = document.querySelectorAll('div');
+      const elements = document.querySelectorAll("div");
       elements.forEach((element) => {
-        if (element.textContent === 'Smart Wallet: Recommended' && !element.classList.contains('smart-wallet-group')) {
-          element.classList.add('smart-wallet-group');
+        if (
+          element.textContent === "Smart Wallet: Recommended" &&
+          !element.classList.contains("smart-wallet-group")
+        ) {
+          element.classList.add("smart-wallet-group");
         }
       });
     }, 100);

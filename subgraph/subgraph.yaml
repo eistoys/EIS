@@ -41,7 +41,7 @@ dataSources:
         - name: EISHanabi
           file: ./abis/EISHanabi.json
       eventHandlers:
-        - event: Created(indexed uint256,indexed address,(address,string,string,uint8,string,address[],uint256[]),(address,(address[],uint256[],uint256,uint16)))
+        - event: Created(indexed uint256,indexed address,(address,string,string,uint8,string,address[],uint256[]))
           handler: handleCreated
         - event: TransferSingle(indexed address,indexed address,indexed
             address,uint256,uint256)
