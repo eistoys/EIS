@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata({
   params,
@@ -29,6 +30,11 @@ export async function generateMetadata({
         },
       ],
       type: "website",
+    },
+    other: {
+      ...(await fetchMetadata(
+        `${process.env.NEXT_PUBLIC_APP_URL}/campaign/based-hanabi/artworks/${id}/frames`
+      )),
     },
   };
 }
