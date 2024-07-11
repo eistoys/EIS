@@ -1,7 +1,7 @@
 "use client";
 
 import { SpinnerLoader } from "@/components/SpinnerLoader";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 
@@ -48,9 +48,9 @@ function CampaignBasedHanabiArtworkCreatePage() {
   }, [referenceTokenId, recordQueryData]);
 
   const [mode, setMode] = useState<"create" | "info">("create");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const [modalMode, setModalMode] = useState<"remix" | "loading" | "created">(
-    "remix"
+    "created"
   );
   const { width, height } = useWindowSize();
 
@@ -60,13 +60,13 @@ function CampaignBasedHanabiArtworkCreatePage() {
   const [price, setPrice] = useState("0.00069");
   const [supply, setSupply] = useState("10000");
   const [isLicenseChecked, setIsLicenseChecked] = useState(false);
-  const [createdTokenId, setCreatedTokenId] = useState("");
+  const [createdTokenId, setCreatedTokenId] = useState("0");
 
   const [usedReferences, setUsedReferences] = useState<
     { tokenId: BigInt; image: string }[]
   >([]);
 
-  const { data: hash, writeContract, reset, error } = useWriteContract();
+  const { data: hash, writeContract, reset } = useWriteContract();
 
   const { data } = useWaitForTransactionReceipt({
     hash,
@@ -272,78 +272,89 @@ function CampaignBasedHanabiArtworkCreatePage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
           {modalMode == "created" && <Confetti width={width} height={height} />}
-          <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-3xl shadow-2xl bg-[#191D88] m-4">
-            {modalMode == "loading" && (
-              <>
-                <div className="flex mb-8">
-                  <div className="text-white text-xl font-bold tracking-wider">
-                    CREATING...
+          <div className="relative flex flex-col w-full max-w-sm rounded-xl shadow-xl bg-[#191D88] m-3">
+            <button
+              className="absolute text-white right-2.5 top-3"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <img
+                src="/assets/campaign/based-hanabi/icons/x.svg"
+                className="shrink-0 aspect-[1.41] fill-white h-4"
+              />
+            </button>
+            <div className="py-10 px-6">
+              {modalMode == "loading" && (
+                <>
+                  <div className="flex mb-6 justify-between items-center">
+                    <div className="text-white text-xl font-bold tracking-wider">
+                      CREATING...
+                    </div>
                   </div>
-                  <button
-                    className="absolute top-6 right-4 text-4xl text-white"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    &times;
-                  </button>
-                </div>
-                <SpinnerLoader />
-                <div className="text-white tracking-wider text-center text-md md:text-xl font-bold">
-                  Please don't close this modal
-                  <br />
-                  until the transaction is completed.
-                </div>
-              </>
-            )}
-            {modalMode == "created" && (
-              <>
-                <div className="flex mb-8">
-                  <div className="text-white text-xl font-bold tracking-wider">
-                    CREATE COMPLETED
+                  <div className="mb-6">
+                    <SpinnerLoader />
                   </div>
-                  <button
-                    className="absolute top-6 right-4 text-4xl text-white"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    &times;
-                  </button>
-                </div>
-                <img
-                  loading="lazy"
-                  srcSet={imageDataURL}
-                  className="bg-white rounded-xl h-64 w-64 mx-auto mb-8"
-                />
-                <div className="flex gap-4 px-0 md:px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
-                  <button
-                    className="w-1/2 font-bold text-white px-4 py-2 text-lg font-bold border-2 rounded-xl border-white hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    OK
-                  </button>
-
-                  <button
-                    className="w-1/2 font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
-                    onClick={() => {
-                      window.open(
-                        `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?ver=testnet-2`,
-                        "_blank"
-                      );
-                    }}
-                  >
+                  <div className="text-white tracking-wider text-center text-sm font-bold">
+                    Please don't close this modal
+                    <br />
+                    until the transaction is completed.
+                  </div>
+                </>
+              )}
+              {modalMode == "created" && (
+                <>
+                  <div className="flex mb-6 justify-between items-center">
+                    <div className="text-white text-xl font-bold tracking-wider">
+                      CREATE COMPLETED!! 🎉
+                    </div>
+                  </div>
+                  <div className="mb-6 px-6">
                     <img
                       loading="lazy"
-                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/2ba240d0e724425be2b041267b06998427ee6b477e1e5c751c1cda26a12580b1?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                      className="shrink-0 aspect-[1.41] fill-white w-6"
+                      srcSet={imageDataURL}
+                      className="bg-white rounded-xl w-full mx-auto"
                     />
-                    <div>SHARE</div>
-                  </button>
-                </div>
-                <div className="text-white tracking-wider text-center text-xs md:text-sm font-bold">
-                  The artwork you created has been carved onchain as CC0. 🎉
-                  <br />
-                  This public good benefits everyone! ✨
-                </div>
-              </>
-            )}
+                  </div>
+                  <div className="flex flex-col space-y-3 mb-6">
+                    <button
+                      className="font-bold bg-[#111111] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                      onClick={() => {
+                        window.open(
+                          `https://twitter.com/intent/tweet?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%0A%0Ahttps%3A%2F%2Feis.toys%2Fcampaign%2Fbased-hanabi%2Fartworks%2F${createdTokenId}%3Fver%3Dtestnet-1%20%0A%0A%23eistoys%20%0A%23basedhanabi`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      <img
+                        src="/assets/campaign/based-hanabi/icons/social-x.svg"
+                        className="shrink-0 aspect-[1.41] fill-white h-6"
+                      />
+                      <div>POST</div>
+                    </button>
+
+                    <button
+                      className="font-bold bg-[#6944BA] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                      onClick={() => {
+                        window.open(
+                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?ver=testnet-2`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      <img
+                        src="/assets/campaign/based-hanabi/icons/social-w.svg"
+                        className="shrink-0 aspect-[1.41] fill-white h-6"
+                      />
+                      <div>CAST</div>
+                    </button>
+                  </div>
+                  <div className="text-white tracking-wider text-center text-xs md:text-sm font-bold">
+                    The artwork you created has been carved onchain as CC0. 🎉
+                    <br />
+                    This public good benefits everyone! ✨
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
