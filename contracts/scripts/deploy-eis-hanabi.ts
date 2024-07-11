@@ -1,12 +1,8 @@
 import hre from "hardhat";
 import { Address } from "viem";
-import {
-  SPLIT_NATIVE_TOKEN_ADDRESS,
-  SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-} from "../config";
 
 const PROTOCOL_TREASURY_ADDRESS =
-  "0xc0797bd75cd3f34ee1cd046f03d9c85b36c2fd01" as Address;
+  "0x30be2BE5e49CD1b91B73C967597352382ee880Ba" as Address;
 const COLLECTION_OWNER_TREASURY_ADDRESS =
   "0x9cdf2385A3Ab2C8613133B396079075a21561015" as Address;
 
