@@ -171,22 +171,39 @@ function ViewPage({ params }: { params: { id: string } }) {
                       {record.referedFrom.length} Remixed
                     </div>
                   </Link>
-                  <button
-                    className="w-full font-bold bg-violet-800 px-4 py-3 rounded-xl text-white flex justify-center items-center text-center flex space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
-                    onClick={() => {
-                      window.open(
-                        `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${record.tokenId}?ver=testnet-2`,
-                        "_blank"
-                      );
-                    }}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/2ba240d0e724425be2b041267b06998427ee6b477e1e5c751c1cda26a12580b1?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                      className="my-auto w-5 h-5"
-                    />
-                    <div>SHARE</div>
-                  </button>
+                  <div className="flex flex-col space-y-3 mb-6">
+                    <button
+                      className="font-bold bg-[#111111] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                      onClick={() => {
+                        window.open(
+                          `https://twitter.com/intent/tweet?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%0A%0Ahttps%3A%2F%2Feis.toys%2Fcampaign%2Fbased-hanabi%2Fartworks%2F${params.id}%3Fver%3Dtestnet-1%20%0A%0A%23eistoys%20%0A%23basedhanabi`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      <img
+                        src="/assets/campaign/based-hanabi/icons/social-x.svg"
+                        className="shrink-0 aspect-[1.41] fill-white h-6"
+                      />
+                      <div>POST</div>
+                    </button>
+
+                    <button
+                      className="font-bold bg-[#6944BA] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                      onClick={() => {
+                        window.open(
+                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${params.id}?ver=testnet-2`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      <img
+                        src="/assets/campaign/based-hanabi/icons/social-w.svg"
+                        className="shrink-0 aspect-[1.41] fill-white h-6"
+                      />
+                      <div>CAST</div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
