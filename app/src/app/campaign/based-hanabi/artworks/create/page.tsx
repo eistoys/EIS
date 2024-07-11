@@ -231,8 +231,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
           <div />
         )}
         <button
-          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={mode == "info" && (!isLicenseChecked || !title)}
+          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 "
           onClick={() => {
             if (mode == "create") {
               setMode("info");
@@ -336,7 +335,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
                       className="font-bold bg-[#6944BA] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                       onClick={() => {
                         window.open(
-                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${createdTokenId}?ver=testnet-2`,
+                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys%20%23basedhanabi&embeds[]=https://eis.toys/campaign/based-hanabi/artworks/${createdTokenId}?ver=testnet-1`,
                           "_blank"
                         );
                       }}

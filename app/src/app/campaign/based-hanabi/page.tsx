@@ -124,7 +124,7 @@ export default function CampaignBasedHanabiPage() {
             <ArtworkListItem
               tokenId="1"
               image={mockImage}
-              creator="consome.eth"
+              creator={"0xab95e42096Ef6C18eD278f4FcA25754c96E60aae"}
             />
             <ArtworkListItem
               tokenId="1"
@@ -143,7 +143,7 @@ export default function CampaignBasedHanabiPage() {
             />
           </div>
 
-          <div className="flex flex-col w-full text-2xl tracking-wide leading-7 text-white max-w-4xl mx-auto px-4 mb-12 tracking-wider">
+          <div className="w-full max-w-4xl mx-auto px-4 mb-12">
             <Markdown className={"markdown"}>{basedHanabiDescription}</Markdown>
           </div>
         </div>

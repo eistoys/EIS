@@ -90,7 +90,7 @@ function ViewPage({ params }: { params: { id: string } }) {
     <>
       {record && (
         <div className="flex flex-col flex-grow">
-          <div className="flex border-b border-solid border-[#888888] px-4 flex-grow">
+          <div className="flex border-b border-solid border-[#888888] px-3 md:px-10 flex-grow">
             <div className="flex flex-col md:flex-row w-full">
               <div className="w-full md:w-2/3 py-12">
                 <img
@@ -119,7 +119,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                   </>
                 )}
               </div>
-              <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
+              <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-10 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
                 <div className="text-2xl font-bold tracking-wider text-white mb-2">
                   {record.name}
                 </div>
@@ -131,46 +131,45 @@ function ViewPage({ params }: { params: { id: string } }) {
                     <CreatorIdentity address={record.creator} />
                   </div>
                 </Link>
-                <div className="py-8 space-y-4">
-                  <div>
+                <div className="py-8 space-y-6">
+                  <div className="border-b border-[#888888] pb-9">
                     <div className="flex justify-between items-center mb-4">
-                      <div className="text-white text-3xl w-full tracking-wider font-bold">
-                        {formatEther(MINT_PRICE)}
+                      <div className="text-white text-2xl w-full tracking-wider font-semibold">
+                        {formatEther(MINT_PRICE)} ETH
                       </div>
                     </div>
                     <button
-                      className="font-bold w-full flex justify-center items-center px-4 py-3 text-white bg-blue-600 rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2"
+                      className="font-bold w-full flex justify-center items-center px-3 h-14 text-2xl text-white bg-[#337CCF] rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2"
                       onClick={() => setIsMintModalOpen(true)}
                     >
                       <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/bc3e19d227e2bf6ee5f8fd6813316690db486ab3861739ef2df46d9675f1df82?"
-                        className="my-auto w-5 h-5"
+                        src="/assets/campaign/based-hanabi/icons/mint.svg"
+                        className="my-auto w-6 h-6"
                       />
                       <div>MINT</div>
                     </button>
-                    <div className="text-white text-sm">
+
+                    <div className="text-white text-base">
                       {record.minted} Minted
                     </div>
                   </div>
-
-                  <Link
-                    href="/campaign/based-hanabi/artworks/create"
-                    className="w-full block"
-                  >
-                    <button className="font-bold w-full flex justify-center items-center px-4 py-3 text-[#191D88] bg-[#FFD582] rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2">
-                      <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/74adfd0e2048e52c1ba6d8c41acbd81f99084a137f2e45e27bf071dbf79264c1?"
-                        className="my-auto w-5 h-5"
-                      />
-                      <div>REMIX</div>
-                    </button>
-                    <div className="text-white text-sm">
-                      {" "}
-                      {record.referedFrom.length} Remixed
-                    </div>
-                  </Link>
+                  <div className="border-b border-[#888888] pb-9">
+                    <Link
+                      href={`/campaign/based-hanabi/artworks/create?referenceTokenId=${params.id}`}
+                      className="w-full block"
+                    >
+                      <button className="font-bold w-full flex justify-center items-center px-3 h-14 text-2xl text-[#191D88] bg-[#FFD582] rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2">
+                        <img
+                          src="/assets/campaign/based-hanabi/icons/remix.svg"
+                          className="my-auto w-6 h-6"
+                        />
+                        <div>REMIX</div>
+                      </button>
+                      <div className="text-white text-base">
+                        {record.referedFrom.length} Remixed
+                      </div>
+                    </Link>
+                  </div>
                   <div className="flex flex-col space-y-3 mb-6">
                     <button
                       className="font-bold bg-[#111111] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
@@ -192,7 +191,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                       className="font-bold bg-[#6944BA] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                       onClick={() => {
                         window.open(
-                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${params.id}?ver=testnet-2`,
+                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys%20%23basedhanabi&embeds[]=https://eis.toys/campaign/based-hanabi/artworks/${params.id}?ver=testnet-1`,
                           "_blank"
                         );
                       }}
@@ -209,7 +208,7 @@ function ViewPage({ params }: { params: { id: string } }) {
             </div>
           </div>
           {record.referedFrom.length > 0 && (
-            <div className="p-4">
+            <div className="p-3 pb-10 md:p-10">
               <div className="text-xl font-bold tracking-wide text-white mb-4">
                 REMIX ACTIVITY
               </div>
