@@ -3,20 +3,17 @@
 import { gql, useQuery } from "@apollo/client";
 import { useEffect, useMemo } from "react";
 import { Address, formatEther } from "viem";
-
-import { Record } from "@/types/record";
-import Link from "next/link";
-import CreatorIdentity from "@/components/CreatorIdentity";
-
 import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-
 import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
 import { eisHanabiAbi } from "../../_lib/eis/abi";
+import Link from "next/link";
+
+import { Avatar, Name } from "@coinbase/onchainkit/identity";
 
 const GET_RECORDS = gql`
   query GetRecords($address: String!) {
@@ -87,11 +84,18 @@ function UserPage({ params }: { params: { address: string } }) {
 
   return (
     <div className="px-3 md:px-6">
-      <div className="flex flex-col md:items-center md:flex-row py-12 gap-6">
-        <div className="w-full">
-          <CreatorIdentity address={address} />
+      <div className="flex flex-col items-center py-12 gap-6">
+        <div>
+          <Avatar address={address} className="h-24 w-24 rounded-full" />
         </div>
-        {connectedAddress && connectedAddress.toLowerCase() == address && (
+        <div className="flex flex-col justify-center items-center">
+          <Name
+            address={address}
+            className="text-white text-xl font-bold mb-2"
+          />
+          <div className="text-gray-400 text-xs md:text-base">{address}</div>
+        </div>
+        {connectedAddress && connectedAddress.toLowerCase() === address && (
           <div className="w-full md:max-w-60">
             <button
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300"
@@ -113,7 +117,7 @@ function UserPage({ params }: { params: { address: string } }) {
 
       <div className="w-full pb-12 max-w-5xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {records.map((record: Record) => (
+          {records.map((record: any) => (
             <Link
               href={`/campaign/based-hanabi/artworks/${record.tokenId}`}
               className="w-full aspect-square cursor-pointer"
