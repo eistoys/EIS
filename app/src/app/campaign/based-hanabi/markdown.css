@@ -1,0 +1,45 @@
+.markdown {
+  line-height: 120%;
+  letter-spacing: 0.5px;
+}
+
+.markdown h1 {
+  font-weight: 800;
+  font-size: 36px;
+  margin-bottom: 60px;
+  text-align: center;
+}
+
+.markdown h2 {
+  font-weight: 700;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.markdown p {
+  font-weight: 400;
+  font-size: 18px;
+  margin-bottom: 60px;
+}
+
+.markdown ul {
+  list-style-type: disc; /* Ensures bullet points are used */
+  padding-left: 20px; /* Adjusts the left padding for better alignment */
+}
+
+.markdown li {
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.markdown strong {
+  font-weight: 700; /* Bold for emphasized text */
+  font-style: normal; /* Ensures no italic style is applied */
+}
+
+.markdown p + h1,
+.markdown p + h2,
+.markdown ul + h1,
+.markdown ul + h2 {
+  margin-top: 60px;
+}
