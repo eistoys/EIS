@@ -28,7 +28,7 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
           <div className="rounded-full bg-zinc-500 h-[30px] w-[30px]" />
           <div className="text-lg tracking-wider">
             {!creator.includes(".")
-              ? truncateString(creator, 1)
+              ? truncateString(creator, 14)
               : "consome.eth"}
           </div>
         </div>
