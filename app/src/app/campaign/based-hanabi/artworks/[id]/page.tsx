@@ -131,46 +131,45 @@ function ViewPage({ params }: { params: { id: string } }) {
                     <CreatorIdentity address={record.creator} />
                   </div>
                 </Link>
-                <div className="py-8 space-y-4">
-                  <div>
+                <div className="py-8 space-y-6">
+                  <div className="border-b border-[#888888] pb-9">
                     <div className="flex justify-between items-center mb-4">
-                      <div className="text-white text-3xl w-full tracking-wider font-bold">
-                        {formatEther(MINT_PRICE)}
+                      <div className="text-white text-2xl w-full tracking-wider font-semibold">
+                        {formatEther(MINT_PRICE)} ETH
                       </div>
                     </div>
                     <button
-                      className="font-bold w-full flex justify-center items-center px-4 py-3 text-white bg-blue-600 rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2"
+                      className="font-bold w-full flex justify-center items-center px-3 h-14 text-2xl text-white bg-blue-600 rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2"
                       onClick={() => setIsMintModalOpen(true)}
                     >
                       <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/bc3e19d227e2bf6ee5f8fd6813316690db486ab3861739ef2df46d9675f1df82?"
-                        className="my-auto w-5 h-5"
+                        src="/assets/campaign/based-hanabi/icons/mint.svg"
+                        className="my-auto w-6 h-6"
                       />
                       <div>MINT</div>
                     </button>
-                    <div className="text-white text-sm">
+
+                    <div className="text-white text-base">
                       {record.minted} Minted
                     </div>
                   </div>
-
-                  <Link
-                    href="/campaign/based-hanabi/artworks/create"
-                    className="w-full block"
-                  >
-                    <button className="font-bold w-full flex justify-center items-center px-4 py-3 text-[#191D88] bg-[#FFD582] rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2">
-                      <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/74adfd0e2048e52c1ba6d8c41acbd81f99084a137f2e45e27bf071dbf79264c1?"
-                        className="my-auto w-5 h-5"
-                      />
-                      <div>REMIX</div>
-                    </button>
-                    <div className="text-white text-sm">
-                      {" "}
-                      {record.referedFrom.length} Remixed
-                    </div>
-                  </Link>
+                  <div className="border-b border-[#888888] pb-9">
+                    <Link
+                      href={`/campaign/based-hanabi/artworks/create?referenceTokenId=${params.id}`}
+                      className="w-full block"
+                    >
+                      <button className="font-bold w-full flex justify-center items-center px-3 h-14 text-2xl text-[#191D88] bg-[#FFD582] rounded-xl space-x-4 hover:opacity-75 transition-opacity duration-300 tracking-wider mb-2">
+                        <img
+                          src="/assets/campaign/based-hanabi/icons/remix.svg"
+                          className="my-auto w-6 h-6"
+                        />
+                        <div>REMIX</div>
+                      </button>
+                      <div className="text-white text-base">
+                        {record.referedFrom.length} Remixed
+                      </div>
+                    </Link>
+                  </div>
                   <div className="flex flex-col space-y-3 mb-6">
                     <button
                       className="font-bold bg-[#111111] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
