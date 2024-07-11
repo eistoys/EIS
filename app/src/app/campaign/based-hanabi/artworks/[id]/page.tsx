@@ -90,7 +90,7 @@ function ViewPage({ params }: { params: { id: string } }) {
     <>
       {record && (
         <div className="flex flex-col flex-grow">
-          <div className="flex border-b border-solid border-[#888888] px-4 flex-grow">
+          <div className="flex border-b border-solid border-[#888888] px-3 md:px-10 flex-grow">
             <div className="flex flex-col md:flex-row w-full">
               <div className="w-full md:w-2/3 py-12">
                 <img
@@ -119,7 +119,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                   </>
                 )}
               </div>
-              <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
+              <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-10 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
                 <div className="text-2xl font-bold tracking-wider text-white mb-2">
                   {record.name}
                 </div>
@@ -208,7 +208,7 @@ function ViewPage({ params }: { params: { id: string } }) {
             </div>
           </div>
           {record.referedFrom.length > 0 && (
-            <div className="p-4">
+            <div className="p-3 pb-10 md:p-10">
               <div className="text-xl font-bold tracking-wide text-white mb-4">
                 REMIX ACTIVITY
               </div>
