@@ -86,7 +86,7 @@ export default function CampaignBasedHanabiPage() {
           </div>
         </div>
       </div>
-      <div className="flex text-sm md:text-md justify-between max-w-md mx-auto mb-12 px-3">
+      <div className="flex text-sm md:text-base justify-between max-w-md mx-auto mb-12 px-3">
         <div
           className={`p-0 md:p-1 font-bold tracking-wider cursor-pointer ${
             mode === "overview"
@@ -98,7 +98,7 @@ export default function CampaignBasedHanabiPage() {
           OVERVIEW
         </div>
         <div
-          className={`p-0 md:p-1 text-sm md:text-md font-bold tracking-wider cursor-pointer ${
+          className={`p-0 md:p-1 text-sm md:text-base font-bold tracking-wider cursor-pointer ${
             mode === "leaderBoard"
               ? "text-white border-b-2 border-white"
               : "text-stone-400"
@@ -108,7 +108,7 @@ export default function CampaignBasedHanabiPage() {
           LEADERBOARD
         </div>
         <div
-          className={`p-0 md:p-1 text-sm md:text-md font-bold tracking-wider cursor-pointer ${
+          className={`p-0 md:p-1 text-sm md:text-base font-bold tracking-wider cursor-pointer ${
             mode === "submission"
               ? "text-white border-b-2 border-white"
               : "text-stone-400"
