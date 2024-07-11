@@ -63,18 +63,21 @@ export const MintModal = ({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">
           {mode == "confirmed" && <Confetti width={width} height={height} />}
-          <div className="relative flex flex-col py-8 px-6 w-full max-w-lg rounded-xl shadow-2xl bg-[#191D88] m-4">
+          <div className="relative flex flex-col py-10 px-6 w-full max-w-sm rounded-xl shadow-xl bg-[#191D88] m-3">
+            <button
+              className="absolute text-white right-2.5 top-3"
+              onClick={() => close()}
+            >
+              <img
+                src="/assets/campaign/based-hanabi/icons/x.svg"
+                className="shrink-0 aspect-[1.41] fill-white h-4"
+              />
+            </button>
             <>
-              <div className="flex mb-8">
+              <div className="flex mb-6">
                 <div className="text-white text-xl font-bold tracking-wider">
                   MINT ✨
                 </div>
-                <button
-                  className="absolute top-6 right-4 text-4xl text-white"
-                  onClick={() => close()}
-                >
-                  &times;
-                </button>
               </div>
               {mode == "ask" && (
                 <>
@@ -144,8 +147,10 @@ export const MintModal = ({
               )}
               {mode == "loading" && (
                 <>
-                  <SpinnerLoader />
-                  <div className="text-white tracking-wider text-center text-md md:text-xl font-bold">
+                  <div className="mb-6">
+                    <SpinnerLoader />
+                  </div>
+                  <div className="text-white tracking-wider text-center text-sm font-bold">
                     Please don't close this modal
                     <br />
                     until the transaction is completed.
@@ -154,13 +159,31 @@ export const MintModal = ({
               )}
               {mode == "confirmed" && (
                 <>
-                  <img
-                    src={image}
-                    className="bg-white rounded-xl h-64 w-64 mx-auto mb-8"
-                  />
-                  <div className="flex gap-4 px-0 md:px-8 pb-8 mb-4 border-b border-solid border-zinc-600">
+                  <div className="mb-6 px-6">
+                    <img
+                      src={image}
+                      className="bg-white rounded-xl w-full mx-auto"
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-3 mb-6">
                     <button
-                      className="w-full font-bold bg-violet-800 px-4 py-2 text-lg rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                      className="font-bold bg-[#111111] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
+                      onClick={() => {
+                        window.open(
+                          `https://twitter.com/intent/tweet?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%0A%0Ahttps%3A%2F%2Feis.toys%2Fcampaign%2Fbased-hanabi%2Fartworks%2F${tokenId}%3Fver%3Dtestnet-1%20%0A%0A%23eistoys%20%0A%23basedhanabi`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      <img
+                        src="/assets/campaign/based-hanabi/icons/social-x.svg"
+                        className="shrink-0 aspect-[1.41] fill-white h-6"
+                      />
+                      <div>POST</div>
+                    </button>
+
+                    <button
+                      className="font-bold bg-[#6944BA] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                       onClick={() => {
                         window.open(
                           `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys&embeds[]=https://eis.toys/artworks/${tokenId}?ver=testnet-2`,
@@ -169,9 +192,8 @@ export const MintModal = ({
                       }}
                     >
                       <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/2ba240d0e724425be2b041267b06998427ee6b477e1e5c751c1cda26a12580b1?apiKey=5b267050b6bf44e5a34a2a79f0903d25&"
-                        className="shrink-0 aspect-[1.41] fill-white w-6"
+                        src="/assets/campaign/based-hanabi/icons/social-w.svg"
+                        className="shrink-0 aspect-[1.41] fill-white h-6"
                       />
                       <div>CAST</div>
                     </button>
