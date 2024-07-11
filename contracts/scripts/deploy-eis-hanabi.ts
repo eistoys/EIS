@@ -21,8 +21,6 @@ async function main() {
   console.log("deployer.account.address", deployer.account.address);
 
   const eis = await hre.viem.deployContract("EISHanabi", [
-    SPLIT_PULL_SPLIT_FACTORY_ADDRESS,
-    SPLIT_NATIVE_TOKEN_ADDRESS,
     PROTOCOL_TREASURY_ADDRESS,
     COLLECTION_OWNER_TREASURY_ADDRESS,
     FIXED_MINT_FEE,
