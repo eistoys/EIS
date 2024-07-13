@@ -204,7 +204,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                       className="font-bold bg-[#111111] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                       onClick={() => {
                         window.open(
-                          `https://twitter.com/intent/tweet?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%0A%0Ahttps%3A%2F%2Feis.toys%2Fcampaign%2Fbased-hanabi%2Fartworks%2F${params.id}%3Fver%3Dmainnet-1%20%0A%0A%23eistoys%20%0A%23basedhanabi`,
+                          `https://twitter.com/intent/tweet?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%0A%0Ahttps%3A%2F%2Feis.toys%2Fcampaign%2Fbased-hanabi%2Fartworks%2F${params.id}%3Fver%3Dmainnet-2%20%0A%0A%23eistoys%20%0A%23basedhanabi`,
                           "_blank"
                         );
                       }}
@@ -220,7 +220,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                       className="font-bold bg-[#6944BA] px-3 h-14 text-2xl rounded-xl text-white flex justify-center items-center text-center flex gap-4 hover:opacity-75 transition-opacity duration-300 tracking-wider text-center"
                       onClick={() => {
                         window.open(
-                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys%20%23basedhanabi&embeds[]=https://eis.toys/campaign/based-hanabi/artworks/${params.id}?ver=mainnet-1`,
+                          `https://warpcast.com/~/compose?text=I%20would%20love%20to%20see%20this%20remixed%20%F0%9F%94%81%20%F0%9F%AB%B0%20%40eistoys%20%23basedhanabi&embeds[]=https://eis.toys/campaign/based-hanabi/artworks/${params.id}?ver=mainnet-2`,
                           "_blank"
                         );
                       }}
