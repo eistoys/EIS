@@ -5,6 +5,7 @@ import { Header } from "./_components/Header";
 import { Providers } from "./providers";
 import { Metadata } from "next";
 import { ToastContainer } from "@/components/ToastContainer";
+import { ProgressBar } from "./_components/ProgressBar";
 
 const montserrat = Montserrat({
   weight: ["400", "600", "700", "900"],
@@ -41,6 +42,7 @@ export default function CampaignBasedHanabLayout({
       <div
         className={`${montserrat.className} bg-[#191D88] min-h-screen flex flex-col`}
       >
+        <ProgressBar />
         <Header />
         <div className="flex flex-col flex-grow">{children}</div>
         <ToastContainer />
