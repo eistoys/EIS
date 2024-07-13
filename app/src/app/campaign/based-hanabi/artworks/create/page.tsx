@@ -221,7 +221,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
         {mode == "info" ? (
           <button
             type="button"
-            className="px-4 font-bold border border-gray-500 text-gray-500 rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wide"
+            className="px-4 font-bold bg-[#888888] text-[#191D88] rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
             onClick={() => setMode("create")}
           >
             BACK
@@ -230,7 +230,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
           <div />
         )}
         <button
-          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 "
+          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
           onClick={() => {
             if (mode == "create") {
               setMode("info");
