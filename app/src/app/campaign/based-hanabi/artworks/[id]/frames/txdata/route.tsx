@@ -22,7 +22,10 @@ export async function POST(
   });
 
   return NextResponse.json({
-    chainId: "eip155:84532",
+    chainId:
+      process.env.NEXT_PUBLIC_NETWORK == "mainnet"
+        ? "eip155:8453"
+        : "eip155:84532",
     method: "eth_sendTransaction",
     params: {
       abi: eisHanabiAbi as Abi,
