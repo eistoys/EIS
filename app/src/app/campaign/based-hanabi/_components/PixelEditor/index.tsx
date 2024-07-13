@@ -5,6 +5,7 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from "react";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -121,6 +122,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     const [gridCanvas, setGridCanvas] = useState<HTMLCanvasElement | null>(
       null
     );
+    const transparentBgCanvasRef = useRef<HTMLCanvasElement>(null);
+
     const [currentColor, setCurrentColor] = useState<string>("#000000");
     const [isDrawing, setIsDrawing] = useState(false);
     const [mode, setMode] = useState<
@@ -193,6 +196,33 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       ],
       DOGE: ["#ffffff", "#dfcd8d", "#d4c27d", "#dcc690"],
     });
+
+    useEffect(() => {
+      if (!transparentBgCanvasRef.current) return;
+      const ctx = transparentBgCanvasRef.current.getContext("2d");
+      if (!ctx) return;
+
+      const tileSize = cellSize * pixelSize;
+      const lightColor = "rgba(255, 255, 255, 1)";
+      const darkColor = "rgba(224, 224, 224, 1)";
+
+      ctx.save();
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.translate(camera.x, camera.y);
+      ctx.scale(camera.zoom, camera.zoom);
+
+      for (let y = 0; y < canvasLength; y += tileSize) {
+        for (let x = 0; x < canvasLength; x += tileSize) {
+          ctx.fillStyle =
+            (Math.floor(x / tileSize) + Math.floor(y / tileSize)) % 2 === 0
+              ? lightColor
+              : darkColor;
+          ctx.fillRect(x, y, tileSize, tileSize);
+        }
+      }
+
+      ctx.restore();
+    }, [canvasLength, camera, cellSize, pixelSize]);
 
     useEffect(() => {
       if (!referenceTokenImage) {
@@ -474,12 +504,9 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       let newPixels = [...activeLayer.pixels];
 
       const currentPixel = newPixels.find((p) => p.x === x && p.y === y);
-      const targetColor = currentPixel ? currentPixel.color : "#ffffff";
+      const targetColor = currentPixel ? currentPixel.color : "transparent";
 
-      // let newPixels = [...pixels];
       if (mode === "fill") {
-        const isInitialTransparent = !currentPixel;
-
         const floodFill = (
           x: number,
           y: number,
@@ -502,12 +529,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               (p) => p.x === x && p.y === y
             );
             const pixel = newPixels[pixelIndex];
-            const isTransparent = !pixel || pixel.color === "#ffffff";
 
-            if (
-              (pixel && pixel.color === targetColor) ||
-              (isInitialTransparent && isTransparent)
-            ) {
+            if (!pixel || pixel.color === targetColor) {
               if (pixel) {
                 newPixels[pixelIndex].color = fillColor;
               } else {
@@ -523,22 +546,6 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
         floodFill(x, y, targetColor, currentColor);
       } else {
-        const newPixel = {
-          x,
-          y,
-          color: mode === "eraser" ? "#ffffff" : currentColor,
-        };
-
-        const existingPixelIndex = newPixels.findIndex(
-          (p) => p.x === x && p.y === y
-        );
-
-        if (existingPixelIndex !== -1) {
-          newPixels[existingPixelIndex] = newPixel;
-        } else {
-          newPixels.push(newPixel);
-        }
-
         const cellX = Math.floor(x / cellSize) * cellSize;
         const cellY = Math.floor(y / cellSize) * cellSize;
 
@@ -549,18 +556,24 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
             const existingPenPixelIndex = newPixels.findIndex(
               (p) => p.x === penX && p.y === penY
             );
-            if (existingPenPixelIndex !== -1) {
-              newPixels[existingPenPixelIndex] = {
-                x: penX,
-                y: penY,
-                color: mode === "eraser" ? "#ffffff" : currentColor,
-              };
+            if (mode === "eraser") {
+              if (existingPenPixelIndex !== -1) {
+                newPixels.splice(existingPenPixelIndex, 1);
+              }
             } else {
-              newPixels.push({
-                x: penX,
-                y: penY,
-                color: mode === "eraser" ? "#ffffff" : currentColor,
-              });
+              if (existingPenPixelIndex !== -1) {
+                newPixels[existingPenPixelIndex] = {
+                  x: penX,
+                  y: penY,
+                  color: currentColor,
+                };
+              } else {
+                newPixels.push({
+                  x: penX,
+                  y: penY,
+                  color: currentColor,
+                });
+              }
             }
           }
         }
@@ -990,7 +1003,21 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       canvas.height = 32;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.globalAlpha = layer.opacity;
+        // Draw transparent checkerboard background
+        const tileSize = 4; // Size of each checkerboard tile
+        const lightColor = "rgba(255, 255, 255, 1)";
+        const darkColor = "rgba(224, 224, 224, 1)";
+
+        for (let y = 0; y < canvas.height; y += tileSize) {
+          for (let x = 0; x < canvas.width; x += tileSize) {
+            ctx.fillStyle =
+              (x / tileSize + y / tileSize) % 2 === 0 ? lightColor : darkColor;
+            ctx.fillRect(x, y, tileSize, tileSize);
+          }
+        }
+
+        // Draw layer pixels
+        ctx.globalAlpha = layer.opacity / 100;
         layer.pixels.forEach(({ x, y, color }) => {
           ctx.fillStyle = color;
           ctx.fillRect(x / 2, y / 2, 1, 1);
@@ -1160,7 +1187,16 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </div>
             </div>
 
-            <div className="relative mb-5">
+            <div
+              className="relative mb-5"
+              style={{ width: canvasLength, height: canvasLength }}
+            >
+              <canvas
+                ref={transparentBgCanvasRef}
+                width={canvasLength}
+                height={canvasLength}
+                className="absolute top-0 left-0"
+              />
               <canvas
                 ref={canvasRef}
                 width={canvasLength}
@@ -1169,7 +1205,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 onMouseMove={handleMouseMove}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
-                className="bg-white"
+                className="absolute top-0 left-0"
               />
               <canvas
                 ref={gridCanvasRef}
