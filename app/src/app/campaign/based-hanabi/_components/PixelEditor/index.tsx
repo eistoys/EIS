@@ -1036,18 +1036,18 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       setShouldAddToHistory(true);
     };
 
-    const insertColor = () => {
-      if (currentColor && !palettes[selectedPalette].includes(currentColor)) {
-        setPalettes((prevPalettes) => {
-          const newPalettes = { ...prevPalettes };
-          newPalettes[selectedPalette] = [
-            ...newPalettes[selectedPalette],
-            currentColor,
-          ];
-          return newPalettes;
-        });
-      }
-    };
+    // const insertColor = () => {
+    //   if (currentColor && !palettes[selectedPalette].includes(currentColor)) {
+    //     setPalettes((prevPalettes) => {
+    //       const newPalettes = { ...prevPalettes };
+    //       newPalettes[selectedPalette] = [
+    //         ...newPalettes[selectedPalette],
+    //         currentColor,
+    //       ];
+    //       return newPalettes;
+    //     });
+    //   }
+    // };
 
     return (
       <>
@@ -1112,8 +1112,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   <button
                     onClick={() => setShowMenu(true)}
                     onMouseLeave={() => setShowMenu(false)}
-                    className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
-                      showMenu && "bg-[#337CCF]"
+                    className={`flex items-center justify-center p-1 border rounded-md h-9 w-9 bg-[#337CCF] border border-[#888888] ${
+                      showMenu && "bg-[#337CCF] border border-[#888888]"
                     }`}
                   >
                     <DropIcon fill="white" />
@@ -1127,12 +1127,12 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                         onMouseLeave={() => setShowMenu(false)}
                       />
                       <div
-                        className="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-10"
+                        className="absolute right-0 mt-2 w-40 bg-[#191D88] rounded-md shadow-lg z-10"
                         onMouseEnter={() => setShowMenu(true)}
                         onMouseLeave={() => setShowMenu(false)}
                       >
                         <button
-                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                          className="block w-full py-3 hover:bg-[#337CCF] flex justify-center"
                           onClick={() => {
                             setShowMenu(false);
                             setShowSizeModal(true);
@@ -1142,14 +1142,14 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                         </button>
                         <label
                           htmlFor="file-upload"
-                          className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
+                          className="w-full block py-3 cursor-pointer hover:bg-[#337CCF] flex justify-center"
                         >
                           <FileUpIcon stroke="white" />
                         </label>
 
                         <button
                           onClick={handleDownload}
-                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                          className="block w-full py-3 hover:bg-[#337CCF] flex justify-center"
                         >
                           <FileDownIcon stroke="white" />
                         </button>
@@ -1277,7 +1277,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               <select
                 value={penSize}
                 onChange={(e) => setPenSize(Number(e.target.value))}
-                className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] cursor-pointer"
+                className="pl-1 rounded-md text-sm bg-[#337CCF] border border-[#888888] text-white font-bold h-[52px] cursor-pointer focus:outline-none focus:ring-0"
               >
                 <option value={1}>1x1</option>
                 <option value={2}>2x2</option>
@@ -1286,7 +1286,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </select>
               <div className="space-x-3 flex">
                 <select
-                  className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] w-[88px] cursor-pointer"
+                  className="pl-1 rounded-md text-sm bg-[#337CCF] border border-[#888888] text-white font-bold h-[52px] w-[88px] cursor-pointer focus:outline-none focus:ring-0"
                   value={selectedPalette}
                   onChange={(e) =>
                     setSelectedPalette(e.target.value as keyof typeof palettes)
@@ -1327,7 +1327,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         )}
         {showLayerModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="bg-[#191D88] p-4 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">Layer</h2>
                 <button
@@ -1352,10 +1352,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`flex items-center p-2 mb-2 rounded ${
+                              className={`flex items-center p-2 mb-2 rounded border ${
                                 layer.id === activeLayerId
-                                  ? "bg-white text-black"
-                                  : "bg-gray-700 text-white"
+                                  ? "bg-white border-black"
+                                  : "text-white"
                               }`}
                               onClick={() => {
                                 setActiveLayerId(layer.id);
@@ -1364,7 +1364,11 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                               <img
                                 src={generatePreview(layer)}
                                 alt={layer.name}
-                                className="w-8 h-8 mr-2 border border-gray-800 rounded"
+                                className={`w-8 h-8 mr-2 border rounded ${
+                                  layer.id === activeLayerId
+                                    ? "border-black"
+                                    : ""
+                                }`}
                               />
                               <div className="flex-grow">
                                 <input
@@ -1376,7 +1380,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                                       e.target.value
                                     )
                                   }
-                                  className="bg-gray-600 text-white rounded px-2 py-1 w-24 md:w-40"
+                                  className="border border-gray-800 font-bold bg-gray-200 text-black rounded px-2 py-1 w-24 md:w-40 focus:outline-none focus:ring-0"
                                 />
                               </div>
                               <input
@@ -1427,7 +1431,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </DragDropContext>
               <button
                 onClick={addNewLayer}
-                className="w-full py-2 mt-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-25 disabled:cursor-not-allowed"
+                className="w-full py-2 mt-2 font-extrabold border text-white rounded disabled:opacity-25 disabled:cursor-not-allowed"
                 disabled={layers.length === maxLayerCount}
               >
                 +
@@ -1437,7 +1441,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         )}
         {showSizeModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="bg-[#191D88] p-4 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">Canvas</h2>
                 <button
@@ -1456,7 +1460,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className={`font-bold w-full py-2 mt-2  rounded ${
                     gridCount === 16
                       ? "bg-white text-black"
-                      : "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "border text-white"
                   }`}
                 >
                   16 × 16
@@ -1469,7 +1473,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className={`font-bold w-full py-2 mt-2  rounded ${
                     gridCount === 32
                       ? "bg-white text-black"
-                      : "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "border text-white"
                   }`}
                 >
                   32 × 32
@@ -1482,7 +1486,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className={`font-bold w-full py-2 mt-2  rounded ${
                     gridCount === 64
                       ? "bg-white text-black"
-                      : "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "border text-white"
                   }`}
                 >
                   64 × 64
@@ -1493,7 +1497,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         )}
         {showRemixModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="bg-[#191D88] p-4 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">REMIX</h2>
                 <button
@@ -1523,7 +1527,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   disabled={references.length === 0}
                 >
                   <Shuffle className="mr-2" size={20} />
-                  Random Remix
+                  Random
                 </button>
               </div>
               {references.length === 0 && <SpinnerLoader />}
