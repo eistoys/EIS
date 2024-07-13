@@ -48,8 +48,8 @@ const handleRequest = frames(async (ctx) => {
     ],
     imageOptions: {
       aspectRatio: "1:1",
-      width: 500,
-      height: 500,
+      width: 256,
+      height: 256,
     },
     headers: {
       "Cache-Control": "max-age=0",
