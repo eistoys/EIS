@@ -41,7 +41,6 @@ const getFixture = async () => {
     remixer,
     minter,
   ] = await hre.viem.getWalletClients();
-
   const eisHanabi = await hre.viem.deployContract("EISHanabi", [
     protocolOwner.account.address,
     collectionOwner.account.address,
@@ -233,7 +232,7 @@ describe.only("EISHanabi", function () {
       // Attempt to mint a new token
       const tokenId = 0n;
       await expect(
-        eisHanabi.write.mint([tokenId, 1n], {
+        eisHanabi.write.mint([tokenId, 1n, 50000n], {
           account: minter.account,
           value: fixedMintFee,
         })
@@ -330,9 +329,10 @@ describe.only("EISHanabi", function () {
       });
 
       const tokenId = 0n;
-      await eisHanabi.write.mint([tokenId, 1n], {
+      await eisHanabi.write.mint([tokenId, 1n, 50000n], {
         account: minter.account,
         value: fixedMintFee,
+        gas: 1000000n,
       });
 
       const balance = await eisHanabi.read.balanceOf([
@@ -366,13 +366,13 @@ describe.only("EISHanabi", function () {
       });
 
       const tokenId = 0n;
-      await eisHanabi.write.mint([tokenId, maxSupply], {
+      await eisHanabi.write.mint([tokenId, maxSupply, 50000n], {
         account: minter.account,
         value: fixedMintFee * maxSupply,
       });
 
       await expect(
-        eisHanabi.write.mint([tokenId, 1n], {
+        eisHanabi.write.mint([tokenId, 1n, 50000n], {
           account: minter.account,
           value: fixedMintFee,
         })
@@ -419,7 +419,7 @@ describe.only("EISHanabi", function () {
         publicClient.getBalance({ address: creator.account.address }),
       ]);
 
-      await eisHanabi.write.mint([tokenId, amount], {
+      await eisHanabi.write.mint([tokenId, amount, 50000n], {
         account: minter.account,
         value: fixedMintFee * amount,
       });
@@ -455,7 +455,7 @@ describe.only("EISHanabi", function () {
         address: creator.account.address,
       });
 
-      const claimTxHash = await eisHanabi.write.claimFees({
+      const claimTxHash = await eisHanabi.write.claimFees([50000n], {
         account: creator.account,
       });
       const claimReceipt = await publicClient.waitForTransactionReceipt({
@@ -546,7 +546,7 @@ describe.only("EISHanabi", function () {
       ]);
 
       const amount = 1n;
-      await eisHanabi.write.mint([tokenId2, amount], {
+      await eisHanabi.write.mint([tokenId2, amount, 50000n], {
         account: minter.account,
         value: fixedMintFee * amount,
       });
@@ -592,14 +592,14 @@ describe.only("EISHanabi", function () {
         address: remixer.account.address,
       });
 
-      const claimCreatorTxHash = await eisHanabi.write.claimFees({
+      const claimCreatorTxHash = await eisHanabi.write.claimFees([50000n], {
         account: creator.account,
       });
       const claimCreatorReceipt = await publicClient.waitForTransactionReceipt({
         hash: claimCreatorTxHash,
       });
 
-      const claimRemixerTxHash = await eisHanabi.write.claimFees({
+      const claimRemixerTxHash = await eisHanabi.write.claimFees([50000n], {
         account: remixer.account,
       });
       const claimRemixerReceipt = await publicClient.waitForTransactionReceipt({
@@ -726,7 +726,7 @@ describe.only("EISHanabi", function () {
 
       // Mint the remixed NFT
       const amount = 1n;
-      await eisHanabi.write.mint([remixedTokenId, amount], {
+      await eisHanabi.write.mint([remixedTokenId, amount, 50000n], {
         account: minter.account,
         value: fixedMintFee * amount,
       });
@@ -775,7 +775,7 @@ describe.only("EISHanabi", function () {
       // Calculate gas costs and net balance increase for each creator
       const gasCosts = [];
       for (let i = 0; i < originalCreators.length; i++) {
-        const claimTxHash = await eisHanabi.write.claimFees({
+        const claimTxHash = await eisHanabi.write.claimFees([50000n], {
           account: originalCreators[i].account,
         });
         const claimReceipt = await publicClient.waitForTransactionReceipt({
@@ -786,7 +786,7 @@ describe.only("EISHanabi", function () {
         gasCosts.push(gasUsed * gasPrice);
       }
 
-      const claimRemixerTxHash = await eisHanabi.write.claimFees({
+      const claimRemixerTxHash = await eisHanabi.write.claimFees([50000n], {
         account: remixer.account,
       });
       const claimRemixerReceipt = await publicClient.waitForTransactionReceipt({
