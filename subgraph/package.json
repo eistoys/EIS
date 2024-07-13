@@ -4,7 +4,8 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ eis",
+    "deploy-testnet": "graph deploy --node https://api.studio.thegraph.com/deploy/ eis",
+    "deploy-mainnet": "graph deploy --node https://api.studio.thegraph.com/deploy/ eis-hanabi",
     "create-local": "graph create --node http://localhost:8020/ eis",
     "remove-local": "graph remove --node http://localhost:8020/ eis",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 eis",

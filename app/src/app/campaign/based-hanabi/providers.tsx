@@ -12,14 +12,17 @@ import { rainbowKitCustomTheme } from "./_config/rainbow-kit";
 const config = getDefaultConfig({
   appName: "EIS",
   projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || "",
-  chains: [baseSepolia],
+  chains: process.env.NEXT_PUBLIC_NETWORK == "mainnet" ? [base] : [baseSepolia],
   ssr: true,
 });
 
 const queryClient = new QueryClient();
 
 const apolloClient = new ApolloClient({
-  uri: "https://api.studio.thegraph.com/query/70647/eis/13",
+  uri:
+    process.env.NEXT_PUBLIC_NETWORK == "mainnet"
+      ? "https://api.studio.thegraph.com/query/70647/eis-hanabi/v0.0.1"
+      : "https://api.studio.thegraph.com/query/70647/eis/13",
   cache: new InMemoryCache(),
 });
 

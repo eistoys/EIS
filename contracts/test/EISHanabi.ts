@@ -30,10 +30,10 @@ const getFixture = async () => {
   const publicClient = await hre.viem.getPublicClient();
   const [
     owner,
-    protocolTreasury,
-    collectionOwnerTreasury,
-    newProtocolTreasury,
-    newCollectionOwnerTreasury,
+    protocolOwner,
+    collectionOwner,
+    newProtocolOwner,
+    newCollectionOwner,
     creator,
     creator2,
     creator3,
@@ -43,8 +43,8 @@ const getFixture = async () => {
   ] = await hre.viem.getWalletClients();
 
   const eisHanabi = await hre.viem.deployContract("EISHanabi", [
-    protocolTreasury.account.address,
-    collectionOwnerTreasury.account.address,
+    protocolOwner.account.address,
+    collectionOwner.account.address,
     fixedMintFee,
     basisPointsBase,
     protocolFeeBasisPoints,
@@ -56,10 +56,10 @@ const getFixture = async () => {
   return {
     publicClient,
     owner,
-    protocolTreasury,
-    collectionOwnerTreasury,
-    newProtocolTreasury,
-    newCollectionOwnerTreasury,
+    protocolOwner,
+    collectionOwner,
+    newProtocolOwner,
+    newCollectionOwner,
     creator,
     creator2,
     creator3,
@@ -78,77 +78,166 @@ describe.only("EISHanabi", function () {
     });
   });
 
-  describe("Treasury Transfers", function () {
-    it("Should transfer protocol treasury address correctly", async function () {
-      const { publicClient, protocolTreasury, newProtocolTreasury, eisHanabi } =
+  describe("Owner Transfers", function () {
+    it("Should transfer protocol owner address correctly", async function () {
+      const { publicClient, protocolOwner, newProtocolOwner, eisHanabi } =
         await loadFixture(getFixture);
 
-      // Transfer protocol treasury address
+      // Transfer protocol owner address
       await publicClient.waitForTransactionReceipt({
-        hash: await eisHanabi.write.transferProtocolTreasury(
-          [newProtocolTreasury.account.address],
-          { account: protocolTreasury.account }
+        hash: await eisHanabi.write.transferProtocolOwner(
+          [newProtocolOwner.account.address],
+          { account: protocolOwner.account }
         ),
       });
 
-      // Verify the protocol treasury address has been updated
-      const updatedProtocolTreasuryAddress =
-        await eisHanabi.read.protocolTreasuryAddress();
-      expect(updatedProtocolTreasuryAddress).to.equal(
-        checksumAddress(newProtocolTreasury.account.address)
+      // Verify the protocol owner address has been updated
+      const updatedProtocolOwnerAddress =
+        await eisHanabi.read.protocolOwnerAddress();
+      expect(updatedProtocolOwnerAddress).to.equal(
+        checksumAddress(newProtocolOwner.account.address)
       );
     });
 
-    it("Should transfer collection owner treasury address correctly", async function () {
-      const {
-        publicClient,
-        collectionOwnerTreasury,
-        newCollectionOwnerTreasury,
-        eisHanabi,
-      } = await loadFixture(getFixture);
+    it("Should transfer collection owner address correctly", async function () {
+      const { publicClient, collectionOwner, newCollectionOwner, eisHanabi } =
+        await loadFixture(getFixture);
 
-      // Transfer collection owner treasury address
+      // Transfer collection owner address
       await publicClient.waitForTransactionReceipt({
-        hash: await eisHanabi.write.transferCollectionOwnerTreasury(
-          [newCollectionOwnerTreasury.account.address],
-          { account: collectionOwnerTreasury.account }
+        hash: await eisHanabi.write.transferCollectionOwner(
+          [newCollectionOwner.account.address],
+          { account: collectionOwner.account }
         ),
       });
 
-      // Verify the collection owner treasury address has been updated
-      const updatedCollectionOwnerTreasuryAddress =
-        await eisHanabi.read.collectionOwnerTreasuryAddress();
-      expect(updatedCollectionOwnerTreasuryAddress).to.equal(
-        checksumAddress(newCollectionOwnerTreasury.account.address)
+      // Verify the collection owner address has been updated
+      const updatedCollectionOwnerAddress =
+        await eisHanabi.read.collectionOwnerAddress();
+      expect(updatedCollectionOwnerAddress).to.equal(
+        checksumAddress(newCollectionOwner.account.address)
       );
     });
 
-    it("Should fail to transfer protocol treasury address by non-treasury address", async function () {
-      const { collectionOwnerTreasury, newProtocolTreasury, eisHanabi } =
+    it("Should fail to transfer protocol owner address by non-owner address", async function () {
+      const { collectionOwner, newProtocolOwner, eisHanabi } =
         await loadFixture(getFixture);
 
       // Attempt to transfer protocol treasury address by non-treasury address
       await expect(
-        eisHanabi.write.transferProtocolTreasury(
-          [newProtocolTreasury.account.address],
-          { account: collectionOwnerTreasury.account }
+        eisHanabi.write.transferProtocolOwner(
+          [newProtocolOwner.account.address],
+          { account: collectionOwner.account }
         )
-      ).to.be.rejectedWith("EIS: only current protocol treasury can transfer");
+      ).to.be.rejectedWith("EIS: only current protocol owner can transfer");
     });
 
-    it("Should fail to transfer collection owner treasury address by non-treasury address", async function () {
-      const { protocolTreasury, newCollectionOwnerTreasury, eisHanabi } =
+    it("Should fail to transfer collection owner address by non-owner address", async function () {
+      const { protocolOwner, newCollectionOwner, eisHanabi } =
         await loadFixture(getFixture);
 
       // Attempt to transfer collection owner treasury address by non-treasury address
       await expect(
-        eisHanabi.write.transferCollectionOwnerTreasury(
-          [newCollectionOwnerTreasury.account.address],
-          { account: protocolTreasury.account }
+        eisHanabi.write.transferCollectionOwner(
+          [newCollectionOwner.account.address],
+          { account: protocolOwner.account }
         )
-      ).to.be.rejectedWith(
-        "EIS: only current collection owner treasury can transfer"
-      );
+      ).to.be.rejectedWith("EIS: only current collection owner can transfer");
+    });
+  });
+
+  describe("isEnded", function () {
+    it("Should check if the contract has ended", async function () {
+      const { eisHanabi } = await getFixture();
+      const ended = await eisHanabi.read.isEnded();
+      expect(ended).to.equal(false);
+    });
+
+    it("Should set isEnded to true and verify", async function () {
+      const { publicClient, protocolOwner, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // End the contract
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.end({
+          account: protocolOwner.account,
+        }),
+      });
+
+      // Verify isEnded is true
+      const ended = await eisHanabi.read.isEnded();
+      expect(ended).to.equal(true);
+    });
+
+    it("Should fail to create a new token when isEnded is true", async function () {
+      const { publicClient, protocolOwner, creator, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // End the contract
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.end({
+          account: protocolOwner.account,
+        }),
+      });
+
+      // Attempt to create a new token
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
+
+      await expect(
+        eisHanabi.write.create(
+          [
+            name,
+            description,
+            compression.zip,
+            pngMimeType,
+            imageChunks,
+            [],
+            true,
+          ],
+          { account: creator.account }
+        )
+      ).to.be.rejectedWith("EIS: ended");
+    });
+
+    it("Should fail to mint a token when isEnded is true", async function () {
+      const { publicClient, protocolOwner, creator, minter, eisHanabi } =
+        await loadFixture(getFixture);
+
+      // Create a new token
+      const zippedImageHex = solady.LibZip.flzCompress(smallPngImageHex) as Hex;
+      const imageChunks = chunk(zippedImageHex);
+
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.create(
+          [
+            name,
+            description,
+            compression.zip,
+            pngMimeType,
+            imageChunks,
+            [],
+            true,
+          ],
+          { account: creator.account }
+        ),
+      });
+
+      // End the contract
+      await publicClient.waitForTransactionReceipt({
+        hash: await eisHanabi.write.end({
+          account: protocolOwner.account,
+        }),
+      });
+
+      // Attempt to mint a new token
+      const tokenId = 0n;
+      await expect(
+        eisHanabi.write.mint([tokenId, 1n], {
+          account: minter.account,
+          value: fixedMintFee,
+        })
+      ).to.be.rejectedWith("EIS: ended");
     });
   });
 
@@ -295,8 +384,8 @@ describe.only("EISHanabi", function () {
     it("Should distribute fees correctly and allow withdrawal", async function () {
       const {
         publicClient,
-        protocolTreasury,
-        collectionOwnerTreasury,
+        protocolOwner,
+        collectionOwner,
         creator,
         minter,
         eisHanabi,
@@ -323,9 +412,9 @@ describe.only("EISHanabi", function () {
       const amount = 1n;
 
       const initialBalances = await Promise.all([
-        publicClient.getBalance({ address: protocolTreasury.account.address }),
+        publicClient.getBalance({ address: protocolOwner.account.address }),
         publicClient.getBalance({
-          address: collectionOwnerTreasury.account.address,
+          address: collectionOwner.account.address,
         }),
         publicClient.getBalance({ address: creator.account.address }),
       ]);
@@ -343,10 +432,10 @@ describe.only("EISHanabi", function () {
         fixedMintFee - expectedProtocolFee - expectedCollectionOwnerFee;
 
       const finalProtocolBalance = await publicClient.getBalance({
-        address: protocolTreasury.account.address,
+        address: protocolOwner.account.address,
       });
       const finalCollectionOwnerBalance = await publicClient.getBalance({
-        address: collectionOwnerTreasury.account.address,
+        address: collectionOwner.account.address,
       });
 
       expect(finalProtocolBalance - initialBalances[0]).to.equal(
@@ -402,8 +491,8 @@ describe.only("EISHanabi", function () {
     it("Should correctly distribute fees for remixed NFTs", async function () {
       const {
         publicClient,
-        protocolTreasury,
-        collectionOwnerTreasury,
+        protocolOwner,
+        collectionOwner,
         creator,
         remixer,
         minter,
@@ -448,9 +537,9 @@ describe.only("EISHanabi", function () {
       const tokenId2 = 1n;
 
       const initialBalances = await Promise.all([
-        publicClient.getBalance({ address: protocolTreasury.account.address }),
+        publicClient.getBalance({ address: protocolOwner.account.address }),
         publicClient.getBalance({
-          address: collectionOwnerTreasury.account.address,
+          address: collectionOwner.account.address,
         }),
         publicClient.getBalance({ address: creator.account.address }),
         publicClient.getBalance({ address: remixer.account.address }),
@@ -473,10 +562,10 @@ describe.only("EISHanabi", function () {
       const expectedCreatorFee = totalCreatorFee - expectedRemixFee;
 
       const finalProtocolBalance = await publicClient.getBalance({
-        address: protocolTreasury.account.address,
+        address: protocolOwner.account.address,
       });
       const finalCollectionOwnerBalance = await publicClient.getBalance({
-        address: collectionOwnerTreasury.account.address,
+        address: collectionOwner.account.address,
       });
 
       expect(finalProtocolBalance - initialBalances[0]).to.equal(
@@ -561,8 +650,8 @@ describe.only("EISHanabi", function () {
     it("Should correctly distribute fees for NFT with multiple references", async function () {
       const {
         publicClient,
-        protocolTreasury,
-        collectionOwnerTreasury,
+        protocolOwner,
+        collectionOwner,
         creator: creator1,
         creator2,
         creator3,
@@ -616,10 +705,10 @@ describe.only("EISHanabi", function () {
       const remixedTokenId = 4n;
 
       const initialProtocolBalance = await publicClient.getBalance({
-        address: protocolTreasury.account.address,
+        address: protocolOwner.account.address,
       });
       const initialCollectionOwnerBalance = await publicClient.getBalance({
-        address: collectionOwnerTreasury.account.address,
+        address: collectionOwner.account.address,
       });
 
       const initialCreatorBalances = [];
@@ -656,10 +745,10 @@ describe.only("EISHanabi", function () {
 
       // Check protocol and collection owner fees
       const finalProtocolBalance = await publicClient.getBalance({
-        address: protocolTreasury.account.address,
+        address: protocolOwner.account.address,
       });
       const finalCollectionOwnerBalance = await publicClient.getBalance({
-        address: collectionOwnerTreasury.account.address,
+        address: collectionOwner.account.address,
       });
 
       expect(finalProtocolBalance - initialProtocolBalance).to.equal(
