@@ -54,7 +54,7 @@ export const Header: React.FC = () => {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const MenuContent: React.FC = () => (
-    <div className="flex flex-col w-full h-full bg-[#191D88] text-white p-4">
+    <div className="flex flex-col w-full h-full bg-[#191D88] text-white p-4 md:pl-6 border-l border-[#888888]">
       <div className="flex justify-between items-center mb-12">
         <Link href="/campaign/based-hanabi">
           <img src="/assets/logo.svg" alt="EIS" className="h-6" />
@@ -152,7 +152,7 @@ export const Header: React.FC = () => {
         <a
           target="_blank"
           href="https://warpcast.com/~/channel/eis"
-          className="block px-4 py-2 text-base"
+          className="block text-base"
         >
           Feedback :)
         </a>
