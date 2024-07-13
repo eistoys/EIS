@@ -367,7 +367,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         .sort()
         .forEach((layer) => {
           if (layer.visible) {
-            ctx.globalAlpha = layer.opacity;
+            ctx.globalAlpha = layer.opacity / 100;
             layer.pixels.forEach(({ x, y, color }) => {
               ctx.fillStyle = color;
               ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
@@ -395,7 +395,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         name: `Layer ${nextLayerNumber}`,
         pixels: [],
         visible: true,
-        opacity: 1,
+        opacity: 100,
       };
       setLayers([newLayer, ...layers]);
       setActiveLayerId(newLayer.id);
@@ -887,7 +887,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
           .sort()
           .forEach((layer) => {
             if (layer.visible) {
-              ctx.globalAlpha = layer.opacity;
+              ctx.globalAlpha = layer.opacity / 100;
               layer.pixels.forEach(({ x, y, color }) => {
                 ctx.fillStyle = color;
                 ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
@@ -998,6 +998,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     };
 
     const generatePreview = (layer: Layer) => {
+      console.log("layer", layer);
+
       const canvas = document.createElement("canvas");
       canvas.width = 32;
       canvas.height = 32;
@@ -1422,7 +1424,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                               <input
                                 type="range"
                                 min="0"
-                                max="1"
+                                max="100"
                                 step="0.1"
                                 value={layer.opacity}
                                 onChange={(e) =>
