@@ -11,6 +11,8 @@
   "dependencies": {
     "@apollo/client": "^3.10.6",
     "@coinbase/onchainkit": "^0.23.1",
+    "@dicebear/collection": "^9.0.1",
+    "@dicebear/core": "^9.0.1",
     "@hello-pangea/dnd": "^16.6.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@svgr/webpack": "^8.1.0",
