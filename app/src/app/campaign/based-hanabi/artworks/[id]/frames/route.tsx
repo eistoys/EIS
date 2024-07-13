@@ -1,8 +1,4 @@
 import { createFrames, Button } from "frames.js/next";
-import { readContract } from "@wagmi/core";
-import { wagmiConfig } from "@/lib/wagmi";
-import { EIS_HANABI_ADDRESS } from "../../../_lib/eis/constants";
-import { eisHanabiAbi } from "../../../_lib/eis/abi";
 
 import path from "path";
 
@@ -17,17 +13,10 @@ const handleRequest = frames(async (ctx) => {
     throw new Error("Token ID not defined");
   }
 
-  const dyamicImageDataUrl = await readContract(wagmiConfig, {
-    address: EIS_HANABI_ADDRESS,
-    abi: eisHanabiAbi,
-    functionName: "loadImageDataUrl",
-    args: [BigInt(tokenId)],
-  });
-
   const price = "0.00069";
-
+  const cachebuster = new Date().getTime();
   return {
-    image: <img src={dyamicImageDataUrl} />,
+    image: `${process.env.NEXT_PUBLIC_APP_URL}/campaign/based-hanabi/artworks/${tokenId}/image?cachebuster=${cachebuster}`,
     buttons: [
       <Button
         action="tx"
