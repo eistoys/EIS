@@ -14,6 +14,7 @@ import { eisHanabiAbi } from "../../_lib/eis/abi";
 import Link from "next/link";
 
 import { Avatar, Name } from "@coinbase/onchainkit/identity";
+import { DefaultAvatar } from "../../_components/DefaultAvatar";
 
 const GET_RECORDS = gql`
   query GetRecords($address: String!) {
@@ -86,7 +87,16 @@ function UserPage({ params }: { params: { address: string } }) {
     <div className="px-3 md:px-6">
       <div className="flex flex-col items-center py-12 gap-6">
         <div>
-          <Avatar address={address} className="h-24 w-24 rounded-full" />
+          <Avatar
+            address={address}
+            className="h-24 w-24 rounded-full"
+            defaultComponent={
+              <DefaultAvatar seed={address} className="w-24 h-24" />
+            }
+            loadingComponent={
+              <DefaultAvatar seed={address} className="w-24 h-24" />
+            }
+          />
         </div>
         <div className="flex flex-col justify-center items-center">
           <Name

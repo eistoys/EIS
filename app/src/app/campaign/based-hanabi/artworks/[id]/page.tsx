@@ -135,7 +135,7 @@ function ViewPage({ params }: { params: { id: string } }) {
                   <div className="border-b border-[#888888] pb-9">
                     <div className="flex justify-between items-center mb-4">
                       <div className="text-white text-2xl w-full tracking-wider font-semibold">
-                        {formatEther(MINT_PRICE)} ETH
+                        {formatEther(MINT_PRICE)} ETH / per
                       </div>
                     </div>
                     <button

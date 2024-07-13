@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract, useDisconnect } from "wagmi";
 import {
   IoClose,
   IoMenu,
@@ -12,17 +12,16 @@ import {
   IoLogoGithub,
 } from "react-icons/io5";
 import { ConnectWalletButton } from "./ConnectWalletButton";
-import { Avatar } from "@coinbase/onchainkit/identity";
-import { createAvatar } from "@dicebear/core";
-import { identicon } from "@dicebear/collection";
+import { Address, Avatar, Name } from "@coinbase/onchainkit/identity";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
-const getRandomAvatar = (seed: string) => {
-  const avatar = createAvatar(identicon, {
-    seed: seed,
-    size: 32,
-  });
-  return avatar.toDataUri();
-};
+import { eisHanabiAbi } from "../_lib/eis/abi";
+import { EIS_HANABI_ADDRESS } from "../_lib/eis/constants";
+import { Address as AddressType, formatEther } from "viem";
+import { DefaultAvatar } from "./DefaultAvatar";
+
+import { SiFarcaster } from "react-icons/si";
+import { RiTwitterXLine } from "react-icons/ri";
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
@@ -30,7 +29,15 @@ export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [avatarSeed] = useState<string>(Math.random().toString());
+  const { disconnect } = useDisconnect();
+  const { openConnectModal } = useConnectModal();
+
+  const { data: balance } = useReadContract({
+    abi: eisHanabiAbi,
+    address: EIS_HANABI_ADDRESS,
+    functionName: "claimableFees",
+    args: [address as AddressType],
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -52,20 +59,12 @@ export const Header: React.FC = () => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleConnect = () => {
-    // Implement your connect logic here
-    console.log("Connecting wallet...");
-  };
-
-  const handleDisconnect = () => {
-    // Implement your disconnect logic here
-    console.log("Disconnecting wallet...");
-  };
-
   const MenuContent: React.FC = () => (
     <div className="flex flex-col w-full h-full bg-[#191D88] text-white p-4">
-      <div className="flex justify-between items-center mb-6">
-        <div className="text-2xl font-bold">EIS</div>
+      <div className="flex justify-between items-center mb-12">
+        <Link href="/campaign/based-hanabi">
+          <img src="/assets/logo.svg" alt="EIS" className="h-6" />
+        </Link>
         <div className="space-x-3 flex">
           <button onClick={toggleMenu} className="text-white">
             <IoClose size={24} />
@@ -75,44 +74,43 @@ export const Header: React.FC = () => {
 
       {isConnected ? (
         <>
-          <div className="flex items-center mb-4">
+          <div className="flex items-center mb-6">
             <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
-              <img
-                src={getRandomAvatar(address || avatarSeed)}
-                alt="User Avatar"
-                className="w-full h-full object-cover"
-              />
+              <DefaultAvatar seed={address} className="w-12 h-12" />
             </div>
             <div>
-              <div className="text-lg font-semibold">yamadatarou.eth</div>
-              <div className="text-sm text-gray-300">
-                {address
-                  ? `${address.slice(0, 6)}...${address.slice(-4)}`
-                  : "0x7a21...33aa13"}
-              </div>
+              <Name
+                address={address}
+                className="text-white text-lg font-extrabold"
+              />
+              <Address address={address} className="text-white text-sm" />
             </div>
           </div>
 
           <Link
             href={`/campaign/based-hanabi/users/${address}`}
-            className="block"
+            className="block mb-6"
           >
-            <div className="bg-[#3B82F6] rounded-full py-3 px-4 flex justify-between items-center mb-4">
-              <div className="text-xl font-bold">239.4 ETH</div>
-              <span className="text-white">My Page &gt;</span>
+            <div className="bg-[#3B82F6] rounded-full py-3 px-4 flex justify-between items-center">
+              <div className="text-xl font-bold tracking-wider">
+                {balance ? parseFloat(formatEther(balance)).toFixed(6) : "0"}{" "}
+                ETH
+              </div>
+              <span className="text-white font-bold tracking-wider">
+                My Page &gt;
+              </span>
             </div>
           </Link>
-
           <button
-            onClick={handleDisconnect}
-            className="bg-transparent border-2 border-white rounded-full py-3 mb-8 text-lg font-semibold"
+            onClick={() => disconnect()}
+            className="bg-transparent border-2 border-white rounded-full py-3 mb-8 text-lg font-bold tracking-wider"
           >
             DISCONNECT
           </button>
         </>
       ) : (
         <button
-          onClick={handleConnect}
+          onClick={openConnectModal}
           className="bg-transparent border-2 border-white rounded-full py-3 mb-8 text-lg font-semibold"
         >
           CONNECT
@@ -120,62 +118,76 @@ export const Header: React.FC = () => {
       )}
 
       <div className="space-y-4 mb-auto">
-        <Link href="#" className="block text-2xl font-bold">
+        <Link
+          href="/campaign/based-hanabi"
+          className="block text-2xl font-bold"
+          onClick={() => setIsOpen(false)}
+        >
           TOP
         </Link>
-        <Link href="#" className="block text-2xl font-bold">
+        <Link
+          href="/campaign/based-hanabi#description"
+          className="block text-2xl font-bold"
+          onClick={() => setIsOpen(false)}
+        >
           DESCRIPTION
         </Link>
+
         <Link
           href="/campaign/based-hanabi/artworks/create"
           className="block text-2xl font-bold text-yellow-400"
+          onClick={() => setIsOpen(false)}
         >
           CREATE
         </Link>
       </div>
 
       <div className="mt-auto flex justify-between items-center">
-        <div>Feedback :)</div>
+        <a
+          target="_blank"
+          href="https://warpcast.com/~/channel/eis"
+          className="block px-4 py-2 text-base"
+        >
+          Feedback :)
+        </a>
         <div className="flex space-x-4">
-          <Link
-            href="#"
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center"
+          <a
+            href="https://warpcast.com/eistoys"
+            target="_blank"
+            className="w-8 h-8 rounded-full flex items-center justify-center"
           >
-            <IoHome className="text-[#191D88] w-5 h-5" />
-          </Link>
-          <Link
-            href="#"
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center"
+            <SiFarcaster className="w-5 h-5" />
+          </a>
+          <a
+            href="https://x.com/eistoys"
+            target="_blank"
+            className="w-8 h-8  rounded-full flex items-center justify-center"
           >
-            <IoLogoTwitter className="text-[#191D88] w-5 h-5" />
-          </Link>
-          <Link
-            href="#"
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center"
+            <RiTwitterXLine className=" w-5 h-5" />
+          </a>
+          <a
+            href="https://github.com/eistoys/EIS"
+            target="_blank"
+            className="w-8 h-8 rounded-full flex items-center justify-center"
           >
-            <IoLogoGithub className="text-[#191D88] w-5 h-5" />
-          </Link>
+            <IoLogoGithub className=" w-5 h-5" />
+          </a>
         </div>
       </div>
     </div>
   );
 
-  const defaultAvatarComponent = (seed: string) => {
-    return (
-      <div className="w-8 h-8 rounded-full overflow-hidden">
-        <img
-          src={getRandomAvatar(seed)}
-          alt="Loading Avatar"
-          className="w-full h-full object-cover"
-        />
-      </div>
-    );
-  };
-
   return (
     <div className="w-full flex justify-between items-center p-3 bg-[#191D88] text-white h-12 md:h-[60px]">
       <Link href="/campaign/based-hanabi">
-        <img src="/assets/logo.svg" alt="EIS" className="h-6 md:h-10" />
+        <picture>
+          <source media="(max-width: 768px)" srcSet="/assets/logo-mini.svg" />
+          <img
+            loading="lazy"
+            src="/assets/logo.svg"
+            className="h-6 md:h-10 cursor-pointer"
+          />
+        </picture>
       </Link>
       <div className="flex items-center space-x-3">
         {!pathname.includes("create") && (
@@ -190,13 +202,17 @@ export const Header: React.FC = () => {
         )}
         <ConnectWalletButton />
         <button onClick={toggleMenu}>
-          {!isConnected && <IoMenu className="w-8 h-8 text-white" />}
+          {!isConnected && <IoMenu className="w-6 h-6 text-white" />}
           {isConnected && (
             <Avatar
               address={address}
-              defaultComponent={defaultAvatarComponent(address || avatarSeed)}
-              loadingComponent={defaultAvatarComponent(address || avatarSeed)}
-              className="w-8 h-8"
+              defaultComponent={
+                <DefaultAvatar seed={address} className="w-6 h-6" />
+              }
+              loadingComponent={
+                <DefaultAvatar seed={address} className="w-6 h-6" />
+              }
+              className="w-6 h-6"
             />
           )}
         </button>
