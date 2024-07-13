@@ -3,12 +3,12 @@ export const eisHanabiAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "protocolTreasuryAddress_",
+        name: "protocolOwnerAddress_",
         type: "address",
       },
       {
         internalType: "address",
-        name: "collectionOwnerTreasuryAddress_",
+        name: "collectionOwnerAddress_",
         type: "address",
       },
       {
@@ -188,7 +188,7 @@ export const eisHanabiAbi = [
         type: "address",
       },
     ],
-    name: "CollectionOwnerTreasuryTransferred",
+    name: "CollectionOwnerTransferred",
     type: "event",
   },
   {
@@ -255,6 +255,12 @@ export const eisHanabiAbi = [
   },
   {
     anonymous: false,
+    inputs: [],
+    name: "Ended",
+    type: "event",
+  },
+  {
+    anonymous: false,
     inputs: [
       {
         indexed: true,
@@ -269,7 +275,7 @@ export const eisHanabiAbi = [
         type: "address",
       },
     ],
-    name: "ProtocolTreasuryTransferred",
+    name: "ProtocolOwnerTransferred",
     type: "event",
   },
   {
@@ -427,7 +433,13 @@ export const eisHanabiAbi = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "gasLimit",
+        type: "uint256",
+      },
+    ],
     name: "claimFees",
     outputs: [],
     stateMutability: "nonpayable",
@@ -454,12 +466,12 @@ export const eisHanabiAbi = [
   },
   {
     inputs: [],
-    name: "collectionOwnerFeeBasisPoints",
+    name: "collectionOwnerAddress",
     outputs: [
       {
-        internalType: "uint256",
+        internalType: "address",
         name: "",
-        type: "uint256",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -467,12 +479,12 @@ export const eisHanabiAbi = [
   },
   {
     inputs: [],
-    name: "collectionOwnerTreasuryAddress",
+    name: "collectionOwnerFeeBasisPoints",
     outputs: [
       {
-        internalType: "address",
+        internalType: "uint256",
         name: "",
-        type: "address",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -517,6 +529,13 @@ export const eisHanabiAbi = [
       },
     ],
     name: "create",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "end",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -577,6 +596,19 @@ export const eisHanabiAbi = [
       },
     ],
     name: "isApprovedForAll",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "isEnded",
     outputs: [
       {
         internalType: "bool",
@@ -650,6 +682,11 @@ export const eisHanabiAbi = [
         name: "amount",
         type: "uint256",
       },
+      {
+        internalType: "uint256",
+        name: "gasLimit",
+        type: "uint256",
+      },
     ],
     name: "mint",
     outputs: [],
@@ -671,7 +708,7 @@ export const eisHanabiAbi = [
   },
   {
     inputs: [],
-    name: "protocolTreasuryAddress",
+    name: "protocolOwnerAddress",
     outputs: [
       {
         internalType: "address",
@@ -877,7 +914,7 @@ export const eisHanabiAbi = [
         type: "address",
       },
     ],
-    name: "transferCollectionOwnerTreasury",
+    name: "transferCollectionOwner",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -890,7 +927,7 @@ export const eisHanabiAbi = [
         type: "address",
       },
     ],
-    name: "transferProtocolTreasury",
+    name: "transferProtocolOwner",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

@@ -21,7 +21,7 @@ const queryClient = new QueryClient();
 const apolloClient = new ApolloClient({
   uri:
     process.env.NEXT_PUBLIC_NETWORK == "mainnet"
-      ? "https://api.studio.thegraph.com/query/70647/eis-hanabi/v0.0.1"
+      ? "https://api.studio.thegraph.com/query/70647/eis-hanabi/v0.0.2"
       : "https://api.studio.thegraph.com/query/70647/eis/13",
   cache: new InMemoryCache(),
 });

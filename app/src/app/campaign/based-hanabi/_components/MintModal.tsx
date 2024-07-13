@@ -1,7 +1,11 @@
 import { SpinnerLoader } from "@/components/SpinnerLoader";
 import { useEffect, useState } from "react";
 import { formatEther } from "viem";
-import { EIS_HANABI_ADDRESS, MINT_PRICE } from "../_lib/eis/constants";
+import {
+  EIS_HANABI_ADDRESS,
+  GAS_LIMIT,
+  MINT_PRICE,
+} from "../_lib/eis/constants";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { eisHanabiAbi } from "../_lib/eis/abi";
 import Confetti from "react-confetti";
@@ -144,7 +148,7 @@ export const MintModal = ({
                         address: EIS_HANABI_ADDRESS,
                         abi: eisHanabiAbi,
                         functionName: "mint",
-                        args: [BigInt(tokenId), BigInt(amount)],
+                        args: [BigInt(tokenId), BigInt(amount), GAS_LIMIT],
                         value: MINT_PRICE * BigInt(amount),
                       });
                     }}
