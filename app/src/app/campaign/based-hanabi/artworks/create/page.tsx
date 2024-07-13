@@ -143,6 +143,20 @@ function CampaignBasedHanabiArtworkCreatePage() {
             </div>
 
             <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
+              <div className="flex gap-2.5 px-px mt-5 text-lg font-bold tracking-wide leading-5 text-red-600 mb-2">
+                <div className="text-lg font-bold tracking-wider text-white">
+                  LICENSE <span className="text-red-600">*</span>
+                </div>
+              </div>
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  className="accent-green-600 mr-4"
+                  checked={isLicenseChecked}
+                  onChange={(e) => setIsLicenseChecked(e.target.checked)}
+                />
+                <div className="text-lg tracking-wide text-white mr-2">CC0</div>
+              </div>
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 TITLE <span className="text-red-600">*</span>
               </div>
@@ -186,7 +200,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 SUPPLY
               </div>
-              <div className="relative flex items-center mb-4">
+              <div className="relative flex items-center">
                 <input
                   type="text"
                   className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white w-full text-center px-12"
@@ -194,21 +208,6 @@ function CampaignBasedHanabiArtworkCreatePage() {
                   disabled
                   value={supply}
                 />
-              </div>
-
-              <div className="flex gap-2.5 px-px mt-5 text-lg font-bold tracking-wide leading-5 text-red-600 mb-2">
-                <div className="text-lg font-bold tracking-wider text-white">
-                  LICENSE <span className="text-red-600">*</span>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="accent-green-600 mr-4"
-                  checked={isLicenseChecked}
-                  onChange={(e) => setIsLicenseChecked(e.target.checked)}
-                />
-                <div className="text-lg tracking-wide text-white mr-2">CC0</div>
               </div>
             </div>
           </div>
