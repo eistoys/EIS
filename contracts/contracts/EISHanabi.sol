@@ -29,22 +29,26 @@ contract EISHanabi is ERC1155 {
         Record record
     );
 
-    event ProtocolTreasuryTransferred(
+    event ProtocolOwnerTransferred(
         address indexed oldAddress,
         address indexed newAddress
     );
 
-    event CollectionOwnerTreasuryTransferred(
+    event CollectionOwnerTransferred(
         address indexed oldAddress,
         address indexed newAddress
     );
+
+    event Ended();
 
     mapping(uint256 => Record) public records;
     mapping(address => uint256) public claimableFees;
     mapping(uint256 => uint256) public totalMinted;
 
-    address public protocolTreasuryAddress;
-    address public collectionOwnerTreasuryAddress;
+    bool public isEnded;
+
+    address public protocolOwnerAddress;
+    address public collectionOwnerAddress;
 
     uint256 public tokenIdCounter;
     uint256 public fixedMintFee;
@@ -55,8 +59,8 @@ contract EISHanabi is ERC1155 {
     uint256 public maxSupply;
 
     constructor(
-        address protocolTreasuryAddress_,
-        address collectionOwnerTreasuryAddress_,
+        address protocolOwnerAddress_,
+        address collectionOwnerAddress_,
         uint256 fixedMintFee_,
         uint256 basisPointsBase_,
         uint256 protocolFeeBasisPoints_,
@@ -64,8 +68,8 @@ contract EISHanabi is ERC1155 {
         uint256 remixFeeBasisPoints_,
         uint256 maxSupply_
     ) ERC1155("") {
-        protocolTreasuryAddress = protocolTreasuryAddress_;
-        collectionOwnerTreasuryAddress = collectionOwnerTreasuryAddress_;
+        protocolOwnerAddress = protocolOwnerAddress_;
+        collectionOwnerAddress = collectionOwnerAddress_;
         fixedMintFee = fixedMintFee_;
         basisPointsBase = basisPointsBase_;
         protocolFeeBasisPoints = protocolFeeBasisPoints_;
@@ -83,6 +87,8 @@ contract EISHanabi is ERC1155 {
         uint256[] memory referenceTokenIds,
         bool isInitialMintEnabled
     ) public {
+        require(!isEnded, "EIS: ended");
+
         uint256 tokenId = tokenIdCounter++;
         address creator = _msgSender();
 
@@ -126,6 +132,8 @@ contract EISHanabi is ERC1155 {
     }
 
     function mint(uint256 tokenId, uint256 amount) public payable {
+        require(!isEnded, "EIS: ended");
+
         require(
             totalMinted[tokenId] + amount <= maxSupply,
             "EIS: max supply exceeded"
@@ -139,8 +147,8 @@ contract EISHanabi is ERC1155 {
             uint256 creatorFee
         ) = getDividedFeesFromTotalMintFee(totalMintFee);
 
-        payable(protocolTreasuryAddress).transfer(protocolFee);
-        payable(collectionOwnerTreasuryAddress).transfer(collectionOwnerFee);
+        payable(protocolOwnerAddress).transfer(protocolFee);
+        payable(collectionOwnerAddress).transfer(collectionOwnerFee);
 
         if (records[tokenId].referenceTokenIds.length > 0) {
             uint256 originalCreatorFee = (creatorFee * remixFeeBasisPoints) /
@@ -177,33 +185,40 @@ contract EISHanabi is ERC1155 {
         payable(creator).transfer(amount);
     }
 
-    function transferProtocolTreasury(address newAddress) public {
+    function transferProtocolOwner(address newAddress) public {
         require(
-            _msgSender() == protocolTreasuryAddress,
-            "EIS: only current protocol treasury can transfer"
+            _msgSender() == protocolOwnerAddress,
+            "EIS: only current protocol owner can transfer"
         );
         require(
             newAddress != address(0),
             "EIS: new address cannot be zero address"
         );
-        emit ProtocolTreasuryTransferred(protocolTreasuryAddress, newAddress);
-        protocolTreasuryAddress = newAddress;
+        emit ProtocolOwnerTransferred(protocolOwnerAddress, newAddress);
+        protocolOwnerAddress = newAddress;
     }
 
-    function transferCollectionOwnerTreasury(address newAddress) public {
+    function transferCollectionOwner(address newAddress) public {
         require(
-            _msgSender() == collectionOwnerTreasuryAddress,
-            "EIS: only current collection owner treasury can transfer"
+            _msgSender() == collectionOwnerAddress,
+            "EIS: only current collection owner can transfer"
         );
         require(
             newAddress != address(0),
             "EIS: new address cannot be zero address"
         );
-        emit CollectionOwnerTreasuryTransferred(
-            collectionOwnerTreasuryAddress,
-            newAddress
+        emit CollectionOwnerTransferred(collectionOwnerAddress, newAddress);
+        collectionOwnerAddress = newAddress;
+    }
+
+    function end() public {
+        require(
+            _msgSender() == protocolOwnerAddress,
+            "EIS: only protocol owner can end the contract"
         );
-        collectionOwnerTreasuryAddress = newAddress;
+        require(!isEnded, "EIS: contract already ended");
+        isEnded = true;
+        emit Ended();
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
