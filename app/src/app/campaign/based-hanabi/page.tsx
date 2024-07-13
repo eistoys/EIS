@@ -183,7 +183,7 @@ export default function CampaignBasedHanabiPage() {
           </div>
         </div>
       )}
-      <div className="w-full max-w-4xl mx-auto px-4 py-12" id="description">
+      <div className="w-full max-w-6xl mx-auto px-4 py-12" id="description">
         <Markdown className={"markdown"}>{basedHanabiDescription}</Markdown>
       </div>
     </div>

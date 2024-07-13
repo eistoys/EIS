@@ -1,6 +1,6 @@
 export const basedHanabiDescription = `
 
-# Description
+# DESCRIPTION
 
 ## Contest Overview
 
