@@ -82,8 +82,8 @@ export const MintModal = ({
               {mode == "ask" && (
                 <>
                   <div className="flex justify-between items-center mb-3">
-                    <div className="text-white text-3xl w-full tracking-wider font-bold">
-                      {formatEther(MINT_PRICE)} ETH
+                    <div className="text-white text-2xl w-full tracking-wider font-semibold">
+                      {formatEther(MINT_PRICE)} ETH / per
                     </div>
                   </div>
                   <div className="relative flex items-center mb-3">
