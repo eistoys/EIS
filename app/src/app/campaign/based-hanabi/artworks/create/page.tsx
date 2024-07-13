@@ -255,7 +255,10 @@ function CampaignBasedHanabiArtworkCreatePage() {
           </button>
         ) : (
           <button
-            className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
+            className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              mode === "info" && (!isLicenseChecked || !title || !isConnected)
+            }
             onClick={() => {
               if (mode == "create") {
                 setMode("info");
