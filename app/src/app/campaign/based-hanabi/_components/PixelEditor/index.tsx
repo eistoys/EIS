@@ -67,7 +67,7 @@ const downloadSize = 256;
 const minZoomFactor = 1;
 const maxZoomFactor = 8;
 const maxLayerCount = 6;
-const maxColorCount = 14;
+const maxColorCount = 8;
 const minimumLength = 320;
 
 const GET_LATEST_RECORDS = gql`
@@ -1286,7 +1286,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </select>
               <div className="space-x-3 flex">
                 <select
-                  className="pl-1 rounded-md text-sm bg-[#337CCF] border border-[#888888] text-white font-bold h-[52px] w-[88px] cursor-pointer focus:outline-none focus:ring-0"
+                  className="pl-1 rounded-md text-sm bg-[#337CCF] border border-[#888888] text-white font-bold h-[52px] w-[140px] cursor-pointer focus:outline-none focus:ring-0"
                   value={selectedPalette}
                   onChange={(e) =>
                     setSelectedPalette(e.target.value as keyof typeof palettes)
@@ -1298,7 +1298,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                     </option>
                   ))}
                 </select>
-                <div className="flex flex-col flex-wrap h-[52px] w-[182px]">
+                <div className="flex flex-col flex-wrap h-[52px] w-[106px]">
                   {Array.from({
                     length: Math.ceil(
                       palettes[selectedPalette].length / (maxColorCount / 2)
