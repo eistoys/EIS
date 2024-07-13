@@ -6,8 +6,10 @@ import { gql, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MintModal } from "../../_components/MintModal";
-import { formatEther } from "viem";
+import { Address as AddressType, formatEther } from "viem";
 import { MINT_PRICE } from "../../_lib/eis/constants";
+import { DefaultAvatar } from "../../_components/DefaultAvatar";
+import { Address, Name } from "@coinbase/onchainkit/identity";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -127,8 +129,23 @@ function ViewPage({ params }: { params: { id: string } }) {
                   className="inline-flex"
                   href={`/campaign/based-hanabi/users/${record.creator}`}
                 >
-                  <div className="hover:opacity-80">
-                    <CreatorIdentity address={record.creator} />
+                  <div className="flex items-center mb-6">
+                    <div className="w-8 h-8 rounded-full overflow-hidden mr-3">
+                      <DefaultAvatar
+                        seed={record.creator}
+                        className="w-8 h-8"
+                      />
+                    </div>
+                    <div>
+                      <Name
+                        address={record.creator as AddressType}
+                        className="text-white text-lg font-extrabold"
+                      />
+                      <Address
+                        address={record.creator as AddressType}
+                        className="text-white text-sm"
+                      />
+                    </div>
                   </div>
                 </Link>
                 <div className="py-8 space-y-6">

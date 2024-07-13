@@ -29,7 +29,7 @@ export const DefaultAvatar = ({
       <img
         src={img}
         alt="Loading Avatar"
-        className="w-full h-full object-cover"
+        className="rounded-full w-full h-full object-cover"
       />
     </div>
   );
