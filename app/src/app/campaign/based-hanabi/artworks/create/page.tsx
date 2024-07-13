@@ -48,10 +48,13 @@ function CampaignBasedHanabiArtworkCreatePage() {
       recordQueryData.hanabiRecord.uri.split("data:application/json;utf8,")[1]
     );
     setReferenceTokenImage(metadata.image);
-    setUsedReferences((prev) => [
-      ...prev,
-      { tokenId: BigInt(referenceTokenId), image: metadata.image },
-    ]);
+    setUsedReferences((prevReferences) => {
+      const tokenId = BigInt(referenceTokenId);
+      if (prevReferences.some((ref) => ref.tokenId === tokenId)) {
+        return prevReferences;
+      }
+      return [...prevReferences, { tokenId: tokenId, image: metadata.image }];
+    });
   }, [referenceTokenId, recordQueryData]);
 
   const [mode, setMode] = useState<"create" | "info">("create");
@@ -95,7 +98,6 @@ function CampaignBasedHanabiArtworkCreatePage() {
     if (!data) {
       return;
     }
-    console.log("data", data);
     const event = data.logs[data.logs.length - 1];
     const tokenIdHex = event.topics[1];
     if (!tokenIdHex) {
