@@ -8,10 +8,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const id = params.id;
 
-  console.log(
-    `${process.env.NEXT_PUBLIC_APP_URL}/campaign/based-hanabi/artworks/${id}/og`
-  );
-
+  const cachebuster = new Date().getTime();
   return {
     title: "Ethereum Image Service",
     description: "Ethereum Image Service is an Infinite Remixable CC0 Garden.",
@@ -23,7 +20,7 @@ export async function generateMetadata({
       siteName: "Ethereum Image Service",
       images: [
         {
-          url: `${process.env.NEXT_PUBLIC_APP_URL}/campaign/based-hanabi/artworks/${id}/og`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL}/campaign/based-hanabi/artworks/${id}/og?cachebuster=${cachebuster}`,
           width: 1200,
           height: 630,
           alt: "Ethereum Image Service",
