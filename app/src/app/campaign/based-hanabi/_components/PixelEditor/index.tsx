@@ -17,6 +17,7 @@ import {
   Eraser,
   Palette,
   Dices,
+  Pipette,
 } from "lucide-react";
 import { gql, useQuery } from "@apollo/client";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
@@ -123,9 +124,9 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     );
     const [currentColor, setCurrentColor] = useState<string>("#000000");
     const [isDrawing, setIsDrawing] = useState(false);
-    const [mode, setMode] = useState<"pen" | "eraser" | "fill" | "search">(
-      "pen"
-    );
+    const [mode, setMode] = useState<
+      "pen" | "eraser" | "fill" | "search" | "picker"
+    >("pen");
 
     const [gridCount, setGridCount] = useState<number>(64);
     const [pixelSize, setPixelSize] = useState<number>(1);
@@ -588,8 +589,57 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
       if (mode === "search") {
         setLastMousePos({ x: clientX, y: clientY });
+      } else if (mode === "picker") {
+        pickColor(x, y);
       } else {
         draw(x, y);
+      }
+    };
+
+    const convertToHex = (color: string): string => {
+      // Helper function to convert a number to a 2-digit hex string
+      const toHex = (num: number): string => {
+        const hex = num.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      };
+
+      // Check if the color is already in #rrggbb format
+      if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+        return color;
+      }
+
+      // Handle rgba format
+      if (color.startsWith("rgba")) {
+        const match = color.match(
+          /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/
+        );
+        if (match) {
+          const r = parseInt(match[1]);
+          const g = parseInt(match[2]);
+          const b = parseInt(match[3]);
+          return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+      }
+
+      // Handle #rrggbbaa format
+      if (/^#[0-9A-Fa-f]{8}$/.test(color)) {
+        return color.slice(0, 7);
+      }
+
+      // If we can't convert, return a default color
+      console.warn(`Unable to convert color: ${color}`);
+      return "#000000";
+    };
+
+    const pickColor = (x: number, y: number) => {
+      const activeLayer = layers.find((layer) => layer.id === activeLayerId);
+      if (!activeLayer) return;
+
+      const pixel = activeLayer.pixels.find((p) => p.x === x && p.y === y);
+      if (pixel) {
+        const hexColor = convertToHex(pixel.color);
+        setCurrentColor(hexColor);
+        setMode("pen"); // Switch back to pen mode after picking a color
       }
     };
 
@@ -897,6 +947,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         return `url(${createSquareCursor()}) ${
           (pixelSize * cameraZoomFactor) / 2
         } ${(pixelSize * cameraZoomFactor) / 2}, auto`;
+      } else if (mode === "picker") {
+        return "crosshair";
       } else {
         return "pointer";
       }
@@ -1197,20 +1249,15 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className="border-none w-9 h-9"
                 />
                 <button
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    (palettes[selectedPalette].length === maxColorCount ||
-                      palettes[selectedPalette].includes(currentColor)) &&
-                    "opacity-25 cursor-not-allowed h-9 w-9"
+                  onClick={() => setMode("picker")}
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "picker" && "bg-white"
                   }`}
-                  disabled={
-                    palettes[selectedPalette].length === maxColorCount ||
-                    palettes[selectedPalette].includes(currentColor)
-                  }
                 >
-                  <Palette
+                  <Pipette
                     className="text-white"
                     size={24}
-                    onClick={() => insertColor()}
+                    color={mode === "picker" ? "#191D88" : "white"}
                   />
                 </button>
                 <button
