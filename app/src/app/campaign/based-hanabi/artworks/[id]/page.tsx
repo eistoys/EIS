@@ -9,7 +9,7 @@ import { MintModal } from "../../_components/MintModal";
 import { Address as AddressType, formatEther } from "viem";
 import { MINT_PRICE } from "../../_lib/eis/constants";
 import { DefaultAvatar } from "../../_components/DefaultAvatar";
-import { Address, Name } from "@coinbase/onchainkit/identity";
+import { Address, Avatar, Name } from "@coinbase/onchainkit/identity";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -131,9 +131,21 @@ function ViewPage({ params }: { params: { id: string } }) {
                 >
                   <div className="flex items-center mb-6">
                     <div className="w-8 h-8 rounded-full overflow-hidden mr-3">
-                      <DefaultAvatar
-                        seed={record.creator}
-                        className="w-8 h-8"
+                      <Avatar
+                        address={record.creator as AddressType}
+                        className="h-8 w-8 rounded-full"
+                        defaultComponent={
+                          <DefaultAvatar
+                            seed={record.creator}
+                            className="w-8 h-8"
+                          />
+                        }
+                        loadingComponent={
+                          <DefaultAvatar
+                            seed={record.creator}
+                            className="w-8 h-8"
+                          />
+                        }
                       />
                     </div>
                     <div>

@@ -70,7 +70,16 @@ export const Header: React.FC = () => {
         <>
           <div className="flex items-center mb-6">
             <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
-              <DefaultAvatar seed={address} className="w-12 h-12" />
+              <Avatar
+                address={address}
+                className="h-12 w-12 rounded-full"
+                defaultComponent={
+                  <DefaultAvatar seed={address} className="w-12 h-12" />
+                }
+                loadingComponent={
+                  <DefaultAvatar seed={address} className="w-12 h-12" />
+                }
+              />
             </div>
             <div>
               <Name
