@@ -170,11 +170,18 @@ function CampaignBasedHanabiArtworkCreatePage() {
               <div className="flex items-center mb-4">
                 <input
                   type="checkbox"
-                  className="accent-green-600 mr-4"
+                  className="accent-green-600  cursor-pointer"
                   checked={isLicenseChecked}
                   onChange={(e) => setIsLicenseChecked(e.target.checked)}
                 />
-                <div className="text-lg tracking-wide text-white mr-2">CC0</div>
+                <div
+                  className="text-lg tracking-wide text-white pl-4 pr-2 cursor-pointer"
+                  onClick={() => {
+                    setIsLicenseChecked(!isLicenseChecked);
+                  }}
+                >
+                  CC0
+                </div>
               </div>
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 TITLE <span className="text-red-600">*</span>
