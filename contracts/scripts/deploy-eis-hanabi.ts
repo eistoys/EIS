@@ -1,9 +1,9 @@
 import hre from "hardhat";
 import { Address } from "viem";
 
-const PROTOCOL_TREASURY_ADDRESS =
+const PROTOCOL_OWNER_ADDRESS =
   "0x30be2BE5e49CD1b91B73C967597352382ee880Ba" as Address;
-const COLLECTION_OWNER_TREASURY_ADDRESS =
+const COLLECTION_OWNER_ADDRESS =
   "0x9cdf2385A3Ab2C8613133B396079075a21561015" as Address;
 
 const FIXED_MINT_FEE = BigInt("690000000000000");
@@ -18,8 +18,8 @@ async function main() {
   console.log("deployer.account.address", deployer.account.address);
 
   const eis = await hre.viem.deployContract("EISHanabi", [
-    PROTOCOL_TREASURY_ADDRESS,
-    COLLECTION_OWNER_TREASURY_ADDRESS,
+    PROTOCOL_OWNER_ADDRESS,
+    COLLECTION_OWNER_ADDRESS,
     FIXED_MINT_FEE,
     BASIS_POINTS_BASE,
     PROTOCOL_FEE_BASIS_POINTS,

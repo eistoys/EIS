@@ -35,6 +35,10 @@ const config: HardhatUserConfig = {
       url: "https://sepolia.rpc.zora.energy",
       accounts,
     },
+    base: {
+      url: "https://mainnet.base.org",
+      accounts,
+    },
   },
   mocha: {
     timeout: 200000,
