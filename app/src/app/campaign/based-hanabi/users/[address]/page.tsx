@@ -14,6 +14,8 @@ import { eisHanabiAbi } from "../../_lib/eis/abi";
 import Link from "next/link";
 
 import { Avatar, Name } from "@coinbase/onchainkit/identity";
+import { DefaultAvatar } from "../../_components/DefaultAvatar";
+import { toast } from "react-toastify";
 
 const GET_RECORDS = gql`
   query GetRecords($address: String!) {
@@ -48,7 +50,17 @@ function UserPage({ params }: { params: { address: string } }) {
     args: [address],
   });
 
-  const { writeContract, data: hash, reset } = useWriteContract();
+  const { writeContract, data: hash, reset, error } = useWriteContract();
+
+  useEffect(() => {
+    if (error) {
+      const message = error.message;
+      const truncatedMessage =
+        message.length > 80 ? message.substring(0, 80) + "..." : message;
+      toast.error(truncatedMessage);
+    }
+  }, [error]);
+
   const { data: receipt } = useWaitForTransactionReceipt({
     hash,
   });
@@ -86,7 +98,16 @@ function UserPage({ params }: { params: { address: string } }) {
     <div className="px-3 md:px-6">
       <div className="flex flex-col items-center py-12 gap-6">
         <div>
-          <Avatar address={address} className="h-24 w-24 rounded-full" />
+          <Avatar
+            address={address}
+            className="h-24 w-24 rounded-full"
+            defaultComponent={
+              <DefaultAvatar seed={address} className="w-24 h-24" />
+            }
+            loadingComponent={
+              <DefaultAvatar seed={address} className="w-24 h-24" />
+            }
+          />
         </div>
         <div className="flex flex-col justify-center items-center">
           <Name

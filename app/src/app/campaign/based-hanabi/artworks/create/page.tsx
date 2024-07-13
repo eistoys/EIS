@@ -8,13 +8,19 @@ import { useWindowSize } from "react-use";
 import { PixelEditor, PixelEditorRef } from "../../_components/PixelEditor";
 import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
 import { eisHanabiAbi } from "../../_lib/eis/abi";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 import { escapeString } from "@/lib/utils";
 import { chunk } from "@/lib/eis/chunk";
 import solady from "solady";
 import { Hex } from "viem";
 import { useSearchParams } from "next/navigation";
 import { gql, useQuery } from "@apollo/client";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { toast } from "react-toastify";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -28,7 +34,8 @@ function CampaignBasedHanabiArtworkCreatePage() {
   const searchParams = useSearchParams();
   const referenceTokenId = searchParams.get("referenceTokenId");
   const [referenceTokenImage, setReferenceTokenImage] = useState("");
-
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const { data: recordQueryData } = useQuery(GET_RECORD, {
     variables: { id: referenceTokenId },
   });
@@ -41,10 +48,13 @@ function CampaignBasedHanabiArtworkCreatePage() {
       recordQueryData.hanabiRecord.uri.split("data:application/json;utf8,")[1]
     );
     setReferenceTokenImage(metadata.image);
-    setUsedReferences((prev) => [
-      ...prev,
-      { tokenId: BigInt(referenceTokenId), image: metadata.image },
-    ]);
+    setUsedReferences((prevReferences) => {
+      const tokenId = BigInt(referenceTokenId);
+      if (prevReferences.some((ref) => ref.tokenId === tokenId)) {
+        return prevReferences;
+      }
+      return [...prevReferences, { tokenId: tokenId, image: metadata.image }];
+    });
   }, [referenceTokenId, recordQueryData]);
 
   const [mode, setMode] = useState<"create" | "info">("create");
@@ -66,7 +76,17 @@ function CampaignBasedHanabiArtworkCreatePage() {
     { tokenId: BigInt; image: string }[]
   >([]);
 
-  const { data: hash, writeContract, reset } = useWriteContract();
+  const { data: hash, writeContract, reset, error } = useWriteContract();
+
+  useEffect(() => {
+    if (error) {
+      const message = error.message;
+      const truncatedMessage =
+        message.length > 80 ? message.substring(0, 80) + "..." : message;
+      toast.error(truncatedMessage);
+      setIsModalOpen(false);
+    }
+  }, [error]);
 
   const { data } = useWaitForTransactionReceipt({
     hash,
@@ -78,8 +98,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
     if (!data) {
       return;
     }
-    console.log("data", data);
-    const event = data.logs[data.logs.length - 1];
+    const event = data.logs[data.logs.length - 2];
     const tokenIdHex = event.topics[1];
     if (!tokenIdHex) {
       return;
@@ -143,6 +162,20 @@ function CampaignBasedHanabiArtworkCreatePage() {
             </div>
 
             <div className="w-full md:w-1/3 justify-center py-12 pl-0 md:pl-12 border-t md:border-l md:border-t-0 border-solid border-[#888888]">
+              <div className="flex gap-2.5 px-px mt-5 text-lg font-bold tracking-wide leading-5 text-red-600 mb-2">
+                <div className="text-lg font-bold tracking-wider text-white">
+                  LICENSE <span className="text-red-600">*</span>
+                </div>
+              </div>
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  className="accent-green-600 mr-4"
+                  checked={isLicenseChecked}
+                  onChange={(e) => setIsLicenseChecked(e.target.checked)}
+                />
+                <div className="text-lg tracking-wide text-white mr-2">CC0</div>
+              </div>
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 TITLE <span className="text-red-600">*</span>
               </div>
@@ -186,7 +219,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
               <div className="text-lg font-bold tracking-wider text-white mb-2">
                 SUPPLY
               </div>
-              <div className="relative flex items-center mb-4">
+              <div className="relative flex items-center">
                 <input
                   type="text"
                   className="text-xl bg-[#191D88] border border-solid border-[#888888] rounded-xl focus:border-[#22CC02] focus:outline-none p-3 text-white w-full text-center px-12"
@@ -194,21 +227,6 @@ function CampaignBasedHanabiArtworkCreatePage() {
                   disabled
                   value={supply}
                 />
-              </div>
-
-              <div className="flex gap-2.5 px-px mt-5 text-lg font-bold tracking-wide leading-5 text-red-600 mb-2">
-                <div className="text-lg font-bold tracking-wider text-white">
-                  LICENSE <span className="text-red-600">*</span>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="accent-green-600 mr-4"
-                  checked={isLicenseChecked}
-                  onChange={(e) => setIsLicenseChecked(e.target.checked)}
-                />
-                <div className="text-lg tracking-wide text-white mr-2">CC0</div>
               </div>
             </div>
           </div>
@@ -222,7 +240,7 @@ function CampaignBasedHanabiArtworkCreatePage() {
         {mode == "info" ? (
           <button
             type="button"
-            className="px-4 font-bold border border-gray-500 text-gray-500 rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wide"
+            className="px-4 font-bold bg-[#888888] text-[#191D88] rounded-2xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
             onClick={() => setMode("create")}
           >
             BACK
@@ -230,44 +248,58 @@ function CampaignBasedHanabiArtworkCreatePage() {
         ) : (
           <div />
         )}
-        <button
-          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 "
-          onClick={() => {
-            if (mode == "create") {
-              setMode("info");
-              if (editorRef.current) {
-                const image = editorRef.current.getImageDataURL();
-                setImageDataURL(image);
-              }
-            } else {
-              reset();
-              setIsModalOpen(true);
-              setModalMode("loading");
-              const escapedTitle = escapeString(title);
-              const escapedDescription = escapeString(description);
-              const base64 = imageDataURL.split(",")[1];
-              const buffer = Buffer.from(base64, "base64");
-              const imageHex = buffer.toString("hex");
-              const zippedHexImage = solady.LibZip.flzCompress(imageHex) as Hex;
-              writeContract({
-                address: EIS_HANABI_ADDRESS,
-                abi: eisHanabiAbi,
-                functionName: "create",
-                args: [
-                  escapedTitle,
-                  escapedDescription,
-                  1,
-                  "image/png",
-                  chunk(zippedHexImage),
-                  usedReferences.map((val) => BigInt(val.tokenId.toString())),
-                  true,
-                ],
-              });
+        {mode == "info" && !isConnected ? (
+          <button
+            className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
+            onClick={openConnectModal}
+          >
+            Connect Wallet
+          </button>
+        ) : (
+          <button
+            className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              mode === "info" && (!isLicenseChecked || !title || !isConnected)
             }
-          }}
-        >
-          COMPLETE
-        </button>
+            onClick={() => {
+              if (mode == "create") {
+                setMode("info");
+                if (editorRef.current) {
+                  const image = editorRef.current.getImageDataURL();
+                  setImageDataURL(image);
+                }
+              } else {
+                reset();
+                setIsModalOpen(true);
+                setModalMode("loading");
+                const escapedTitle = escapeString(title);
+                const escapedDescription = escapeString(description);
+                const base64 = imageDataURL.split(",")[1];
+                const buffer = Buffer.from(base64, "base64");
+                const imageHex = buffer.toString("hex");
+                const zippedHexImage = solady.LibZip.flzCompress(
+                  imageHex
+                ) as Hex;
+                writeContract({
+                  address: EIS_HANABI_ADDRESS,
+                  abi: eisHanabiAbi,
+                  functionName: "create",
+                  args: [
+                    escapedTitle,
+                    escapedDescription,
+                    1,
+                    "image/png",
+                    chunk(zippedHexImage),
+                    usedReferences.map((val) => BigInt(val.tokenId.toString())),
+                    true,
+                  ],
+                });
+              }
+            }}
+          >
+            {mode == "create" ? "COMPLETE" : "CREATE"}
+          </button>
+        )}
       </div>
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">

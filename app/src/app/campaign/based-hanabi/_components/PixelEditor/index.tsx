@@ -5,6 +5,7 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from "react";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -15,8 +16,8 @@ import {
   Pen,
   PaintBucket,
   Eraser,
-  Palette,
-  Dices,
+  Pipette,
+  Shuffle,
 } from "lucide-react";
 import { gql, useQuery } from "@apollo/client";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
@@ -67,12 +68,12 @@ const downloadSize = 256;
 const minZoomFactor = 1;
 const maxZoomFactor = 8;
 const maxLayerCount = 6;
-const maxColorCount = 14;
+const maxColorCount = 8;
 const minimumLength = 320;
 
 const GET_LATEST_RECORDS = gql`
   query GetLatestRecords {
-    hanabiRecords(first: 9, orderBy: tokenId, orderDirection: desc) {
+    hanabiRecords(first: 1000, orderBy: tokenId, orderDirection: desc) {
       tokenId
       creator
       uri
@@ -121,11 +122,13 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     const [gridCanvas, setGridCanvas] = useState<HTMLCanvasElement | null>(
       null
     );
+    const transparentBgCanvasRef = useRef<HTMLCanvasElement>(null);
+
     const [currentColor, setCurrentColor] = useState<string>("#000000");
     const [isDrawing, setIsDrawing] = useState(false);
-    const [mode, setMode] = useState<"pen" | "eraser" | "fill" | "search">(
-      "pen"
-    );
+    const [mode, setMode] = useState<
+      "pen" | "eraser" | "fill" | "search" | "picker"
+    >("pen");
 
     const [gridCount, setGridCount] = useState<number>(64);
     const [pixelSize, setPixelSize] = useState<number>(1);
@@ -165,7 +168,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     const [shouldAddToHistory, setShouldAddToHistory] = useState(false);
 
     const [palettes, setPalettes] = useState({
-      default: [
+      DEFAULT: [
         "#000000",
         "#FFFFFF",
         "#FF0000",
@@ -175,7 +178,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         "#FF00FF",
         "#00FFFF",
       ],
-      gameboy: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"],
+      GAMEBOY: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"],
       "1 Bit Monitor": ["#222323", "#f0f6f0"],
       "TWILIGHT 5": ["#fbbbad", "#ee8695", "#4a7a96", "#333f58", "#292831"],
       "STAR POP": ["#674577", "#64b9ca", "#ffa3d6", "#ffebe5"],
@@ -183,18 +186,43 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       "BLUSH GB": ["#fe9192", "#fcdebe", "#0cc0d4", "#5e5768"],
       FUZZYFOUR: ["#302387", "#ff3796", "#00faac", "#fffdaf"],
       "SOFTSERVE 4": ["#e64270", "#64c1bd", "#ead762", "#e3e6e8"],
-      "Pepe the Frog": [
-        "#55803b",
-        "#54803b",
-        "#292fea",
-        "#cd4c2e",
-        "#170f22",
-        "#557f3c",
-        "#54803c",
-        "#170f24",
+      "PEPE THE FROG": [
+        "#44891A",
+        "#B1D355",
+        "#000000",
+        "#FFFFFF",
+        "#FF3300",
+        "#8B0000",
       ],
-      Doge: ["#ffffff", "#dfcd8d", "#d4c27d", "#dcc690"],
+      DOGE: ["#ffffff", "#dfcd8d", "#d4c27d", "#dcc690"],
     });
+
+    useEffect(() => {
+      if (!transparentBgCanvasRef.current) return;
+      const ctx = transparentBgCanvasRef.current.getContext("2d");
+      if (!ctx) return;
+
+      const tileSize = cellSize * pixelSize;
+      const lightColor = "rgba(255, 255, 255, 1)";
+      const darkColor = "rgba(224, 224, 224, 1)";
+
+      ctx.save();
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.translate(camera.x, camera.y);
+      ctx.scale(camera.zoom, camera.zoom);
+
+      for (let y = 0; y < canvasLength; y += tileSize) {
+        for (let x = 0; x < canvasLength; x += tileSize) {
+          ctx.fillStyle =
+            (Math.floor(x / tileSize) + Math.floor(y / tileSize)) % 2 === 0
+              ? lightColor
+              : darkColor;
+          ctx.fillRect(x, y, tileSize, tileSize);
+        }
+      }
+
+      ctx.restore();
+    }, [canvasLength, camera, cellSize, pixelSize]);
 
     useEffect(() => {
       if (!referenceTokenImage) {
@@ -204,7 +232,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     }, [referenceTokenImage]);
 
     const [selectedPalette, setSelectedPalette] =
-      useState<keyof typeof palettes>("default");
+      useState<keyof typeof palettes>("DEFAULT");
 
     const handleZoomIn = () => {
       setCameraZoomFactor((prev) => Math.min(maxZoomFactor, prev + 1));
@@ -476,12 +504,9 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       let newPixels = [...activeLayer.pixels];
 
       const currentPixel = newPixels.find((p) => p.x === x && p.y === y);
-      const targetColor = currentPixel ? currentPixel.color : "#ffffff";
+      const targetColor = currentPixel ? currentPixel.color : "transparent";
 
-      // let newPixels = [...pixels];
       if (mode === "fill") {
-        const isInitialTransparent = !currentPixel;
-
         const floodFill = (
           x: number,
           y: number,
@@ -504,12 +529,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               (p) => p.x === x && p.y === y
             );
             const pixel = newPixels[pixelIndex];
-            const isTransparent = !pixel || pixel.color === "#ffffff";
 
-            if (
-              (pixel && pixel.color === targetColor) ||
-              (isInitialTransparent && isTransparent)
-            ) {
+            if (!pixel || pixel.color === targetColor) {
               if (pixel) {
                 newPixels[pixelIndex].color = fillColor;
               } else {
@@ -525,22 +546,6 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
         floodFill(x, y, targetColor, currentColor);
       } else {
-        const newPixel = {
-          x,
-          y,
-          color: mode === "eraser" ? "#ffffff" : currentColor,
-        };
-
-        const existingPixelIndex = newPixels.findIndex(
-          (p) => p.x === x && p.y === y
-        );
-
-        if (existingPixelIndex !== -1) {
-          newPixels[existingPixelIndex] = newPixel;
-        } else {
-          newPixels.push(newPixel);
-        }
-
         const cellX = Math.floor(x / cellSize) * cellSize;
         const cellY = Math.floor(y / cellSize) * cellSize;
 
@@ -551,18 +556,24 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
             const existingPenPixelIndex = newPixels.findIndex(
               (p) => p.x === penX && p.y === penY
             );
-            if (existingPenPixelIndex !== -1) {
-              newPixels[existingPenPixelIndex] = {
-                x: penX,
-                y: penY,
-                color: mode === "eraser" ? "#ffffff" : currentColor,
-              };
+            if (mode === "eraser") {
+              if (existingPenPixelIndex !== -1) {
+                newPixels.splice(existingPenPixelIndex, 1);
+              }
             } else {
-              newPixels.push({
-                x: penX,
-                y: penY,
-                color: mode === "eraser" ? "#ffffff" : currentColor,
-              });
+              if (existingPenPixelIndex !== -1) {
+                newPixels[existingPenPixelIndex] = {
+                  x: penX,
+                  y: penY,
+                  color: currentColor,
+                };
+              } else {
+                newPixels.push({
+                  x: penX,
+                  y: penY,
+                  color: currentColor,
+                });
+              }
             }
           }
         }
@@ -590,8 +601,57 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
 
       if (mode === "search") {
         setLastMousePos({ x: clientX, y: clientY });
+      } else if (mode === "picker") {
+        pickColor(x, y);
       } else {
         draw(x, y);
+      }
+    };
+
+    const convertToHex = (color: string): string => {
+      // Helper function to convert a number to a 2-digit hex string
+      const toHex = (num: number): string => {
+        const hex = num.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      };
+
+      // Check if the color is already in #rrggbb format
+      if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+        return color;
+      }
+
+      // Handle rgba format
+      if (color.startsWith("rgba")) {
+        const match = color.match(
+          /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/
+        );
+        if (match) {
+          const r = parseInt(match[1]);
+          const g = parseInt(match[2]);
+          const b = parseInt(match[3]);
+          return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+      }
+
+      // Handle #rrggbbaa format
+      if (/^#[0-9A-Fa-f]{8}$/.test(color)) {
+        return color.slice(0, 7);
+      }
+
+      // If we can't convert, return a default color
+      console.warn(`Unable to convert color: ${color}`);
+      return "#000000";
+    };
+
+    const pickColor = (x: number, y: number) => {
+      const activeLayer = layers.find((layer) => layer.id === activeLayerId);
+      if (!activeLayer) return;
+
+      const pixel = activeLayer.pixels.find((p) => p.x === x && p.y === y);
+      if (pixel) {
+        const hexColor = convertToHex(pixel.color);
+        setCurrentColor(hexColor);
+        setMode("pen"); // Switch back to pen mode after picking a color
       }
     };
 
@@ -899,6 +959,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         return `url(${createSquareCursor()}) ${
           (pixelSize * cameraZoomFactor) / 2
         } ${(pixelSize * cameraZoomFactor) / 2}, auto`;
+      } else if (mode === "picker") {
+        return "crosshair";
       } else {
         return "pointer";
       }
@@ -941,7 +1003,21 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       canvas.height = 32;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.globalAlpha = layer.opacity;
+        // Draw transparent checkerboard background
+        const tileSize = 4; // Size of each checkerboard tile
+        const lightColor = "rgba(255, 255, 255, 1)";
+        const darkColor = "rgba(224, 224, 224, 1)";
+
+        for (let y = 0; y < canvas.height; y += tileSize) {
+          for (let x = 0; x < canvas.width; x += tileSize) {
+            ctx.fillStyle =
+              (x / tileSize + y / tileSize) % 2 === 0 ? lightColor : darkColor;
+            ctx.fillRect(x, y, tileSize, tileSize);
+          }
+        }
+
+        // Draw layer pixels
+        ctx.globalAlpha = layer.opacity / 100;
         layer.pixels.forEach(({ x, y, color }) => {
           ctx.fillStyle = color;
           ctx.fillRect(x / 2, y / 2, 1, 1);
@@ -987,18 +1063,18 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       setShouldAddToHistory(true);
     };
 
-    const insertColor = () => {
-      if (currentColor && !palettes[selectedPalette].includes(currentColor)) {
-        setPalettes((prevPalettes) => {
-          const newPalettes = { ...prevPalettes };
-          newPalettes[selectedPalette] = [
-            ...newPalettes[selectedPalette],
-            currentColor,
-          ];
-          return newPalettes;
-        });
-      }
-    };
+    // const insertColor = () => {
+    //   if (currentColor && !palettes[selectedPalette].includes(currentColor)) {
+    //     setPalettes((prevPalettes) => {
+    //       const newPalettes = { ...prevPalettes };
+    //       newPalettes[selectedPalette] = [
+    //         ...newPalettes[selectedPalette],
+    //         currentColor,
+    //       ];
+    //       return newPalettes;
+    //     });
+    //   }
+    // };
 
     return (
       <>
@@ -1063,8 +1139,8 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   <button
                     onClick={() => setShowMenu(true)}
                     onMouseLeave={() => setShowMenu(false)}
-                    className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
-                      showMenu && "bg-[#337CCF]"
+                    className={`flex items-center justify-center p-1 border rounded-md h-9 w-9 bg-[#337CCF] border border-[#888888] ${
+                      showMenu && "bg-[#337CCF] border border-[#888888]"
                     }`}
                   >
                     <DropIcon fill="white" />
@@ -1078,12 +1154,12 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                         onMouseLeave={() => setShowMenu(false)}
                       />
                       <div
-                        className="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-10"
+                        className="absolute right-0 mt-2 w-40 bg-[#191D88] rounded-md shadow-lg z-10"
                         onMouseEnter={() => setShowMenu(true)}
                         onMouseLeave={() => setShowMenu(false)}
                       >
                         <button
-                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                          className="block w-full py-3 hover:bg-[#337CCF] flex justify-center"
                           onClick={() => {
                             setShowMenu(false);
                             setShowSizeModal(true);
@@ -1093,22 +1169,16 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                         </button>
                         <label
                           htmlFor="file-upload"
-                          className="w-full block py-3 cursor-pointer hover:bg-gray-600 flex justify-center"
+                          className="w-full block py-3 cursor-pointer hover:bg-[#337CCF] flex justify-center"
                         >
                           <FileUpIcon stroke="white" />
                         </label>
 
                         <button
                           onClick={handleDownload}
-                          className="block w-full py-3 hover:bg-gray-700 flex justify-center"
+                          className="block w-full py-3 hover:bg-[#337CCF] flex justify-center"
                         >
                           <FileDownIcon stroke="white" />
-                        </button>
-                        <button
-                          className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
-                          onClick={() => setShowRemixModal(true)}
-                        >
-                          <RemixIcon stroke="#34ED17" />
                         </button>
                       </div>
                     </>
@@ -1117,7 +1187,16 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </div>
             </div>
 
-            <div className="relative mb-5">
+            <div
+              className="relative mb-5"
+              style={{ width: canvasLength, height: canvasLength }}
+            >
+              <canvas
+                ref={transparentBgCanvasRef}
+                width={canvasLength}
+                height={canvasLength}
+                className="absolute top-0 left-0"
+              />
               <canvas
                 ref={canvasRef}
                 width={canvasLength}
@@ -1126,7 +1205,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                 onMouseMove={handleMouseMove}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
-                className="bg-white"
+                className="absolute top-0 left-0"
               />
               <canvas
                 ref={gridCanvasRef}
@@ -1205,27 +1284,22 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className="border-none w-9 h-9"
                 />
                 <button
-                  className={`p-1 border border-gray-200 rounded-md ${
-                    (palettes[selectedPalette].length === maxColorCount ||
-                      palettes[selectedPalette].includes(currentColor)) &&
-                    "opacity-25 cursor-not-allowed h-9 w-9"
+                  onClick={() => setMode("picker")}
+                  className={`flex items-center justify-center p-1 border border-gray-200 rounded-md h-9 w-9 ${
+                    mode === "picker" && "bg-white"
                   }`}
-                  disabled={
-                    palettes[selectedPalette].length === maxColorCount ||
-                    palettes[selectedPalette].includes(currentColor)
-                  }
                 >
-                  <Palette
+                  <Pipette
                     className="text-white"
                     size={24}
-                    onClick={() => insertColor()}
+                    color={mode === "picker" ? "#191D88" : "white"}
                   />
                 </button>
                 <button
-                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
-                  onClick={() => randomizeColor()}
+                  className="p-1 border border-[#FFC90D] rounded-md h-9 w-9"
+                  onClick={() => setShowRemixModal(true)}
                 >
-                  <Dices className="text-white" size={24} />
+                  <RemixIcon />
                 </button>
               </div>
             </div>
@@ -1239,7 +1313,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               <select
                 value={penSize}
                 onChange={(e) => setPenSize(Number(e.target.value))}
-                className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] cursor-pointer"
+                className="pl-1 rounded-md text-sm bg-[#337CCF] border border-[#888888] text-white font-bold h-[52px] cursor-pointer focus:outline-none focus:ring-0"
               >
                 <option value={1}>1x1</option>
                 <option value={2}>2x2</option>
@@ -1248,7 +1322,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </select>
               <div className="space-x-3 flex">
                 <select
-                  className="pl-1 rounded-md text-sm bg-[#337CCF] text-white font-bold h-[52px] w-[88px] cursor-pointer"
+                  className="pl-1 rounded-md text-sm bg-[#337CCF] border border-[#888888] text-white font-bold h-[52px] w-[140px] cursor-pointer focus:outline-none focus:ring-0"
                   value={selectedPalette}
                   onChange={(e) =>
                     setSelectedPalette(e.target.value as keyof typeof palettes)
@@ -1260,7 +1334,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                     </option>
                   ))}
                 </select>
-                <div className="flex flex-col flex-wrap h-[52px] w-[182px]">
+                <div className="flex flex-col flex-wrap h-[52px] w-[106px]">
                   {Array.from({
                     length: Math.ceil(
                       palettes[selectedPalette].length / (maxColorCount / 2)
@@ -1289,7 +1363,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         )}
         {showLayerModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="bg-[#191D88] p-4 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">Layer</h2>
                 <button
@@ -1314,10 +1388,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`flex items-center p-2 mb-2 rounded ${
+                              className={`flex items-center p-2 mb-2 rounded border ${
                                 layer.id === activeLayerId
-                                  ? "bg-white text-black"
-                                  : "bg-gray-700 text-white"
+                                  ? "bg-white border-black"
+                                  : "text-white"
                               }`}
                               onClick={() => {
                                 setActiveLayerId(layer.id);
@@ -1326,7 +1400,11 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                               <img
                                 src={generatePreview(layer)}
                                 alt={layer.name}
-                                className="w-8 h-8 mr-2 border border-gray-800 rounded"
+                                className={`w-8 h-8 mr-2 border rounded ${
+                                  layer.id === activeLayerId
+                                    ? "border-black"
+                                    : ""
+                                }`}
                               />
                               <div className="flex-grow">
                                 <input
@@ -1338,7 +1416,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                                       e.target.value
                                     )
                                   }
-                                  className="bg-gray-600 text-white rounded px-2 py-1 w-24 md:w-40"
+                                  className="border border-gray-800 font-bold bg-gray-200 text-black rounded px-2 py-1 w-24 md:w-40 focus:outline-none focus:ring-0"
                                 />
                               </div>
                               <input
@@ -1389,7 +1467,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
               </DragDropContext>
               <button
                 onClick={addNewLayer}
-                className="w-full py-2 mt-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-25 disabled:cursor-not-allowed"
+                className="w-full py-2 mt-2 font-extrabold border text-white rounded disabled:opacity-25 disabled:cursor-not-allowed"
                 disabled={layers.length === maxLayerCount}
               >
                 +
@@ -1399,7 +1477,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         )}
         {showSizeModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="bg-[#191D88] p-4 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">Canvas</h2>
                 <button
@@ -1418,7 +1496,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className={`font-bold w-full py-2 mt-2  rounded ${
                     gridCount === 16
                       ? "bg-white text-black"
-                      : "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "border text-white"
                   }`}
                 >
                   16 × 16
@@ -1431,7 +1509,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className={`font-bold w-full py-2 mt-2  rounded ${
                     gridCount === 32
                       ? "bg-white text-black"
-                      : "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "border text-white"
                   }`}
                 >
                   32 × 32
@@ -1444,7 +1522,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   className={`font-bold w-full py-2 mt-2  rounded ${
                     gridCount === 64
                       ? "bg-white text-black"
-                      : "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "border text-white"
                   }`}
                 >
                   64 × 64
@@ -1455,7 +1533,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         )}
         {showRemixModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <div className="bg-[#191D88] p-4 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">REMIX</h2>
                 <button
@@ -1465,11 +1543,31 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   &times;
                 </button>
               </div>
-              <div className="text-white tracking-wider text-sm font-bold mb-6">
-                Only the latest 9 images are displayed. Stay tuned for updates!
+              <div className="flex justify-end items-center mb-4">
+                <button
+                  onClick={() => {
+                    if (references.length > 0) {
+                      const randomIndex = Math.floor(
+                        Math.random() * references.length
+                      );
+                      const randomReference = references[randomIndex];
+                      loadImageSrc(randomReference.image);
+                      onRemixTokenSelected(
+                        randomReference.tokenId,
+                        randomReference.image
+                      );
+                      setShowRemixModal(false);
+                    }
+                  }}
+                  className="bg-[#337CCF] text-white px-4 py-2 rounded-md flex items-center"
+                  disabled={references.length === 0}
+                >
+                  <Shuffle className="mr-2" size={20} />
+                  Random
+                </button>
               </div>
               {references.length === 0 && <SpinnerLoader />}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 overflow-y-auto h-[400px]">
                 {references.map((reference, i) => {
                   return (
                     <img
@@ -1482,6 +1580,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                           reference.tokenId,
                           reference.image
                         );
+                        setShowRemixModal(false);
                       }}
                     />
                   );

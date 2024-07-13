@@ -14,17 +14,18 @@ const mockImage =
 
 const GET_LATEST_RECORDS = gql`
   query GetLatestRecords {
-    hanabiRecords(first: 21, orderBy: tokenId, orderDirection: desc) {
+    hanabiRecords(first: 1000, orderBy: tokenId, orderDirection: desc) {
       tokenId
       creator
       uri
+      minted
     }
   }
 `;
 
 const GET_LEADERBOARD_RECORDS = gql`
   query GetLeaderboardRecords {
-    hanabiRecords(first: 100, orderBy: minted, orderDirection: desc) {
+    hanabiRecords(first: 1000, orderBy: minted, orderDirection: desc) {
       tokenId
       creator
       uri
@@ -65,13 +66,11 @@ export default function CampaignBasedHanabiPage() {
     });
   }, [leaderboardData]);
 
-  const [mode, setMode] = useState<"overview" | "leaderBoard" | "submission">(
-    "overview"
-  );
+  const [mode, setMode] = useState<"new" | "trend">("new");
 
   return (
     <div className="py-8">
-      <div className="relative mb-12">
+      <div className="relative mb-24">
         <img
           src="/assets/campaign/based-hanabi/hero-background.svg"
           className="absolute w-full object-cover h-80 md:h-[500px] opacity-20"
@@ -86,95 +85,70 @@ export default function CampaignBasedHanabiPage() {
           </div>
         </div>
       </div>
-      <div className="flex text-sm md:text-base justify-between max-w-md mx-auto mb-12 px-3">
-        <div
-          className={`p-0 md:p-1 font-bold tracking-wider cursor-pointer ${
-            mode === "overview"
-              ? "text-white border-b-2 border-white"
-              : "text-stone-400"
-          }`}
-          onClick={() => setMode("overview")}
-        >
-          OVERVIEW
+      <div className="text-4xl font-extrabold text-center text-white">
+        THEME
+      </div>
+      <div className="w-full max-w-6xl mx-auto flex overflow-x-auto gap-8 px-4 mb-24 py-16">
+        <div className="flex-none w-64 h-80">
+          <ArtworkListItem
+            tokenId="1"
+            image={mockImage}
+            creator={"0xab95e42096Ef6C18eD278f4FcA25754c96E60aae"}
+            minted={0}
+          />
         </div>
-        <div
-          className={`p-0 md:p-1 text-sm md:text-base font-bold tracking-wider cursor-pointer ${
-            mode === "leaderBoard"
-              ? "text-white border-b-2 border-white"
-              : "text-stone-400"
-          }`}
-          onClick={() => setMode("leaderBoard")}
-        >
-          LEADERBOARD
+        <div className="flex-none w-64 h-80">
+          <ArtworkListItem
+            tokenId="1"
+            image={mockImage}
+            creator="consome.eth"
+            minted={0}
+          />
         </div>
-        <div
-          className={`p-0 md:p-1 text-sm md:text-base font-bold tracking-wider cursor-pointer ${
-            mode === "submission"
-              ? "text-white border-b-2 border-white"
-              : "text-stone-400"
-          }`}
-          onClick={() => setMode("submission")}
-        >
-          SUBMISSION
+        <div className="flex-none w-64 h-80">
+          <ArtworkListItem
+            tokenId="1"
+            image={mockImage}
+            creator="consome.eth"
+            minted={0}
+          />
+        </div>
+        <div className="flex-none w-64 h-80">
+          <ArtworkListItem
+            tokenId="1"
+            image={mockImage}
+            creator="consome.eth"
+            minted={0}
+          />
         </div>
       </div>
-      {mode === "overview" && (
-        <div>
-          <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 mb-16">
-            <ArtworkListItem
-              tokenId="1"
-              image={mockImage}
-              creator={"0xab95e42096Ef6C18eD278f4FcA25754c96E60aae"}
-            />
-            <ArtworkListItem
-              tokenId="1"
-              image={mockImage}
-              creator="consome.eth"
-            />
-            <ArtworkListItem
-              tokenId="1"
-              image={mockImage}
-              creator="consome.eth"
-            />
-            <ArtworkListItem
-              tokenId="1"
-              image={mockImage}
-              creator="consome.eth"
-            />
-          </div>
-
-          <div className="w-full max-w-4xl mx-auto px-4 mb-12">
-            <Markdown className={"markdown"}>{basedHanabiDescription}</Markdown>
-          </div>
+      <div className="text-4xl font-extrabold text-center text-white mb-12">
+        GALLERY
+      </div>
+      <div className="flex text-sm md:text-base justify-center max-w-md mx-auto mb-12 px-3 space-x-24">
+        <div
+          className={`p-2 text-sm md:text-base font-bold tracking-wider cursor-pointer ${
+            mode === "new"
+              ? "text-white border-b-2 border-white"
+              : "text-stone-400"
+          }`}
+          onClick={() => setMode("new")}
+        >
+          NEW
         </div>
-      )}
-      {mode === "leaderBoard" && (
-        <div>
-          <div className="w-full max-w-xl mx-auto space-y-16 px-4">
-            {leaderboardRecords.map((record, i) => {
-              return (
-                <div key={i}>
-                  <ArtworkListItemRankingHeader
-                    ranking={i + 1}
-                    title={record.name}
-                    minted={record.minted}
-                  />
-                  <ArtworkListItem
-                    tokenId={record.tokenId}
-                    creator={record.creator}
-                    image={record.image}
-                  />
-                </div>
-              );
-            })}
-          </div>
+        <div
+          className={`p-2 text-sm md:text-base font-bold tracking-wider cursor-pointer ${
+            mode === "trend"
+              ? "text-white border-b-2 border-white"
+              : "text-stone-400"
+          }`}
+          onClick={() => setMode("trend")}
+        >
+          TREND
         </div>
-      )}
-      {mode === "submission" && (
+      </div>
+      {mode === "new" && (
         <div className="tracking-wider">
-          <div className="text-4xl font-extrabold text-center text-white mb-16">
-            Submission
-          </div>
           <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 mb-16">
             {latestRecords.map((record, i) => {
               return (
@@ -183,6 +157,7 @@ export default function CampaignBasedHanabiPage() {
                     tokenId={record.tokenId}
                     creator={record.creator}
                     image={record.image}
+                    minted={record.minted}
                   />
                 </div>
               );
@@ -190,6 +165,27 @@ export default function CampaignBasedHanabiPage() {
           </div>
         </div>
       )}
+      {mode === "trend" && (
+        <div>
+          <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 mb-16">
+            {leaderboardRecords.map((record, i) => {
+              return (
+                <div key={i}>
+                  <ArtworkListItem
+                    tokenId={record.tokenId}
+                    creator={record.creator}
+                    image={record.image}
+                    minted={record.minted}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <div className="w-full max-w-6xl mx-auto px-4 py-12" id="description">
+        <Markdown className={"markdown"}>{basedHanabiDescription}</Markdown>
+      </div>
     </div>
   );
 }

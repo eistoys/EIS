@@ -6,8 +6,10 @@ import { gql, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MintModal } from "../../_components/MintModal";
-import { formatEther } from "viem";
+import { Address as AddressType, formatEther } from "viem";
 import { MINT_PRICE } from "../../_lib/eis/constants";
+import { DefaultAvatar } from "../../_components/DefaultAvatar";
+import { Address, Avatar, Name } from "@coinbase/onchainkit/identity";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -127,15 +129,42 @@ function ViewPage({ params }: { params: { id: string } }) {
                   className="inline-flex"
                   href={`/campaign/based-hanabi/users/${record.creator}`}
                 >
-                  <div className="hover:opacity-80">
-                    <CreatorIdentity address={record.creator} />
+                  <div className="flex items-center mb-6">
+                    <div className="w-8 h-8 rounded-full overflow-hidden mr-3">
+                      <Avatar
+                        address={record.creator as AddressType}
+                        className="h-8 w-8 rounded-full"
+                        defaultComponent={
+                          <DefaultAvatar
+                            seed={record.creator}
+                            className="w-8 h-8"
+                          />
+                        }
+                        loadingComponent={
+                          <DefaultAvatar
+                            seed={record.creator}
+                            className="w-8 h-8"
+                          />
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Name
+                        address={record.creator as AddressType}
+                        className="text-white text-lg font-extrabold"
+                      />
+                      <Address
+                        address={record.creator as AddressType}
+                        className="text-white text-sm"
+                      />
+                    </div>
                   </div>
                 </Link>
                 <div className="py-8 space-y-6">
                   <div className="border-b border-[#888888] pb-9">
                     <div className="flex justify-between items-center mb-4">
                       <div className="text-white text-2xl w-full tracking-wider font-semibold">
-                        {formatEther(MINT_PRICE)} ETH
+                        {formatEther(MINT_PRICE)} ETH / per
                       </div>
                     </div>
                     <button
@@ -229,6 +258,7 @@ function ViewPage({ params }: { params: { id: string } }) {
       )}
       {record && (
         <MintModal
+          setIsOpen={setIsMintModalOpen}
           isOpen={isMintModalOpen}
           close={() => setIsMintModalOpen(false)}
           tokenId={params.id}

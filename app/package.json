@@ -11,6 +11,8 @@
   "dependencies": {
     "@apollo/client": "^3.10.6",
     "@coinbase/onchainkit": "^0.23.1",
+    "@dicebear/collection": "^9.0.1",
+    "@dicebear/core": "^9.0.1",
     "@hello-pangea/dnd": "^16.6.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@svgr/webpack": "^8.1.0",
@@ -21,6 +23,7 @@
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.399.0",
     "next": "14.2.3",
+    "nprogress": "^0.2.0",
     "pino-pretty": "^11.1.0",
     "react": "^18",
     "react-confetti": "^6.1.0",
@@ -35,6 +38,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/nprogress": "^0.2.3",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",

@@ -1,5 +1,10 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ArrowRightLeft } from "lucide-react";
+import { useReadContract } from "wagmi";
+import { eisHanabiAbi } from "../_lib/eis/abi";
+import { EIS_HANABI_ADDRESS } from "../_lib/eis/constants";
+import { Address, formatEther } from "viem";
+import Link from "next/link";
 
 export const ConnectWalletButton = () => {
   return (
@@ -13,6 +18,13 @@ export const ConnectWalletButton = () => {
         authenticationStatus,
         mounted,
       }) => {
+        const { data: balance } = useReadContract({
+          abi: eisHanabiAbi,
+          address: EIS_HANABI_ADDRESS,
+          functionName: "claimableFees",
+          args: [account?.address as Address],
+        });
+
         // Note: If your app doesn't use authentication, you
         // can remove all 'authenticationStatus' checks
         const ready = mounted && authenticationStatus !== "loading";
@@ -63,13 +75,19 @@ export const ConnectWalletButton = () => {
 
               return (
                 <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    onClick={openAccountModal}
-                    type="button"
-                    className="flex justify-center items-center text-center px-4 h-6 md:h-8 text-white border border-2 rounded-full hover:opacity-75 tracking-wider"
+                  <Link
+                    href={`/campaign/based-hanabi/users/${account.address}`}
                   >
-                    {account.displayName}
-                  </button>
+                    <button
+                      type="button"
+                      className="flex justify-center items-center text-center px-4 h-6 md:h-8 text-white bg-[#337CCF] font-bold rounded-full hover:opacity-75 tracking-wider"
+                    >
+                      {balance
+                        ? parseFloat(formatEther(balance)).toFixed(6)
+                        : 0}{" "}
+                      ETH
+                    </button>
+                  </Link>
                 </div>
               );
             })()}
