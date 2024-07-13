@@ -96,7 +96,10 @@ export const Header: React.FC = () => {
             </div>
           </Link>
           <button
-            onClick={() => disconnect()}
+            onClick={() => {
+              disconnect();
+              setIsOpen(false);
+            }}
             className="bg-transparent border-2 border-white rounded-full py-3 mb-8 text-lg font-bold tracking-wider"
           >
             DISCONNECT
