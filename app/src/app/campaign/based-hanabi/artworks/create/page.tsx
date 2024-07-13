@@ -8,13 +8,18 @@ import { useWindowSize } from "react-use";
 import { PixelEditor, PixelEditorRef } from "../../_components/PixelEditor";
 import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
 import { eisHanabiAbi } from "../../_lib/eis/abi";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 import { escapeString } from "@/lib/utils";
 import { chunk } from "@/lib/eis/chunk";
 import solady from "solady";
 import { Hex } from "viem";
 import { useSearchParams } from "next/navigation";
 import { gql, useQuery } from "@apollo/client";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -28,7 +33,8 @@ function CampaignBasedHanabiArtworkCreatePage() {
   const searchParams = useSearchParams();
   const referenceTokenId = searchParams.get("referenceTokenId");
   const [referenceTokenImage, setReferenceTokenImage] = useState("");
-
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const { data: recordQueryData } = useQuery(GET_RECORD, {
     variables: { id: referenceTokenId },
   });
@@ -229,44 +235,55 @@ function CampaignBasedHanabiArtworkCreatePage() {
         ) : (
           <div />
         )}
-        <button
-          className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
-          onClick={() => {
-            if (mode == "create") {
-              setMode("info");
-              if (editorRef.current) {
-                const image = editorRef.current.getImageDataURL();
-                setImageDataURL(image);
+        {mode == "info" && !isConnected ? (
+          <button
+            className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
+            onClick={openConnectModal}
+          >
+            Connect Wallet
+          </button>
+        ) : (
+          <button
+            className="text-center px-8 py-2 font-bold text-[#191D88] bg-[#FFD582] rounded-xl hover:opacity-75 transition-opacity duration-300 tracking-wider"
+            onClick={() => {
+              if (mode == "create") {
+                setMode("info");
+                if (editorRef.current) {
+                  const image = editorRef.current.getImageDataURL();
+                  setImageDataURL(image);
+                }
+              } else {
+                reset();
+                setIsModalOpen(true);
+                setModalMode("loading");
+                const escapedTitle = escapeString(title);
+                const escapedDescription = escapeString(description);
+                const base64 = imageDataURL.split(",")[1];
+                const buffer = Buffer.from(base64, "base64");
+                const imageHex = buffer.toString("hex");
+                const zippedHexImage = solady.LibZip.flzCompress(
+                  imageHex
+                ) as Hex;
+                writeContract({
+                  address: EIS_HANABI_ADDRESS,
+                  abi: eisHanabiAbi,
+                  functionName: "create",
+                  args: [
+                    escapedTitle,
+                    escapedDescription,
+                    1,
+                    "image/png",
+                    chunk(zippedHexImage),
+                    usedReferences.map((val) => BigInt(val.tokenId.toString())),
+                    true,
+                  ],
+                });
               }
-            } else {
-              reset();
-              setIsModalOpen(true);
-              setModalMode("loading");
-              const escapedTitle = escapeString(title);
-              const escapedDescription = escapeString(description);
-              const base64 = imageDataURL.split(",")[1];
-              const buffer = Buffer.from(base64, "base64");
-              const imageHex = buffer.toString("hex");
-              const zippedHexImage = solady.LibZip.flzCompress(imageHex) as Hex;
-              writeContract({
-                address: EIS_HANABI_ADDRESS,
-                abi: eisHanabiAbi,
-                functionName: "create",
-                args: [
-                  escapedTitle,
-                  escapedDescription,
-                  1,
-                  "image/png",
-                  chunk(zippedHexImage),
-                  usedReferences.map((val) => BigInt(val.tokenId.toString())),
-                  true,
-                ],
-              });
-            }
-          }}
-        >
-          COMPLETE
-        </button>
+            }}
+          >
+            {mode == "create" ? "COMPLETE" : "CREATE"}
+          </button>
+        )}
       </div>
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-25 backdrop-blur-sm">

@@ -4,13 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount, useReadContract, useDisconnect } from "wagmi";
-import {
-  IoClose,
-  IoMenu,
-  IoHome,
-  IoLogoTwitter,
-  IoLogoGithub,
-} from "react-icons/io5";
+import { IoClose, IoMenu, IoLogoGithub } from "react-icons/io5";
 import { ConnectWalletButton } from "./ConnectWalletButton";
 import { Address, Avatar, Name } from "@coinbase/onchainkit/identity";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
