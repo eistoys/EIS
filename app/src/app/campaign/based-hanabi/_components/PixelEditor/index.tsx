@@ -1102,12 +1102,6 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                         >
                           <FileDownIcon stroke="white" />
                         </button>
-                        <button
-                          className="block w-full py-3 hover:bg-gray-700 flex justify-center text-white font-bold"
-                          onClick={() => setShowRemixModal(true)}
-                        >
-                          <RemixIcon stroke="#34ED17" />
-                        </button>
                       </div>
                     </>
                   )}
@@ -1220,10 +1214,10 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   />
                 </button>
                 <button
-                  className="p-1 border border-gray-200 rounded-md h-9 w-9"
-                  onClick={() => randomizeColor()}
+                  className="p-1 border border-[#FFC90D] rounded-md h-9 w-9"
+                  onClick={() => setShowRemixModal(true)}
                 >
-                  <Dices className="text-white" size={24} />
+                  <RemixIcon />
                 </button>
               </div>
             </div>
