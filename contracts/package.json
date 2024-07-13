@@ -3,6 +3,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.8",
     "hardhat": "^2.22.4",
     "prettier": "^3.2.5",
     "prettier-plugin-solidity": "^1.3.1"
