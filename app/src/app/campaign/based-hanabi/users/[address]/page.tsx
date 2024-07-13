@@ -15,6 +15,7 @@ import Link from "next/link";
 
 import { Avatar, Name } from "@coinbase/onchainkit/identity";
 import { DefaultAvatar } from "../../_components/DefaultAvatar";
+import { toast } from "react-toastify";
 
 const GET_RECORDS = gql`
   query GetRecords($address: String!) {
@@ -49,7 +50,17 @@ function UserPage({ params }: { params: { address: string } }) {
     args: [address],
   });
 
-  const { writeContract, data: hash, reset } = useWriteContract();
+  const { writeContract, data: hash, reset, error } = useWriteContract();
+
+  useEffect(() => {
+    if (error) {
+      const message = error.message;
+      const truncatedMessage =
+        message.length > 80 ? message.substring(0, 80) + "..." : message;
+      toast.error(truncatedMessage);
+    }
+  }, [error]);
+
   const { data: receipt } = useWaitForTransactionReceipt({
     hash,
   });
