@@ -98,7 +98,11 @@ function CampaignBasedHanabiArtworkCreatePage() {
     if (!data) {
       return;
     }
-    const event = data.logs[data.logs.length - 2];
+    const [event] = data.logs.filter(
+      (log) =>
+        log.topics[0] ===
+        "0x1d7b926079bb4859082b228aba22de714d0353236d39b39308748de221150153"
+    );
     const tokenIdHex = event.topics[1];
     if (!tokenIdHex) {
       return;
