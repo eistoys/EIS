@@ -15,9 +15,8 @@ import {
   Pen,
   PaintBucket,
   Eraser,
-  Palette,
-  Dices,
   Pipette,
+  Shuffle,
 } from "lucide-react";
 import { gql, useQuery } from "@apollo/client";
 import { SpinnerLoader } from "@/components/SpinnerLoader";
@@ -73,7 +72,7 @@ const minimumLength = 320;
 
 const GET_LATEST_RECORDS = gql`
   query GetLatestRecords {
-    hanabiRecords(first: 9, orderBy: tokenId, orderDirection: desc) {
+    hanabiRecords(first: 1000, orderBy: tokenId, orderDirection: desc) {
       tokenId
       creator
       uri
@@ -1504,11 +1503,31 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                   &times;
                 </button>
               </div>
-              <div className="text-white tracking-wider text-sm font-bold mb-6">
-                Only the latest 9 images are displayed. Stay tuned for updates!
+              <div className="flex justify-end items-center mb-4">
+                <button
+                  onClick={() => {
+                    if (references.length > 0) {
+                      const randomIndex = Math.floor(
+                        Math.random() * references.length
+                      );
+                      const randomReference = references[randomIndex];
+                      loadImageSrc(randomReference.image);
+                      onRemixTokenSelected(
+                        randomReference.tokenId,
+                        randomReference.image
+                      );
+                      setShowRemixModal(false);
+                    }
+                  }}
+                  className="bg-[#337CCF] text-white px-4 py-2 rounded-md flex items-center"
+                  disabled={references.length === 0}
+                >
+                  <Shuffle className="mr-2" size={20} />
+                  Random Remix
+                </button>
               </div>
               {references.length === 0 && <SpinnerLoader />}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 overflow-y-auto h-[400px]">
                 {references.map((reference, i) => {
                   return (
                     <img
