@@ -8,9 +8,9 @@ dataSources:
     name: EISHanabi
     network: base
     source:
-      address: "0x7f6db16c9b3236fd91c9746bc14377e3166c0927"
+      address: "0xe7a00ba7dfd68118c4fa3fdc618167f389e9d0b4"
       abi: EISHanabi
-      startBlock: 17038462
+      startBlock: 17044442
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

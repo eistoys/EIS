@@ -131,7 +131,11 @@ contract EISHanabi is ERC1155 {
         }
     }
 
-    function mint(uint256 tokenId, uint256 amount) public payable {
+    function mint(
+        uint256 tokenId,
+        uint256 amount,
+        uint256 gasLimit
+    ) public payable {
         require(!isEnded, "EIS: ended");
 
         require(
@@ -147,8 +151,17 @@ contract EISHanabi is ERC1155 {
             uint256 creatorFee
         ) = getDividedFeesFromTotalMintFee(totalMintFee);
 
-        payable(protocolOwnerAddress).transfer(protocolFee);
-        payable(collectionOwnerAddress).transfer(collectionOwnerFee);
+        (bool successProtocol, ) = protocolOwnerAddress.call{
+            value: protocolFee,
+            gas: gasLimit
+        }("");
+        require(successProtocol, "EIS:Transfer to protocol owner failed");
+
+        (bool successCollection, ) = collectionOwnerAddress.call{
+            value: collectionOwnerFee,
+            gas: gasLimit
+        }("");
+        require(successCollection, "EIS:Transfer to collection owner failed");
 
         if (records[tokenId].referenceTokenIds.length > 0) {
             uint256 originalCreatorFee = (creatorFee * remixFeeBasisPoints) /
@@ -177,12 +190,13 @@ contract EISHanabi is ERC1155 {
         _mint(_msgSender(), tokenId, amount, "");
     }
 
-    function claimFees() public {
+    function claimFees(uint256 gasLimit) public {
         address creator = _msgSender();
         uint256 amount = claimableFees[creator];
         require(amount > 0, "EIS: no fees to claim");
         claimableFees[creator] = 0;
-        payable(creator).transfer(amount);
+        (bool success, ) = creator.call{value: amount, gas: gasLimit}("");
+        require(success, "EIS:Transfer to creator failed");
     }
 
     function transferProtocolOwner(address newAddress) public {

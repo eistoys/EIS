@@ -18,9 +18,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://sepolia.base.org",
-        blockNumber: 11591880, // Jun-21-2024 06:40:48 AM +UTC
-        enabled: false,
+        url: "https://mainnet.base.org",
+        enabled: true,
       },
     },
     sepolia: {
