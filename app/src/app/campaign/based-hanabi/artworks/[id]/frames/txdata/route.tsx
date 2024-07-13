@@ -3,7 +3,10 @@ import { Abi, encodeFunctionData } from "viem";
 import { NextRequest, NextResponse } from "next/server";
 import { TransactionTargetResponse } from "frames.js";
 import { eisHanabiAbi } from "@/app/campaign/based-hanabi/_lib/eis/abi";
-import { EIS_HANABI_ADDRESS } from "@/app/campaign/based-hanabi/_lib/eis/constants";
+import {
+  EIS_HANABI_ADDRESS,
+  GAS_LIMIT,
+} from "@/app/campaign/based-hanabi/_lib/eis/constants";
 
 export async function POST(
   req: NextRequest
@@ -18,7 +21,7 @@ export async function POST(
   const calldata = encodeFunctionData({
     abi: eisHanabiAbi,
     functionName: "mint",
-    args: [BigInt(tokenId), BigInt(1)],
+    args: [BigInt(tokenId), BigInt(1), GAS_LIMIT],
   });
 
   return NextResponse.json({

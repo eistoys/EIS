@@ -9,7 +9,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import { EIS_HANABI_ADDRESS } from "../../_lib/eis/constants";
+import { EIS_HANABI_ADDRESS, GAS_LIMIT } from "../../_lib/eis/constants";
 import { eisHanabiAbi } from "../../_lib/eis/abi";
 import Link from "next/link";
 
@@ -126,7 +126,7 @@ function UserPage({ params }: { params: { address: string } }) {
                   abi: eisHanabiAbi,
                   address: EIS_HANABI_ADDRESS,
                   functionName: "claimFees",
-                  args: [],
+                  args: [GAS_LIMIT],
                 });
               }}
             >
