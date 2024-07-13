@@ -165,7 +165,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     const [shouldAddToHistory, setShouldAddToHistory] = useState(false);
 
     const [palettes, setPalettes] = useState({
-      default: [
+      DEFAULT: [
         "#000000",
         "#FFFFFF",
         "#FF0000",
@@ -175,7 +175,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         "#FF00FF",
         "#00FFFF",
       ],
-      gameboy: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"],
+      GAMEBOY: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"],
       "1 Bit Monitor": ["#222323", "#f0f6f0"],
       "TWILIGHT 5": ["#fbbbad", "#ee8695", "#4a7a96", "#333f58", "#292831"],
       "STAR POP": ["#674577", "#64b9ca", "#ffa3d6", "#ffebe5"],
@@ -183,17 +183,15 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
       "BLUSH GB": ["#fe9192", "#fcdebe", "#0cc0d4", "#5e5768"],
       FUZZYFOUR: ["#302387", "#ff3796", "#00faac", "#fffdaf"],
       "SOFTSERVE 4": ["#e64270", "#64c1bd", "#ead762", "#e3e6e8"],
-      "Pepe the Frog": [
-        "#55803b",
-        "#54803b",
-        "#292fea",
-        "#cd4c2e",
-        "#170f22",
-        "#557f3c",
-        "#54803c",
-        "#170f24",
+      "PEPE THE FROG": [
+        "#44891A",
+        "#B1D355",
+        "#000000",
+        "#FFFFFF",
+        "#FF3300",
+        "#8B0000",
       ],
-      Doge: ["#ffffff", "#dfcd8d", "#d4c27d", "#dcc690"],
+      DOGE: ["#ffffff", "#dfcd8d", "#d4c27d", "#dcc690"],
     });
 
     useEffect(() => {
@@ -204,7 +202,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
     }, [referenceTokenImage]);
 
     const [selectedPalette, setSelectedPalette] =
-      useState<keyof typeof palettes>("default");
+      useState<keyof typeof palettes>("DEFAULT");
 
     const handleZoomIn = () => {
       setCameraZoomFactor((prev) => Math.min(maxZoomFactor, prev + 1));
