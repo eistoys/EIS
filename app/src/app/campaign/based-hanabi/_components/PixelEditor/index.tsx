@@ -1480,6 +1480,7 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
                           reference.tokenId,
                           reference.image
                         );
+                        setShowRemixModal(false);
                       }}
                     />
                   );
