@@ -58,6 +58,7 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
         </Link>
       </div>
       <MintModal
+        setIsOpen={setIsMintModalOpen}
         isOpen={isMintModalOpen}
         close={() => setIsMintModalOpen(false)}
         tokenId={tokenId}

@@ -20,6 +20,7 @@ import { Hex } from "viem";
 import { useSearchParams } from "next/navigation";
 import { gql, useQuery } from "@apollo/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { toast } from "react-toastify";
 
 const GET_RECORD = gql`
   query GetRecord($id: ID!) {
@@ -72,7 +73,17 @@ function CampaignBasedHanabiArtworkCreatePage() {
     { tokenId: BigInt; image: string }[]
   >([]);
 
-  const { data: hash, writeContract, reset } = useWriteContract();
+  const { data: hash, writeContract, reset, error } = useWriteContract();
+
+  useEffect(() => {
+    if (error) {
+      const message = error.message;
+      const truncatedMessage =
+        message.length > 80 ? message.substring(0, 80) + "..." : message;
+      toast.error(truncatedMessage);
+      setIsModalOpen(false);
+    }
+  }, [error]);
 
   const { data } = useWaitForTransactionReceipt({
     hash,

@@ -4,6 +4,7 @@ import { Montserrat } from "next/font/google";
 import { Header } from "./_components/Header";
 import { Providers } from "./providers";
 import { Metadata } from "next";
+import { ToastContainer } from "@/components/ToastContainer";
 
 const montserrat = Montserrat({
   weight: ["400", "600", "700", "900"],
@@ -42,6 +43,7 @@ export default function CampaignBasedHanabLayout({
       >
         <Header />
         <div className="flex flex-col flex-grow">{children}</div>
+        <ToastContainer />
       </div>
     </Providers>
   );

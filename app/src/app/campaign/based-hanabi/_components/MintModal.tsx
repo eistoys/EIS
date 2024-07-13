@@ -6,16 +6,19 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { eisHanabiAbi } from "../_lib/eis/abi";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
+import { toast } from "react-toastify";
 
 const defaultMode = "ask";
 const defaultAmount = 1;
 
 export const MintModal = ({
+  setIsOpen,
   isOpen,
   close,
   tokenId,
   image,
 }: {
+  setIsOpen: any;
   isOpen: boolean;
   close: any;
   tokenId: string;
@@ -43,7 +46,17 @@ export const MintModal = ({
     }
   }, [isOpen]);
 
-  const { data: hash, writeContract, reset } = useWriteContract();
+  const { data: hash, writeContract, reset, error } = useWriteContract();
+
+  useEffect(() => {
+    if (error) {
+      const message = error.message;
+      const truncatedMessage =
+        message.length > 80 ? message.substring(0, 80) + "..." : message;
+      toast.error(truncatedMessage);
+      setIsOpen(false);
+    }
+  }, [error]);
 
   const { data } = useWaitForTransactionReceipt({
     hash,

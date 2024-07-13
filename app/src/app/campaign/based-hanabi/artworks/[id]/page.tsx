@@ -246,6 +246,7 @@ function ViewPage({ params }: { params: { id: string } }) {
       )}
       {record && (
         <MintModal
+          setIsOpen={setIsMintModalOpen}
           isOpen={isMintModalOpen}
           close={() => setIsMintModalOpen(false)}
           tokenId={params.id}
