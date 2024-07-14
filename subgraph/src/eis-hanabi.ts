@@ -10,7 +10,11 @@ import {
 import { HanabiRecord } from "../generated/schema";
 
 export function handleCreated(event: CreatedEvent): void {
-  let entity = new HanabiRecord(event.params.tokenId.toString());
+  let entity = HanabiRecord.load(event.params.tokenId.toString());
+  if (entity == null) {
+    entity = new HanabiRecord(event.params.tokenId.toString());
+    entity.minted = 0;
+  }
 
   let contract = ESIHanabiContract.bind(event.address);
   entity.tokenId = event.params.tokenId;
@@ -20,7 +24,6 @@ export function handleCreated(event: CreatedEvent): void {
     value.toString()
   );
   entity.referedFrom = [];
-  entity.minted = 0;
   entity.name = event.params.record.name;
   entity.description = event.params.record.description;
 
