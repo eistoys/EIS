@@ -10,7 +10,11 @@ import {
 import { HanabiRecord } from "../generated/schema";
 
 export function handleCreated(event: CreatedEvent): void {
-  let entity = new HanabiRecord(event.params.tokenId.toString());
+  let entity = HanabiRecord.load(event.params.tokenId.toString());
+  if (entity == null) {
+    entity = new HanabiRecord(event.params.tokenId.toString());
+    entity.minted = 0;
+  }
 
   let contract = ESIHanabiContract.bind(event.address);
   entity.tokenId = event.params.tokenId;
@@ -20,7 +24,6 @@ export function handleCreated(event: CreatedEvent): void {
     value.toString()
   );
   entity.referedFrom = [];
-  entity.minted = 0;
   entity.name = event.params.record.name;
   entity.description = event.params.record.description;
 
@@ -45,7 +48,19 @@ function registerTransfer(
   tokenId: BigInt,
   value: i32
 ): void {
-  let entity = HanabiRecord.load(tokenId.toString())!;
+  let entity = HanabiRecord.load(tokenId.toString());
+  if (entity == null) {
+    // Initialize a new entity if it does not exist
+    entity = new HanabiRecord(tokenId.toString());
+    entity.tokenId = tokenId;
+    entity.creator = Address.zero(); // Assuming a default value
+    entity.uri = "";
+    entity.referTo = [];
+    entity.referedFrom = [];
+    entity.minted = 0;
+    entity.name = "";
+    entity.description = "";
+  }
   if (from == constants.ADDRESS_ZERO) {
     entity.minted = entity.minted + value;
   }
