@@ -45,13 +45,15 @@ export default function CampaignBasedHanabiPage() {
     if (!latestData) {
       return [];
     }
-    return latestData.hanabiRecords.map((record: any) => {
-      return {
-        image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
-          .image,
-        ...record,
-      };
-    });
+    return latestData.hanabiRecords
+      .filter((r: any) => r.uri)
+      .map((record: any) => {
+        return {
+          image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
+            .image,
+          ...record,
+        };
+      });
   }, [latestData]);
 
   const featuredRecords = useMemo<Record[]>(() => {
@@ -96,6 +98,7 @@ export default function CampaignBasedHanabiPage() {
       ];
     }
     return latestData.hanabiRecords
+      .filter((r: any) => r.uri)
       .filter((record: any) => featuredTokenId.includes(record.tokenId))
       .reverse()
       .map((record: any) => {
@@ -111,13 +114,15 @@ export default function CampaignBasedHanabiPage() {
     if (!leaderboardData) {
       return [];
     }
-    return leaderboardData.hanabiRecords.map((record: any) => {
-      return {
-        image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
-          .image,
-        ...record,
-      };
-    });
+    return leaderboardData.hanabiRecords
+      .filter((r: any) => r.uri)
+      .map((record: any) => {
+        return {
+          image: JSON.parse(record.uri.split("data:application/json;utf8,")[1])
+            .image,
+          ...record,
+        };
+      });
   }, [leaderboardData]);
 
   const [mode, setMode] = useState<"new" | "trend">("new");

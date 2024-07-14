@@ -45,7 +45,19 @@ function registerTransfer(
   tokenId: BigInt,
   value: i32
 ): void {
-  let entity = HanabiRecord.load(tokenId.toString())!;
+  let entity = HanabiRecord.load(tokenId.toString());
+  if (entity == null) {
+    // Initialize a new entity if it does not exist
+    entity = new HanabiRecord(tokenId.toString());
+    entity.tokenId = tokenId;
+    entity.creator = Address.zero(); // Assuming a default value
+    entity.uri = "";
+    entity.referTo = [];
+    entity.referedFrom = [];
+    entity.minted = 0;
+    entity.name = "";
+    entity.description = "";
+  }
   if (from == constants.ADDRESS_ZERO) {
     entity.minted = entity.minted + value;
   }
