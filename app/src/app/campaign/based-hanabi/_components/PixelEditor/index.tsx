@@ -97,14 +97,16 @@ export const PixelEditor = forwardRef<PixelEditorRef, PixelEditorProps>(
         return;
       }
       setReferences(
-        latestData.hanabiRecords.map((record: any) => {
-          return {
-            tokenId: BigInt(record.tokenId),
-            image: JSON.parse(
-              record.uri.split("data:application/json;utf8,")[1]
-            ).image,
-          };
-        })
+        latestData.hanabiRecords
+          .filter((r: any) => r.uri)
+          .map((record: any) => {
+            return {
+              tokenId: BigInt(record.tokenId),
+              image: JSON.parse(
+                record.uri.split("data:application/json;utf8,")[1]
+              ).image,
+            };
+          })
       );
     }, [latestData]);
 
