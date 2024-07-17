@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MintModal } from "./MintModal";
-import { useState } from "react";
-import { truncateString } from "@/lib/utils";
+import { useMemo, useState } from "react";
+
 import { Avatar, Name } from "@coinbase/onchainkit/identity";
 import { Address as AddressType } from "viem";
 import { DefaultAvatar } from "./DefaultAvatar";
@@ -19,22 +19,39 @@ export const ArtworkListItem: React.FC<ArtworkListItemProps> = ({
   image,
   minted,
 }) => {
+  const avatar = useMemo(() => {
+    if (creator == "0x4298e663517593284ad4fe199b21815bd48a9969") {
+      return "/assets/campaign/based-hanabi/theme/gremplin.webp";
+    } else if (creator == "0xd42bd96b117dd6bd63280620ea981bf967a7ad2b") {
+      return "/assets/campaign/based-hanabi/theme/numo.jpg";
+    } else if (creator == "0xd3fc370863024a24a71f11e44b69bc869e0fbbee") {
+      return "/assets/campaign/based-hanabi/theme/mae.png";
+    } else if (creator == "0xe53ad2e73a2ba78cba846e3a96a62b75ee1c113a") {
+      return "/assets/campaign/based-hanabi/theme/ta2nb.jpg";
+    } else if (creator == "0x8869e7b48e33c5f1fffb0f15f6084c7b438d6371") {
+      return "/assets/campaign/based-hanabi/theme/eboy.jpg";
+    }
+  }, [creator]);
+
   const [isMintModalOpen, setIsMintModalOpen] = useState(false);
 
   return (
     <div>
       <Link href={`/campaign/based-hanabi/users/${creator}`}>
         <div className="flex space-x-3 font-semibold text-white items-center mb-2">
-          <Avatar
-            address={creator as AddressType}
-            defaultComponent={
-              <DefaultAvatar seed={creator} className="w-6 h-6" />
-            }
-            loadingComponent={
-              <DefaultAvatar seed={creator} className="w-6 h-6" />
-            }
-            className="w-6 h-6"
-          />
+          {!avatar && (
+            <Avatar
+              address={creator as AddressType}
+              defaultComponent={
+                <DefaultAvatar seed={creator} className="w-6 h-6" />
+              }
+              loadingComponent={
+                <DefaultAvatar seed={creator} className="w-6 h-6" />
+              }
+              className="w-6 h-6"
+            />
+          )}
+          {avatar && <img src={avatar} className="w-6 h-6 rounded-full" />}
           <Name
             address={creator as AddressType}
             className="text-white text-lg font-extrabold"

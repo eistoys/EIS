@@ -94,20 +94,37 @@ function UserPage({ params }: { params: { address: string } }) {
   const displayBalance =
     parseFloat(formattedBalance) < 0.000001 ? 0 : formattedBalance;
 
+  const avatar = useMemo(() => {
+    if (address == "0x4298e663517593284ad4fe199b21815bd48a9969") {
+      return "/assets/campaign/based-hanabi/theme/gremplin.webp";
+    } else if (address == "0xd42bd96b117dd6bd63280620ea981bf967a7ad2b") {
+      return "/assets/campaign/based-hanabi/theme/numo.jpg";
+    } else if (address == "0xd3fc370863024a24a71f11e44b69bc869e0fbbee") {
+      return "/assets/campaign/based-hanabi/theme/mae.png";
+    } else if (address == "0xe53ad2e73a2ba78cba846e3a96a62b75ee1c113a") {
+      return "/assets/campaign/based-hanabi/theme/ta2nb.jpg";
+    } else if (address == "0x8869e7b48e33c5f1fffb0f15f6084c7b438d6371") {
+      return "/assets/campaign/based-hanabi/theme/eboy.jpg";
+    }
+  }, [address]);
+
   return (
     <div className="px-3 md:px-6">
       <div className="flex flex-col items-center py-12 gap-6">
         <div>
-          <Avatar
-            address={address}
-            className="h-24 w-24 rounded-full"
-            defaultComponent={
-              <DefaultAvatar seed={address} className="w-24 h-24" />
-            }
-            loadingComponent={
-              <DefaultAvatar seed={address} className="w-24 h-24" />
-            }
-          />
+          {!avatar && (
+            <Avatar
+              address={address}
+              className="h-24 w-24 rounded-full"
+              defaultComponent={
+                <DefaultAvatar seed={address} className="w-24 h-24" />
+              }
+              loadingComponent={
+                <DefaultAvatar seed={address} className="w-24 h-24" />
+              }
+            />
+          )}
+          {avatar && <img src={avatar} className="w-24 h-24 rounded-full" />}
         </div>
         <div className="flex flex-col justify-center items-center">
           <Name
