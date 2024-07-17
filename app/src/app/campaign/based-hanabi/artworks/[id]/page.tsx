@@ -88,6 +88,28 @@ function ViewPage({ params }: { params: { id: string } }) {
     return result;
   }, [recordsQueryData]);
 
+  const avatar = useMemo(() => {
+    if (record?.creator == "0x4298e663517593284ad4fe199b21815bd48a9969") {
+      return "/assets/campaign/based-hanabi/theme/gremplin.webp";
+    } else if (
+      record?.creator == "0xd42bd96b117dd6bd63280620ea981bf967a7ad2b"
+    ) {
+      return "/assets/campaign/based-hanabi/theme/numo.jpg";
+    } else if (
+      record?.creator == "0xd3fc370863024a24a71f11e44b69bc869e0fbbee"
+    ) {
+      return "/assets/campaign/based-hanabi/theme/mae.png";
+    } else if (
+      record?.creator == "0xe53ad2e73a2ba78cba846e3a96a62b75ee1c113a"
+    ) {
+      return "/assets/campaign/based-hanabi/theme/ta2nb.jpg";
+    } else if (
+      record?.creator == "0x8869e7b48e33c5f1fffb0f15f6084c7b438d6371"
+    ) {
+      return "/assets/campaign/based-hanabi/theme/eboy.jpg";
+    }
+  }, [record?.creator]);
+
   return (
     <>
       {record && (
@@ -131,22 +153,27 @@ function ViewPage({ params }: { params: { id: string } }) {
                 >
                   <div className="flex items-center mb-6">
                     <div className="w-8 h-8 rounded-full overflow-hidden mr-3">
-                      <Avatar
-                        address={record.creator as AddressType}
-                        className="h-8 w-8 rounded-full"
-                        defaultComponent={
-                          <DefaultAvatar
-                            seed={record.creator}
-                            className="w-8 h-8"
-                          />
-                        }
-                        loadingComponent={
-                          <DefaultAvatar
-                            seed={record.creator}
-                            className="w-8 h-8"
-                          />
-                        }
-                      />
+                      {!avatar && (
+                        <Avatar
+                          address={record.creator as AddressType}
+                          className="h-8 w-8 rounded-full"
+                          defaultComponent={
+                            <DefaultAvatar
+                              seed={record.creator}
+                              className="w-8 h-8"
+                            />
+                          }
+                          loadingComponent={
+                            <DefaultAvatar
+                              seed={record.creator}
+                              className="w-8 h-8"
+                            />
+                          }
+                        />
+                      )}
+                      {avatar && (
+                        <img src={avatar} className="w-8 h-8 rounded-full" />
+                      )}
                     </div>
                     <div>
                       <Name
