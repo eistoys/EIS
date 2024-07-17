@@ -119,8 +119,6 @@ export default function CampaignBasedHanabiPage() {
       });
   }, [latestData]);
 
-  console.log("featuredRecords", featuredRecords);
-
   const leaderboardRecords = useMemo<Record[]>(() => {
     if (!leaderboardData) {
       return [];
@@ -158,20 +156,22 @@ export default function CampaignBasedHanabiPage() {
       <div className="text-4xl font-extrabold text-center text-white">
         THEME
       </div>
-      <div className="w-full max-w-6xl mx-auto flex overflow-x-auto gap-8 px-4 mb-24 py-16">
-        {featuredRecords.length > 0 &&
-          featuredRecords.map((record, i) => {
-            return (
-              <div className="flex-none w-64 h-80" key={i}>
-                <ArtworkListItem
-                  tokenId={record.tokenId}
-                  image={record.image}
-                  creator={record.creator}
-                  minted={record.minted}
-                />
-              </div>
-            );
-          })}
+      <div className="w-full mx-auto flex justify-center">
+        <div className="mx-auto flex overflow-x-auto gap-8 px-4 h-[480px] bg-gray mb-24 items-center">
+          {featuredRecords.length > 0 &&
+            featuredRecords.map((record, i) => {
+              return (
+                <div className="flex-none w-60" key={i}>
+                  <ArtworkListItem
+                    tokenId={record.tokenId}
+                    image={record.image}
+                    creator={record.creator}
+                    minted={record.minted}
+                  />
+                </div>
+              );
+            })}
+        </div>
       </div>
       <div className="text-4xl font-extrabold text-center text-white mb-12">
         GALLERY
